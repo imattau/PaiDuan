@@ -39,3 +39,12 @@ curl -F "file=@video.mp4" -F "poster=@poster.jpg" https://nostr.media/api/upload
 ```
 
 The response returns `video` and `poster` URLs that can be used in a kind 30023 event.
+
+## Comments & replies
+
+Videos support threaded discussions. Comments and replies are plain Nostr kind 1
+events tagged with the video's event id using an `e` tag. Replies include an
+additional `e` tag for the parent event id and a `p` tag for the parent
+pubkey. The web client opens a drawer from the bottom half of the screen where
+users can read the thread, post comments or replies, and see updates in real
+time.
