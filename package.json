@@ -5,7 +5,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "vitest run"
   },
   "packageManager": "pnpm@10.5.2",
   "devDependencies": {
@@ -14,6 +15,7 @@
     "eslint-config-turbo": "^2.0.0",
     "prettier": "^3.2.5",
     "turbo": "^2.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
   }
 }
