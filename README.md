@@ -48,3 +48,14 @@ additional `e` tag for the parent event id and a `p` tag for the parent
 pubkey. The web client opens a drawer from the bottom half of the screen where
 users can read the thread, post comments or replies, and see updates in real
 time.
+
+## Feed modes
+
+The feed supports three modes:
+
+* **For You** – shows all recent videos.
+* **Following** – filters to events authored by pubkeys in the local following list.
+* **Tags** – displays popular `t` tags from recent videos and lets you explore by hashtag.
+
+The following list is populated from the browser's `localStorage`. A helper
+`follow(pubkey)` is available in `useFollowing` to add new authors.
