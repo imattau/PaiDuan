@@ -12,6 +12,8 @@ pnpm dev
 The development server starts the Next.js web app at <http://localhost:3000>.
 Visit <http://localhost:3000/feed> for the swipeable video feed demo.
 
+Client-side video trimming relies on [`@ffmpeg/ffmpeg`](https://github.com/ffmpegwasm/ffmpeg.wasm) and toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
+
 ## Tests
 
 ```bash
@@ -27,6 +29,8 @@ The feed includes a floating upload button that opens a three‑step wizard:
 1. Select or record a short clip (MP4/WebM, ≤3 min)
 2. Trim the clip and capture a poster frame
 3. Add a caption, upload the assets, and publish a NIP‑23 note
+
+Publishing now includes an optional `['zap', <lnaddr>]` tag when a Lightning address is available.
 
 For manual testing of the upload endpoint you can use cURL:
 

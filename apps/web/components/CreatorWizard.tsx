@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Range, getTrackBackground } from 'react-range';
 import { SimplePool } from 'nostr-tools';
 import { VideoCardProps } from './VideoCard';
+import { trimVideo } from '../utils/trimVideo';
+import { toast } from 'react-hot-toast';
 
 interface CreatorWizardProps {
   onClose: () => void;
@@ -24,6 +26,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
   const [caption, setCaption] = useState('');
   const [progress, setProgress] = useState(0);
   const [publishing, setPublishing] = useState(false);
+  const [trimming, setTrimming] = useState(false);
 
   const handleFile = (blob: Blob) => {
     const url = URL.createObjectURL(blob);
@@ -58,7 +61,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
       recorder.start();
       setRecording(true);
     } catch (err) {
-      alert('Unable to access camera');
+      toast.error('Unable to access camera');
     }
   };
 
@@ -73,9 +76,11 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
     if (!video) return;
     const onLoaded = () => {
       if (video.duration > MAX_DURATION) {
-        alert('Video must be 3 minutes or less');
+        toast.error('Video must be 3 minutes or less');
         setFile(null);
         setVideoUrl('');
+        setPosterBlob(null);
+        setPosterUrl('');
         return;
       }
       setDuration(video.duration);
@@ -130,7 +135,10 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
     if (!file) return;
     try {
       setPublishing(true);
-      const uploadRes = await upload(file, posterBlob || undefined);
+      const uploadRes = await upload(file, posterBlob || undefined).catch((err) => {
+        toast.error('Upload failed');
+        throw err;
+      });
       const pool = new SimplePool();
       const event: any = {
         kind: 30023,
@@ -142,6 +150,10 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         ],
         content: '',
       };
+      const lnaddr = localStorage.getItem('lnaddr');
+      if (lnaddr) {
+        event.tags.push(['zap', lnaddr]);
+      }
       const nostr = (window as any).nostr;
       if (!nostr) throw new Error('nostr extension required');
       const signed = await nostr.signEvent(event);
@@ -152,19 +164,35 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         author: 'you',
         caption,
         eventId: signed.id,
-        lightningAddress: '',
+        lightningAddress: lnaddr || '',
         pubkey: signed.pubkey,
         zapTotal: 0,
         onLike: () => console.log('like'),
       };
       onPublished(newItem);
-      alert('Video published');
+      toast.success('Video published');
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Publish failed');
+      toast.error('Publish failed');
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const handleNext = async () => {
+    if (!file) return;
+    try {
+      setTrimming(true);
+      const trimmed = await trimVideo(file, range[0], range[1]);
+      setFile(trimmed);
+      setVideoUrl(URL.createObjectURL(trimmed));
+      setStep(2);
+    } catch (err) {
+      console.error(err);
+      toast.error('Trim failed');
+    } finally {
+      setTrimming(false);
     }
   };
 
@@ -232,10 +260,14 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         {posterUrl && <img src={posterUrl} className="h-16" />}
       </div>
       <button
-        onClick={() => setStep(2)}
-        className="rounded bg-green-500 px-4 py-2 text-white"
+        onClick={handleNext}
+        disabled={!posterBlob || trimming}
+        className="flex items-center justify-center rounded bg-green-500 px-4 py-2 text-white disabled:opacity-50"
       >
-        Next
+        {trimming && (
+          <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+        )}
+        {trimming ? 'Trimming...' : 'Next'}
       </button>
     </div>
   );
@@ -257,8 +289,11 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
       <button
         disabled={publishing}
         onClick={publish}
-        className="rounded bg-green-500 px-4 py-2 text-white disabled:opacity-50"
+        className="flex items-center justify-center rounded bg-green-500 px-4 py-2 text-white disabled:opacity-50"
       >
+        {publishing && (
+          <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+        )}
         {publishing ? 'Publishing...' : 'Publish'}
       </button>
     </div>
