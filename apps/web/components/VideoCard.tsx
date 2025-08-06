@@ -3,6 +3,7 @@ import ReactPlayer from 'react-player';
 import { Heart, MessageCircle } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
+import CommentDrawer from './CommentDrawer';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -32,6 +33,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [playing, setPlaying] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
   const holdTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
 
@@ -113,8 +116,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <button onClick={onLike} className="text-white">
           <Heart />
         </button>
-        <button className="text-white">
+        <button className="relative text-white" onClick={() => setCommentsOpen(true)}>
           <MessageCircle />
+          {commentCount > 0 && (
+            <span className="absolute -right-2 -top-2 text-xs">{commentCount}</span>
+          )}
         </button>
         <ZapButton
           lightningAddress={lightningAddress}
@@ -141,6 +147,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           {seekPreview.toFixed(1)}s
         </div>
       </animated.div>
+      <CommentDrawer
+        videoId={eventId}
+        open={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+        onCountChange={setCommentCount}
+      />
     </div>
   );
 };
