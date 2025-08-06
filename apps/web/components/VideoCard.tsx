@@ -1,0 +1,140 @@
+import React, { useRef, useState } from 'react';
+import ReactPlayer from 'react-player';
+import { Heart, MessageCircle, Zap } from 'lucide-react';
+import { useGesture, useSpring, animated } from '@paiduan/ui';
+
+export interface VideoCardProps {
+  videoUrl: string;
+  posterUrl?: string;
+  author: string;
+  caption: string;
+  eventId: string;
+  onLike: () => void;
+  onZap: () => void;
+}
+
+export const VideoCard: React.FC<VideoCardProps> = ({
+  videoUrl,
+  posterUrl,
+  author,
+  caption,
+  eventId,
+  onLike,
+  onZap,
+}) => {
+  const playerRef = useRef<ReactPlayer>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [playing, setPlaying] = useState(true);
+  const [speedMode, setSpeedMode] = useState(false);
+  const [seekPreview, setSeekPreview] = useState(0);
+  const holdTimer = useRef<number>();
+  const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
+
+  const bind = useGesture(
+    {
+      onDrag: ({ down, movement: [mx] }) => {
+        if (!speedMode) return;
+        const delta = (mx / 60) * 3;
+        setSeekPreview(delta);
+        if (!down) {
+          const video = playerRef.current?.getInternalPlayer() as HTMLVideoElement;
+          if (video) {
+            video.currentTime = Math.max(0, video.currentTime + delta);
+          }
+          setSeekPreview(0);
+          api.start({ opacity: 0 });
+        } else {
+          api.start({ opacity: 1 });
+        }
+      },
+    },
+    { drag: { axis: 'x', filterTaps: true } },
+  );
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const isBottom = rect ? e.clientY > rect.top + rect.height * 0.75 : false;
+    holdTimer.current = window.setTimeout(() => {
+      if (isBottom) {
+        const video = playerRef.current?.getInternalPlayer() as HTMLVideoElement;
+        if (video) {
+          video.playbackRate = 2;
+        }
+        setSpeedMode(true);
+      } else {
+        setPlaying(false);
+      }
+    }, 250);
+  };
+
+  const handlePointerUp = () => {
+    clearTimeout(holdTimer.current);
+    if (speedMode) {
+      const video = playerRef.current?.getInternalPlayer() as HTMLVideoElement;
+      if (video) {
+        video.playbackRate = 1;
+      }
+      setSpeedMode(false);
+      api.start({ opacity: 0 });
+      setSeekPreview(0);
+    }
+    setPlaying(true);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative h-screen w-screen overflow-hidden bg-black text-white"
+      onDoubleClick={onLike}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      {...bind()}
+    >
+      <ReactPlayer
+        ref={playerRef}
+        url={videoUrl}
+        playing={playing}
+        loop
+        muted
+        playsinline
+        width="100%"
+        height="100%"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        config={{ file: { attributes: { poster: posterUrl } } }}
+      />
+
+      <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
+        <button onClick={onLike} className="text-white">
+          <Heart />
+        </button>
+        <button className="text-white">
+          <MessageCircle />
+        </button>
+        <button onClick={onZap} className="text-white">
+          <Zap />
+        </button>
+      </div>
+
+      <div className="absolute bottom-0 left-0 w-full p-4 flex items-center space-x-3">
+        <div className="h-10 w-10 rounded-full bg-gray-500" />
+        <div>
+          <div className="font-semibold">@{author}</div>
+          <div className="text-sm">{caption}</div>
+        </div>
+      </div>
+
+      <animated.div
+        style={{ opacity }}
+        className="absolute bottom-1/4 left-0 right-0 h-1 bg-white/50"
+      >
+        <div className="absolute left-1/2 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
+        <div className="absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-black/50 px-1 text-xs">
+          {seekPreview.toFixed(1)}s
+        </div>
+      </animated.div>
+    </div>
+  );
+};
+
+export default VideoCard;

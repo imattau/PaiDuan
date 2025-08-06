@@ -5,6 +5,8 @@
   "types": "src/index.ts",
   "private": true,
   "peerDependencies": {
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "@react-spring/web": "^9.7.2",
+    "react-use-gesture": "^9.1.3"
   }
 }
