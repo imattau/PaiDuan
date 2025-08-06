@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Feed from '../components/Feed';
 import { VideoCardProps } from '../components/VideoCard';
+import UploadButton from '../components/UploadButton';
+import CreatorWizard from '../components/CreatorWizard';
 
-const items: VideoCardProps[] = [
+const initialItems: VideoCardProps[] = [
   {
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     author: 'bunny',
@@ -36,5 +38,23 @@ const items: VideoCardProps[] = [
 ];
 
 export default function FeedPage() {
-  return <Feed items={items} />;
+  const [items, setItems] = useState<VideoCardProps[]>(initialItems);
+  const [showWizard, setShowWizard] = useState(false);
+
+  const handlePublished = (item: VideoCardProps) => {
+    setItems((prev) => [item, ...prev]);
+  };
+
+  return (
+    <>
+      <Feed items={items} />
+      <UploadButton onClick={() => setShowWizard(true)} />
+      {showWizard && (
+        <CreatorWizard
+          onClose={() => setShowWizard(false)}
+          onPublished={handlePublished}
+        />
+      )}
+    </>
+  );
 }
