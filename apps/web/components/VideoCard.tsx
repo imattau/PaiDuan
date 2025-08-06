@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
-import { Heart, MessageCircle, Zap } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
+import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 
 export interface VideoCardProps {
@@ -9,8 +10,10 @@ export interface VideoCardProps {
   author: string;
   caption: string;
   eventId: string;
+  lightningAddress: string;
+  pubkey: string;
+  zapTotal?: number;
   onLike: () => void;
-  onZap: () => void;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({
@@ -19,8 +22,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   author,
   caption,
   eventId,
+  lightningAddress,
+  pubkey,
+  zapTotal,
   onLike,
-  onZap,
 }) => {
   const playerRef = useRef<ReactPlayer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -111,9 +116,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <button className="text-white">
           <MessageCircle />
         </button>
-        <button onClick={onZap} className="text-white">
-          <Zap />
-        </button>
+        <ZapButton
+          lightningAddress={lightningAddress}
+          eventId={eventId}
+          pubkey={pubkey}
+          total={zapTotal}
+        />
       </div>
 
       <div className="absolute bottom-0 left-0 w-full p-4 flex items-center space-x-3">
