@@ -19,3 +19,19 @@ pnpm test
 ```
 
 The lightning zap flow can be tested with a wallet such as [Alby](https://getalby.com) running in testnet mode or an [LNbits](https://lnbits.com) instance.
+
+## Uploading a video
+
+The feed includes a floating upload button that opens a three‑step wizard:
+
+1. Select or record a short clip (MP4/WebM, ≤3 min)
+2. Trim the clip and capture a poster frame
+3. Add a caption, upload the assets, and publish a NIP‑23 note
+
+For manual testing of the upload endpoint you can use cURL:
+
+```bash
+curl -F "file=@video.mp4" -F "poster=@poster.jpg" https://nostr.media/api/upload
+```
+
+The response returns `video` and `poster` URLs that can be used in a kind 30023 event.
