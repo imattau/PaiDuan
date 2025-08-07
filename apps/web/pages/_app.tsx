@@ -62,5 +62,11 @@ MyApp.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext);
   const locale = (appContext.router?.query?.locale as string) || 'en';
   const messages = (await import(`../locales/${locale}/common.json`)).default;
-  return { ...appProps, pageProps: { ...appProps.pageProps, messages } };
+  return {
+    ...appProps,
+    pageProps: {
+      ...appProps.pageProps,
+      messages: { common: messages },
+    },
+  };
 };
