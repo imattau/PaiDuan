@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, Share2 } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
 import Link from 'next/link';
 import { SimplePool } from 'nostr-tools';
 import useFollowing from '../hooks/useFollowing';
+import toast from 'react-hot-toast';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -44,6 +45,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [avatar, setAvatar] = useState('');
   const [displayName, setDisplayName] = useState(author);
   const isFollowing = following.includes(pubkey);
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/v/${eventId}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Link copied');
+  };
 
   useEffect(() => {
     const pool = new SimplePool();
@@ -153,6 +160,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           pubkey={pubkey}
           total={zapTotal}
         />
+        <button onClick={handleShare} className="text-white">
+          <Share2 />
+        </button>
       </div>
 
       <div className="absolute bottom-0 left-0 w-full p-4">

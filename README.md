@@ -67,3 +67,16 @@ name, bio, follower count and recent videos. Viewers can follow or unfollow a
 creator from this page or by using the Follow button shown under videos in the
 feed. The following list and follower counts are persisted in the browser's
 `localStorage`.
+
+## Search & sharing
+
+The top navigation includes a search bar that lets you look up videos and creators.
+
+* `@creator` – search by display name or other metadata.
+* `#tag` – filter videos by hashtag.
+* plain text – matches caption text, tags and creator bios.
+
+Search results link directly to profile pages (`/p/<pubkey>`) and stand-alone
+video pages (`/v/<id>`). Every video card also has a Share button that copies
+the full URL (e.g. `<origin>/v/<id>`) to the clipboard. Tags can be shared via
+`/feed?tag=<tag>`.
