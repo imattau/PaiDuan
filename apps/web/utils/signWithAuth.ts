@@ -1,17 +1,28 @@
-import { signEvent as localSign } from 'nostr-tools';
+import { signEvent as localSign } from 'nostr-tools'
+import { useRemoteSigner } from '../hooks/useRemoteSigner'
 
 export async function signWithAuth(
   event: any,
-  authCtx: { auth: any; privkeyHex?: string | null }
+  authCtx: { auth: any; privkeyHex?: string | null; bump?: () => void }
 ) {
   if (authCtx?.auth?.method === 'nip07' && (window as any)?.nostr?.signEvent) {
-    return await (window as any).nostr.signEvent(event);
+    const signed = await (window as any).nostr.signEvent(event)
+    authCtx.bump?.()
+    return signed
+  }
+  if (authCtx?.auth?.method === 'remote') {
+    const { sign } = await useRemoteSigner(authCtx.auth.relay, authCtx.auth.pubkey)
+    const signed = await sign(event)
+    authCtx.bump?.()
+    return signed
   }
   if (authCtx?.privkeyHex) {
-    return localSign(event, authCtx.privkeyHex);
+    const signed = localSign(event, authCtx.privkeyHex)
+    authCtx.bump?.()
+    return signed
   }
   throw new Error(
-    'Locked or public-only. Unlock with your passphrase or connect a NIP-07 signer.'
-  );
+    'Can’t sign yet. Unlock with your passphrase or connect a NIP-07 signer.'
+  )
 }
 

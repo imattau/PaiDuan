@@ -18,6 +18,7 @@ type UnlockCtx = {
   unlock: (pass: string) => Promise<void>;
   lock: () => void;
   setAuth: (a: AuthState | null) => void;
+  bump: () => void;
 };
 
 const AuthContext = createContext<UnlockCtx>({} as any);
@@ -55,6 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (timer.current) window.clearTimeout(timer.current);
   }
 
+  function bump() {
+    if (privkeyHex) startAutoLock()
+  }
+
   const value = useMemo(
     () => ({
       auth,
@@ -67,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPrivkeyHex(null);
         setAuth(a);
       },
+      bump,
     }),
     [auth, privkeyHex]
   );

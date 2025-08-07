@@ -52,6 +52,8 @@ export function useNostrAuth() {
     const pubkey = getPublicKey(privHex);
     const pass = prompt('Set a passphrase to encrypt your key');
     if (!pass) return;
+    if (pass.length < 8) throw new Error('Passphrase must be at least 8 characters');
+    if (pass.length < 12) alert('Warning: short passphrases are easier to guess');
     const encPriv = await encryptPrivkeyHex(privHex, pass);
     saveKey({ method: 'manual', pubkey, encPriv });
     window.location.href = '/feed';
@@ -60,6 +62,8 @@ export function useNostrAuth() {
   async function generateKey() {
     const pass = prompt('Set a passphrase to encrypt your new key');
     if (!pass) return;
+    if (pass.length < 8) throw new Error('Passphrase must be at least 8 characters');
+    if (pass.length < 12) alert('Warning: short passphrases are easier to guess');
     const privHex = bytesToHex(generateSecretKey());
     const pubkey = getPublicKey(privHex);
     const encPriv = await encryptPrivkeyHex(privHex, pass);

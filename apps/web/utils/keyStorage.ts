@@ -1,6 +1,7 @@
 export type AuthState =
   | { method: 'nip07'; pubkey: string }
   | { method: 'public'; pubkey: string }
+  | { method: 'remote'; pubkey: string; relay: string }
   | {
       method: 'manual' | 'generated';
       pubkey: string;
