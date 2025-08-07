@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SimplePool, Event as NostrEvent } from 'nostr-tools';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
-import { X } from 'lucide-react';
+import { X, MoreVertical } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { trackEvent } from '../utils/analytics';
+import ReportModal from './ReportModal';
+import { ADMIN_PUBKEYS } from '../utils/admin';
 
 interface CommentDrawerProps {
   videoId: string;
@@ -24,6 +26,10 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   const [events, setEvents] = useState<NostrEvent[]>([]);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState<NostrEvent | null>(null);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportTarget, setReportTarget] = useState<string>('');
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   const [{ y }, api] = useSpring(() => ({ y: 100 }));
 
@@ -66,11 +72,50 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
     };
   }, [videoId]);
 
+  // fetch reports to hide comments
+  const loadReports = () => {
+    fetch('/api/modqueue')
+      .then((r) => r.json())
+      .then((data: any[]) => {
+        const counts: Record<string, Set<string>> = {};
+        const hidden = new Set<string>();
+        data
+          .filter((r) => r.targetKind === 'comment')
+          .forEach((r) => {
+            counts[r.targetId] = counts[r.targetId] || new Set();
+            counts[r.targetId].add(r.reporterPubKey);
+            if (ADMIN_PUBKEYS.includes(r.reporterPubKey)) hidden.add(r.targetId);
+          });
+        Object.entries(counts).forEach(([id, set]) => {
+          if (set.size >= 3) hidden.add(id);
+        });
+        setHiddenIds(hidden);
+      })
+      .catch(() => undefined);
+  };
+
+  useEffect(() => {
+    loadReports();
+    const listener = () => loadReports();
+    window.addEventListener('modqueue', listener);
+    const pool = poolRef.current as any;
+    const sub = pool.sub(relays, [{ kinds: [9001] }]);
+    sub.on('event', (ev: any) => {
+      const tag = ev.tags.find((t: string[]) => t[0] === 'e');
+      if (tag) setHiddenIds((prev) => new Set(prev).add(tag[1]));
+    });
+    return () => {
+      window.removeEventListener('modqueue', listener);
+      sub.unsub();
+    };
+  }, []);
+
   // Update count of top level comments
   useEffect(() => {
     const top = events.filter((e) => !e.tags.some((t) => t[0] === 'p'));
-    onCountChange?.(top.length);
-  }, [events, onCountChange]);
+    const visible = top.filter((e) => !hiddenIds.has(e.id));
+    onCountChange?.(visible.length);
+  }, [events, onCountChange, hiddenIds]);
 
   const send = async () => {
     if (!input.trim()) return;
@@ -120,6 +165,15 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       repliesMap[parent[1]] = [...(repliesMap[parent[1]] || []), ev];
     }
   });
+  const visibleTop = topLevel.filter((c) => !hiddenIds.has(c.id));
+  const visibleReplies = replies.filter((c) => !hiddenIds.has(c.id));
+  const visibleMap: Record<string, NostrEvent[]> = {};
+  visibleReplies.forEach((ev) => {
+    const parent = ev.tags.find((t) => t[0] === 'e' && t[1] !== videoId);
+    if (parent) {
+      visibleMap[parent[1]] = [...(visibleMap[parent[1]] || []), ev];
+    }
+  });
 
   return (
     <animated.div
@@ -134,33 +188,71 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
         </button>
       </div>
       <div className="h-[calc(50vh-88px)] overflow-y-auto p-4 space-y-4">
-        {topLevel.map((c) => (
+        {visibleTop.map((c) => (
           <div key={c.id}>
             <div className="flex items-start space-x-2">
               <div className="h-8 w-8 rounded-full bg-foreground/20" />
-              <div>
+              <div className="flex-1">
                 <div className="text-sm font-semibold">@{c.pubkey.slice(0, 8)}</div>
                 <div className="text-sm">{c.content}</div>
                 <div className="text-xs text-foreground/50">
                   {new Date(c.created_at * 1000).toLocaleString()}
                 </div>
-                <button className="text-xs text-accent" onClick={() => setReplyTo(c)}>
+                <button className="text-xs text-accent mr-2" onClick={() => setReplyTo(c)}>
                   Reply
                 </button>
               </div>
+              <div className="relative">
+                <button onClick={() => setMenuFor(c.id)} className="p-1 text-foreground/50">
+                  <MoreVertical size={16} />
+                </button>
+                {menuFor === c.id && (
+                  <div className="absolute right-0 mt-1 w-24 rounded bg-background p-1 shadow">
+                    <button
+                      className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-foreground/10"
+                      onClick={() => {
+                        setMenuFor(null);
+                        setReportTarget(c.id);
+                        setReportOpen(true);
+                      }}
+                    >
+                      Report
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-            {repliesMap[c.id]?.map((r) => (
+            {visibleMap[c.id]?.map((r) => (
               <div key={r.id} className="mt-2 ml-8 flex items-start space-x-2">
                 <div className="h-6 w-6 rounded-full bg-foreground/20" />
-                <div>
+                <div className="flex-1">
                   <div className="text-sm font-semibold">@{r.pubkey.slice(0, 8)}</div>
                   <div className="text-sm">{r.content}</div>
                   <div className="text-xs text-foreground/50">
                     {new Date(r.created_at * 1000).toLocaleString()}
                   </div>
-                  <button className="text-xs text-accent" onClick={() => setReplyTo(r)}>
+                  <button className="text-xs text-accent mr-2" onClick={() => setReplyTo(r)}>
                     Reply
                   </button>
+                </div>
+                <div className="relative">
+                  <button onClick={() => setMenuFor(r.id)} className="p-1 text-foreground/50">
+                    <MoreVertical size={16} />
+                  </button>
+                  {menuFor === r.id && (
+                    <div className="absolute right-0 mt-1 w-24 rounded bg-background p-1 shadow">
+                      <button
+                        className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-foreground/10"
+                        onClick={() => {
+                          setMenuFor(null);
+                          setReportTarget(r.id);
+                          setReportOpen(true);
+                        }}
+                      >
+                        Report
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -185,6 +277,12 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
           disabled={!open}
         />
       </div>
+      <ReportModal
+        targetId={reportTarget}
+        targetKind="comment"
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+      />
     </animated.div>
   );
 };

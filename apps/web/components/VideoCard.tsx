@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreVertical } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
+import ReportModal from './ReportModal';
 import Link from 'next/link';
 import { SimplePool } from 'nostr-tools';
 import useFollowing from '../hooks/useFollowing';
@@ -51,6 +52,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [displayName, setDisplayName] = useState(author);
   const isFollowing = following.includes(pubkey);
   const online = useOffline();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const handleShare = () => {
     const url = `${window.location.origin}/v/${eventId}`;
@@ -151,6 +154,25 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         config={{ file: { attributes: { poster: posterUrl } } }}
       />
 
+      <div className="absolute right-4 top-4">
+        <button onClick={() => setMenuOpen((o) => !o)} className="hover:text-accent">
+          <MoreVertical />
+        </button>
+        {menuOpen && (
+          <div className="absolute right-0 mt-2 w-24 rounded bg-background p-1 shadow">
+            <button
+              className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-foreground/10"
+              onClick={() => {
+                setMenuOpen(false);
+                setReportOpen(true);
+              }}
+            >
+              Report
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
         <button onClick={onLike} className="hover:text-accent">
           <Heart />
@@ -213,6 +235,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         open={commentsOpen}
         onClose={() => setCommentsOpen(false)}
         onCountChange={setCommentCount}
+      />
+      <ReportModal
+        targetId={eventId}
+        targetKind="video"
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
       />
     </div>
   );

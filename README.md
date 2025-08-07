@@ -38,6 +38,20 @@ Open the app and choose **Install** (or **Add to Home Screen**) to install it.
 pnpm test
 ```
 
+## Moderation & reports
+
+Users can flag inappropriate videos or comments via the **⋮** menu on each item. Reports include a reason and optional notes and are published as Nostr kind 30041 events. When an item receives three unique reports, or if reported by an admin, it is hidden from public feeds pending review.
+
+Moderators with a matching `ADMIN_PUBKEY` cookie can visit `/admin/modqueue` to review open reports. From there they may **Approve** a video or **Remove** it, which publishes a hide event (kind 9001) so the content stays filtered.
+
+A weekly transparency summary can be generated with:
+
+```bash
+pnpm run cron:summary
+```
+
+The script outputs a kind 9002 event noting total reports and actions for the week.
+
 The lightning zap flow can be tested with a wallet such as [Alby](https://getalby.com) running in testnet mode or an [LNbits](https://lnbits.com) instance.
 
 ## Uploading a video

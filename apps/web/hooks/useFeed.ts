@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
 import { VideoCardProps } from '../components/VideoCard';
+import { ADMIN_PUBKEYS } from '../utils/admin';
 
 export type FeedMode = { type: 'all' } | { type: 'following'; authors: string[] } | { type: 'tag'; tag: string };
 
@@ -30,6 +31,51 @@ export function useFeed(mode: FeedMode): FeedResult {
   const [tags, setTags] = useState<string[]>([]);
   const poolRef = useRef<SimplePool>();
   const subRef = useRef<{ unsub: () => void } | null>(null);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const hiddenRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    hiddenRef.current = hiddenIds;
+  }, [hiddenIds]);
+
+  const loadReports = () => {
+    fetch('/api/modqueue')
+      .then((r) => r.json())
+      .then((data: any[]) => {
+        const counts: Record<string, Set<string>> = {};
+        const hidden = new Set<string>();
+        data
+          .filter((r) => r.targetKind === 'video')
+          .forEach((r) => {
+            counts[r.targetId] = counts[r.targetId] || new Set();
+            counts[r.targetId].add(r.reporterPubKey);
+            if (ADMIN_PUBKEYS.includes(r.reporterPubKey)) hidden.add(r.targetId);
+          });
+        Object.entries(counts).forEach(([id, set]) => {
+          if (set.size >= 3) hidden.add(id);
+        });
+        setHiddenIds(hidden);
+      })
+      .catch(() => undefined);
+  };
+
+  // load reports & hide events
+  useEffect(() => {
+    loadReports();
+    const listener = () => loadReports();
+    window.addEventListener('modqueue', listener);
+
+    const pool = (poolRef.current ||= new SimplePool());
+    const relays = relayList();
+    const sub = pool.sub(relays, [{ kinds: [9001] }]);
+    sub.on('event', (ev: any) => {
+      const tag = ev.tags.find((t: string[]) => t[0] === 'e');
+      if (tag) setHiddenIds((prev) => new Set(prev).add(tag[1]));
+    });
+    return () => {
+      window.removeEventListener('modqueue', listener);
+      sub.unsub();
+    };
+  }, []);
 
   useEffect(() => {
     const pool = (poolRef.current ||= new SimplePool());
@@ -54,6 +100,7 @@ export function useFeed(mode: FeedMode): FeedResult {
     const tagCounts: Record<string, number> = {};
 
     sub.on('event', (event: NostrEvent) => {
+      if (hiddenRef.current.has(event.id)) return;
       const videoTag = event.tags.find((t) => t[0] === 'v');
       if (!videoTag) return;
       const posterTag = event.tags.find((t) => t[0] === 'image');
