@@ -24,11 +24,11 @@ export function AuthLockControls() {
   return (
     <div className="flex items-center gap-2">
       {auth.isUnlocked ? (
-        <button onClick={auth.lock} disabled={busy} className="btn-outline">
+        <button onClick={auth.lock} disabled={busy} className="btn btn-secondary">
           Lock
         </button>
       ) : (
-        <button onClick={unlock} disabled={busy} className="btn-outline">
+        <button onClick={unlock} disabled={busy} className="btn btn-secondary">
           Unlock
         </button>
       )}

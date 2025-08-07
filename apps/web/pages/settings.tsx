@@ -48,7 +48,7 @@ export default function Settings() {
         <KeysCard />
 
         <Card title="Appearance" desc="Theme and accent colour.">
-          <button onClick={toggleMode} className="btn-secondary">
+          <button onClick={toggleMode} className="btn btn-secondary">
             {mode === 'dark' ? t('switch_to_light') : t('switch_to_dark')}
           </button>
           <div className="flex flex-wrap gap-2 pt-2">
@@ -69,7 +69,7 @@ export default function Settings() {
         </Card>
 
         <Card title="Storage" desc="Local caches and data.">
-          <button onClick={clearStorage} className="btn-secondary">
+          <button onClick={clearStorage} className="btn btn-secondary">
             {t('clear_cached_data')}
           </button>
         </Card>
@@ -116,7 +116,7 @@ export default function Settings() {
               clearKey();
               window.location.href = '/';
             }}
-            className="btn-secondary"
+            className="btn btn-secondary"
           >
             🔓 Logout / Reset Identity
           </button>

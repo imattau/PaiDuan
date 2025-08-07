@@ -1,77 +1,73 @@
-'use client';
-import { useEffect, useRef, useState } from 'react';
+'use client'
+import { useEffect, useRef, useState } from 'react'
 
-// NOTE: we will lazy-load @ffmpeg/ffmpeg in the browser only
-type FF = {
-  createFFmpeg: (opts?: any) => any;
-  fetchFile: (f: File | string | Uint8Array) => Promise<Uint8Array>;
-};
+type FF = { createFFmpeg: (opts?: any) => any; fetchFile: (f: any) => Promise<Uint8Array> }
 
 export default function CreatePage() {
-  const ffmpegRef = useRef<any | null>(null);
-  const fetchFileRef = useRef<FF['fetchFile'] | null>(null);
+  const ffmpegRef = useRef<any | null>(null)
+  const fetchFileRef = useRef<FF['fetchFile'] | null>(null)
 
-  const [ready, setReady] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false)
+  const [processing, setProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [processedBlob, setProcessedBlob] = useState<Blob | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [processedBlob, setProcessedBlob] = useState<Blob | null>(null)
+  const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (typeof window === 'undefined') return; // guard SSR
+    let cancelled = false
+    ;(async () => {
+      if (typeof window === 'undefined') return
       try {
-        const { createFFmpeg, fetchFile }: FF = await import('@ffmpeg/ffmpeg');
-        // optional: supply corePath if bundler can’t find it
-        // const corePath = '/ffmpeg/ffmpeg-core.js';
-        const ff = createFFmpeg({ log: true /*, corePath*/ });
-        await ff.load();
-        if (!mounted) return;
-        ffmpegRef.current = ff;
-        fetchFileRef.current = fetchFile;
-        setReady(true);
+        const { createFFmpeg, fetchFile }: FF = await import('@ffmpeg/ffmpeg')
+        const ff = createFFmpeg({
+          log: true,
+          corePath: '/ffmpeg/ffmpeg-core.js',
+        })
+        ff.setProgress(({ ratio }: any) => setProgress(Math.max(0, Math.min(1, ratio || 0))))
+        await ff.load()
+        if (cancelled) return
+        ffmpegRef.current = ff
+        fetchFileRef.current = fetchFile
+        setReady(true)
       } catch (e) {
-        console.error(e);
-        setError('Failed to load video tools. Check network or try hard refresh.');
+        console.error(e)
+        setError('Failed to load video tools. Try a hard refresh or check network.')
       }
-    })();
+    })()
     return () => {
-      mounted = false;
-    };
-  }, []);
+      cancelled = true
+    }
+  }, [])
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0] ?? null;
-    setVideoFile(f);
-    setProcessedBlob(null);
-    if (f) setPreviewUrl(URL.createObjectURL(f));
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null
+    setVideoFile(f)
+    setProcessedBlob(null)
+    if (f) setPreviewUrl(URL.createObjectURL(f))
   }
 
-  async function handleTrimAndConvert() {
-    if (!videoFile) return;
-    if (!ffmpegRef.current || !fetchFileRef.current) return;
-
-    setProcessing(true);
-    setError(null);
+  async function convertToWebm916() {
+    if (!videoFile || !ffmpegRef.current || !fetchFileRef.current) return
+    if (videoFile.size > 50 * 1024 * 1024) {
+      setError('Max file size is 50MB')
+      return
+    }
+    setProcessing(true)
+    setError(null)
     try {
-      const ff = ffmpegRef.current;
-      const fetchFile = fetchFileRef.current;
+      const ff = ffmpegRef.current
+      const fetchFile = fetchFileRef.current
+      const IN = 'infile'
+      const OUT = 'out.webm'
 
-      // in: keep original name extension, FFmpeg doesn’t care
-      const inName = 'input';
-      const outName = 'output.webm';
+      ff.FS('writeFile', IN, await fetchFile(videoFile))
 
-      ff.FS('writeFile', inName, await fetchFile(videoFile));
-
-      // Basic convert + 9:16 crop. If input is landscape, crop center.
-      // You can add start / duration if you have trim range state.
       await ff.run(
         '-i',
-        inName,
-        // center-crop to 9:16 using input height
+        IN,
         '-vf',
         'crop=in_h*9/16:in_h:(in_w-in_h*9/16)/2:0,scale=720:-2',
         '-c:v',
@@ -79,33 +75,36 @@ export default function CreatePage() {
         '-b:v',
         '1M',
         '-an',
-        outName,
-      );
+        OUT,
+      )
 
-      const data = ff.FS('readFile', outName);
-      const blob = new Blob([data.buffer], { type: 'video/webm' });
-      setProcessedBlob(blob);
-      setPreviewUrl(URL.createObjectURL(blob));
-    } catch (e: any) {
-      console.error(e);
-      setError('Conversion failed. Try a different source video.');
+      const data = ff.FS('readFile', OUT)
+      const blob = new Blob([data.buffer], { type: 'video/webm' })
+      setProcessedBlob(blob)
+      setPreviewUrl(URL.createObjectURL(blob))
+    } catch (e) {
+      console.error(e)
+      setError('Conversion failed. Try a different source video.')
     } finally {
-      setProcessing(false);
+      try {
+        ffmpegRef.current?.FS('unlink', 'infile')
+        ffmpegRef.current?.FS('unlink', 'out.webm')
+      } catch {}
+      setProcessing(false)
+      setProgress(0)
     }
   }
 
-  async function handleUpload() {
+  async function upload() {
     if (!processedBlob) {
-      setError('Please Trim & Convert first.');
-      return;
+      setError('Please Trim & Convert first.')
+      return
     }
     if (!processedBlob.type.includes('webm')) {
-      setError('Output must be .webm');
-      return;
+      setError('Output must be .webm')
+      return
     }
-    // TODO: replace with your upload call
-    // await uploadToYourAPI(new File([processedBlob], 'video.webm', { type: 'video/webm' }))
-    alert('Ready to upload .webm (stub).');
+    alert('Ready to upload .webm (stub).')
   }
 
   return (
@@ -119,38 +118,35 @@ export default function CreatePage() {
             type="file"
             accept="video/*"
             className="mt-1 block w-full text-sm border rounded px-3 py-2 bg-transparent"
-            onChange={handleFileChange}
+            onChange={onFile}
           />
         </label>
 
         {previewUrl && (
-          <video
-            controls
-            src={previewUrl}
-            className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
-          />
+          <video controls src={previewUrl} className="rounded-xl w-full aspect-[9/16] object-cover bg-black" />
         )}
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex items-center gap-3 pt-2">
           <button
-            onClick={handleTrimAndConvert}
+            onClick={convertToWebm916}
             disabled={!videoFile || !ready || processing}
-            className="px-4 py-2.5 rounded-xl bg-accent text-white font-medium disabled:opacity-60"
+            className="btn btn-primary disabled:opacity-60"
           >
-            {processing ? 'Processing…' : 'Trim & Convert to .webm (9:16)'}
+            {processing ? `Processing… ${Math.round(progress * 100)}%` : 'Trim & Convert to .webm (9:16)'}
           </button>
           <button
-            onClick={handleUpload}
+            onClick={upload}
             disabled={!processedBlob || processing}
-            className="px-4 py-2.5 rounded-xl border font-medium disabled:opacity-60"
+            className="btn btn-secondary disabled:opacity-60"
           >
             Upload
           </button>
         </div>
 
-        {!ready && <p className="text-sm text-muted-foreground">Loading video tools…</p>}
+        {!ready && !error && <p className="text-sm text-muted-foreground">Loading video tools…</p>}
         {error && <p className="text-sm text-red-500">{error}</p>}
       </section>
     </main>
-  );
+  )
 }
+
