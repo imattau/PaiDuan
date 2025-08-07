@@ -16,6 +16,8 @@
   "accent_colour": "Accent Colour",
   "storage": "Storage",
   "clear_cached_data": "Clear cached data",
+  "data": "Data",
+  "always_play_sd": "Always play SD (240p)",
   "privacy": "Privacy",
   "send_anonymous_usage_data": "Send anonymous usage data",
   "language": "Language",

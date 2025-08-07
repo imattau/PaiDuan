@@ -16,6 +16,8 @@
   "accent_colour": "主题颜色",
   "storage": "存储",
   "clear_cached_data": "清除缓存数据",
+  "data": "数据",
+  "always_play_sd": "始终播放标清 (240p)",
   "privacy": "隐私",
   "send_anonymous_usage_data": "发送匿名使用数据",
   "language": "语言",

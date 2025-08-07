@@ -2,12 +2,14 @@ import React from 'react';
 import { useTheme } from '../hooks/useTheme';
 import useT from '../hooks/useT';
 import { useRouter } from 'next/router';
+import useAlwaysSD from '../hooks/useAlwaysSD';
 
 const swatches = ['#3b82f6', '#f43f5e', '#10b981', '#f59e0b', '#6366f1', '#ec4899'];
 
 export default function SettingsPage() {
   const { mode, toggleMode, accent, setAccent } = useTheme();
   const [analytics, setAnalytics] = React.useState(false);
+  const { alwaysSD, setAlwaysSD } = useAlwaysSD();
   const t = useT();
   const router = useRouter();
   const locale = (router.query.locale as string) || 'en';
@@ -74,6 +76,17 @@ export default function SettingsPage() {
         >
           {t('clear_cached_data')}
         </button>
+      </div>
+      <div className="rounded border border-foreground/20 p-4">
+        <h2 className="mb-2 text-lg font-semibold">{t('data')}</h2>
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={alwaysSD}
+            onChange={(e) => setAlwaysSD(e.target.checked)}
+          />
+          <span>{t('always_play_sd')}</span>
+        </label>
       </div>
       <div className="rounded border border-foreground/20 p-4">
         <h2 className="mb-2 text-lg font-semibold">{t('privacy')}</h2>

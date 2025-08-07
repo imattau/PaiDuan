@@ -16,6 +16,8 @@
   "accent_colour": "لون بارز",
   "storage": "التخزين",
   "clear_cached_data": "مسح البيانات المخزنة",
+  "data": "البيانات",
+  "always_play_sd": "تشغيل الدقة القياسية دائمًا (240p)",
   "privacy": "الخصوصية",
   "send_anonymous_usage_data": "إرسال بيانات استخدام مجهولة",
   "language": "اللغة",

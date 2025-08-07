@@ -9,10 +9,12 @@ import { SimplePool } from 'nostr-tools';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
 import useOffline from '../utils/useOffline';
+import useAdaptiveSource from '../hooks/useAdaptiveSource';
 
 export interface VideoCardProps {
   videoUrl: string;
   posterUrl?: string;
+  manifestUrl?: string;
   author: string;
   caption: string;
   eventId: string;
@@ -25,6 +27,7 @@ export interface VideoCardProps {
 export const VideoCard: React.FC<VideoCardProps> = ({
   videoUrl,
   posterUrl,
+  manifestUrl,
   author,
   caption,
   eventId,
@@ -38,6 +41,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [playing, setPlaying] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
+  const adaptiveUrl = useAdaptiveSource(manifestUrl, playerRef);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const holdTimer = useRef<number>();
@@ -136,7 +140,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     >
       <ReactPlayer
         ref={playerRef}
-        url={videoUrl}
+        url={manifestUrl ? adaptiveUrl || videoUrl : videoUrl}
         playing={playing}
         loop
         muted

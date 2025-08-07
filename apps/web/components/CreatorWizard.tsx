@@ -139,6 +139,11 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         toast.error('Upload failed');
         throw err;
       });
+      const transRes = await fetch('/api/transcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ src: uploadRes.video }),
+      }).then((r) => r.json());
       const pool = new SimplePool();
       const event: any = {
         kind: 30023,
@@ -147,6 +152,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
           ['v', uploadRes.video],
           ['image', uploadRes.poster],
           ['t', caption],
+          ['vman', transRes.manifest],
         ],
         content: '',
       };
@@ -161,6 +167,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
       const newItem: VideoCardProps = {
         videoUrl: uploadRes.video,
         posterUrl: uploadRes.poster,
+        manifestUrl: transRes.manifest,
         author: 'you',
         caption,
         eventId: signed.id,

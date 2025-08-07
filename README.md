@@ -58,6 +58,27 @@ curl -F "file=@video.mp4" -F "poster=@poster.jpg" https://nostr.media/api/upload
 
 The response returns `video` and `poster` URLs that can be used in a kind 30023 event.
 
+## Transcoding & adaptive bitrate
+
+Uploaded videos are transcoded to multiple WebM resolutions and served adaptively.
+A worker in `packages/transcoder` downloads the source, runs FFmpeg to produce
+240p, 480p and 720p variants and uploads them to `/variants/<id>/`. A JSON
+manifest is written alongside the files and returned with the custom MIME type
+`application/zapstr+json`:
+
+```json
+{ "240": "https://.../240.webm", "480": "https://.../480.webm", "720": "https://.../720.webm" }
+```
+
+Run the worker locally (requires Docker/FFmpeg) with:
+
+```bash
+pnpm --filter transcoder start <srcUrl>
+```
+
+The script outputs the three variants and `manifest.json` inside
+`variants/<generated-id>/`.
+
 ## Comments & replies
 
 Videos support threaded discussions. Comments and replies are plain Nostr kind 1
