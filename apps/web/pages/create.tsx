@@ -1,117 +1,156 @@
-import { useState } from 'react';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+'use client';
+import { useEffect, useRef, useState } from 'react';
 
-const ffmpeg = createFFmpeg({ log: true });
+// NOTE: we will lazy-load @ffmpeg/ffmpeg in the browser only
+type FF = {
+  createFFmpeg: (opts?: any) => any;
+  fetchFile: (f: File | string | Uint8Array) => Promise<Uint8Array>;
+};
 
 export default function CreatePage() {
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [processedBlob, setProcessedBlob] = useState<Blob | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const ffmpegRef = useRef<any | null>(null);
+  const fetchFileRef = useRef<FF['fetchFile'] | null>(null);
+
+  const [ready, setReady] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [processedBlob, setProcessedBlob] = useState<Blob | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (typeof window === 'undefined') return; // guard SSR
+      try {
+        const { createFFmpeg, fetchFile }: FF = await import('@ffmpeg/ffmpeg');
+        // optional: supply corePath if bundler can’t find it
+        // const corePath = '/ffmpeg/ffmpeg-core.js';
+        const ff = createFFmpeg({ log: true /*, corePath*/ });
+        await ff.load();
+        if (!mounted) return;
+        ffmpegRef.current = ff;
+        fetchFileRef.current = fetchFile;
+        setReady(true);
+      } catch (e) {
+        console.error(e);
+        setError('Failed to load video tools. Check network or try hard refresh.');
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) {
-      setError('Max file size is 50MB.');
-      return;
-    }
-    setError(null);
-    setVideoFile(file);
-    setVideoPreview(URL.createObjectURL(file));
+    const f = e.target.files?.[0] ?? null;
+    setVideoFile(f);
     setProcessedBlob(null);
+    if (f) setPreviewUrl(URL.createObjectURL(f));
   }
 
   async function handleTrimAndConvert() {
     if (!videoFile) return;
-    setError(null);
+    if (!ffmpegRef.current || !fetchFileRef.current) return;
+
     setProcessing(true);
-
+    setError(null);
     try {
-      if (!ffmpeg.isLoaded()) await ffmpeg.load();
+      const ff = ffmpegRef.current;
+      const fetchFile = fetchFileRef.current;
 
-      const inputName = 'input.mp4';
-      const outputName = 'output.webm';
+      // in: keep original name extension, FFmpeg doesn’t care
+      const inName = 'input';
+      const outName = 'output.webm';
 
-      ffmpeg.FS('writeFile', inputName, await fetchFile(videoFile));
+      ff.FS('writeFile', inName, await fetchFile(videoFile));
 
-      await ffmpeg.run(
+      // Basic convert + 9:16 crop. If input is landscape, crop center.
+      // You can add start / duration if you have trim range state.
+      await ff.run(
         '-i',
-        inputName,
+        inName,
+        // center-crop to 9:16 using input height
         '-vf',
-        'crop=in_h*9/16:in_h',
+        'crop=in_h*9/16:in_h:(in_w-in_h*9/16)/2:0,scale=720:-2',
         '-c:v',
         'libvpx-vp9',
         '-b:v',
         '1M',
         '-an',
-        outputName
+        outName,
       );
 
-      const data = ffmpeg.FS('readFile', outputName);
-      const webmBlob = new Blob([data.buffer], { type: 'video/webm' });
-      setProcessedBlob(webmBlob);
-      setVideoPreview(URL.createObjectURL(webmBlob));
-    } catch (err) {
-      console.error(err);
-      setError('Conversion failed. Try another video.');
+      const data = ff.FS('readFile', outName);
+      const blob = new Blob([data.buffer], { type: 'video/webm' });
+      setProcessedBlob(blob);
+      setPreviewUrl(URL.createObjectURL(blob));
+    } catch (e: any) {
+      console.error(e);
+      setError('Conversion failed. Try a different source video.');
     } finally {
       setProcessing(false);
     }
   }
 
   async function handleUpload() {
-    if (!processedBlob?.type.includes('webm')) {
-      alert('Video must be in .webm format');
+    if (!processedBlob) {
+      setError('Please Trim & Convert first.');
       return;
     }
-    // TODO: Implement upload logic
+    if (!processedBlob.type.includes('webm')) {
+      setError('Output must be .webm');
+      return;
+    }
+    // TODO: replace with your upload call
+    // await uploadToYourAPI(new File([processedBlob], 'video.webm', { type: 'video/webm' }))
+    alert('Ready to upload .webm (stub).');
   }
 
   return (
-    <main className="max-w-2xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">Create Video</h1>
+    <main className="max-w-2xl mx-auto py-12 px-4 space-y-6">
+      <h1 className="text-3xl font-bold">Create Video</h1>
 
-      <div className="bg-white dark:bg-neutral-900 border rounded-2xl p-6 space-y-4 shadow">
+      <section className="rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
         <label className="text-sm font-medium block">
-          Select Video
+          Select video
           <input
             type="file"
             accept="video/*"
-            className="mt-1 block w-full text-sm border rounded px-3 py-2"
+            className="mt-1 block w-full text-sm border rounded px-3 py-2 bg-transparent"
             onChange={handleFileChange}
           />
         </label>
 
-        {videoPreview && (
+        {previewUrl && (
           <video
             controls
-            src={videoPreview}
-            className="rounded-xl w-full aspect-[9/16] object-cover"
+            src={previewUrl}
+            className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
           />
         )}
 
-        <div className="flex gap-4 pt-4">
+        <div className="flex gap-3 pt-2">
           <button
             onClick={handleTrimAndConvert}
-            disabled={!videoFile || processing}
-            className="bg-accent text-white px-4 py-2 rounded-lg hover:brightness-110 disabled:opacity-50"
+            disabled={!videoFile || !ready || processing}
+            className="px-4 py-2.5 rounded-xl bg-accent text-white font-medium disabled:opacity-60"
           >
-            {processing ? 'Processing...' : 'Trim & Convert'}
+            {processing ? 'Processing…' : 'Trim & Convert to .webm (9:16)'}
           </button>
           <button
             onClick={handleUpload}
-            disabled={!processedBlob}
-            className="border px-4 py-2 rounded-lg disabled:opacity-50"
+            disabled={!processedBlob || processing}
+            className="px-4 py-2.5 rounded-xl border font-medium disabled:opacity-60"
           >
             Upload
           </button>
         </div>
 
-        {error && <div className="text-sm text-red-600">{error}</div>}
-      </div>
+        {!ready && <p className="text-sm text-muted-foreground">Loading video tools…</p>}
+        {error && <p className="text-sm text-red-500">{error}</p>}
+      </section>
     </main>
   );
 }
-
