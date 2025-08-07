@@ -5,6 +5,9 @@ import CreatorWizard from '../components/CreatorWizard';
 import useFeed, { FeedMode } from '../hooks/useFeed';
 import useFollowing from '../hooks/useFollowing';
 import { VideoCardProps } from '../components/VideoCard';
+import SearchBar from '../components/SearchBar';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 const TAB_KEY = 'feed-tab';
 const TAG_KEY = 'feed-tag';
@@ -12,18 +15,26 @@ const TAG_KEY = 'feed-tag';
 type Tab = 'all' | 'following' | 'tags';
 
 export default function FeedPage() {
+  const router = useRouter();
   const { following } = useFollowing();
   const [tab, setTab] = useState<Tab>('all');
   const [selectedTag, setSelectedTag] = useState<string | undefined>();
   const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
+    if (!router.isReady) return;
+    const tagParam = router.query.tag as string | undefined;
+    if (tagParam) {
+      setTab('tags');
+      setSelectedTag(tagParam);
+      return;
+    }
     if (typeof window === 'undefined') return;
     const savedTab = window.localStorage.getItem(TAB_KEY) as Tab | null;
     const savedTag = window.localStorage.getItem(TAG_KEY) || undefined;
     if (savedTab) setTab(savedTab);
     if (savedTag) setSelectedTag(savedTag);
-  }, []);
+  }, [router.isReady, router.query.tag]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -47,7 +58,7 @@ export default function FeedPage() {
   };
 
   const renderTabs = () => (
-    <div className="fixed top-0 left-0 right-0 z-10 flex justify-around bg-black/80 text-white">
+    <div className="fixed top-12 left-0 right-0 z-10 flex justify-around bg-black/80 text-white">
       {(['all', 'following', 'tags'] as Tab[]).map((t) => (
         <button
           key={t}
@@ -64,17 +75,12 @@ export default function FeedPage() {
   );
 
   const renderTagList = () => (
-    <div className="pt-10 h-screen overflow-y-auto bg-black text-white">
+    <div className="pt-20 h-screen overflow-y-auto bg-black text-white">
       {tags.map((t) => (
         <div key={t} className="p-4 border-b border-white/20">
-          <button
-            onClick={() => {
-              setSelectedTag(t);
-            }}
-            className="w-full text-left"
-          >
+          <Link href={`/feed?tag=${t}`} className="block w-full text-left">
             #{t}
-          </button>
+          </Link>
         </div>
       ))}
     </div>
@@ -82,6 +88,7 @@ export default function FeedPage() {
 
   return (
     <>
+      <SearchBar />
       {renderTabs()}
       {tab === 'tags' && !selectedTag ? (
         renderTagList()
@@ -90,8 +97,11 @@ export default function FeedPage() {
       )}
       {tab === 'tags' && selectedTag && (
         <button
-          className="fixed left-4 top-2 z-20 text-white"
-          onClick={() => setSelectedTag(undefined)}
+          className="fixed left-4 top-14 z-20 text-white"
+          onClick={() => {
+            setSelectedTag(undefined);
+            router.push('/feed');
+          }}
         >
           Back
         </button>

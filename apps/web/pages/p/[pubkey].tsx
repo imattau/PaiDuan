@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
 import VideoCard, { VideoCardProps } from '../../components/VideoCard';
 import useFollowing, { getFollowers } from '../../hooks/useFollowing';
+import SearchBar from '../../components/SearchBar';
 
 function relayList(): string[] {
   if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
@@ -98,7 +99,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white pt-12">
+      <SearchBar />
       <div className="h-32 w-full bg-gray-700" />
       <div className="p-4 -mt-12 flex items-start space-x-4">
         <img
