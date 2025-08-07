@@ -16,6 +16,6 @@ const withPWAConfig = withPWA({
 
 export default withPWAConfig({
   reactStrictMode: true,
-  experimental: { appDir: false },
-  typescript: { ignoreBuildErrors: true }
+  typescript: { ignoreBuildErrors: true },
+  transpilePackages: ['@paiduan/ui']
 })
