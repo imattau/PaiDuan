@@ -94,7 +94,7 @@ Uploaded videos are transcoded to multiple WebM resolutions and served adaptivel
 A worker in `packages/transcoder` downloads the source, runs FFmpeg to produce
 240p, 480p and 720p variants and uploads them to `/variants/<id>/`. A JSON
 manifest is written alongside the files and returned with the custom MIME type
-`application/zapstr+json`:
+`application/paiduan+json`:
 
 ```json
 { "240": "https://.../240.webm", "480": "https://.../480.webm", "720": "https://.../720.webm" }
@@ -178,7 +178,7 @@ the full URL (e.g. `<origin>/v/<id>`) to the clipboard. Tags can be shared via
 
 ## Analytics & crash reporting
 
-Zapstr can report anonymous usage metrics and runtime errors.
+PaiDuan can report anonymous usage metrics and runtime errors.
 
 - Analytics are powered by a self-hosted [Plausible](https://plausible.io) instance at `stats.paiduan.app`.
   The script is only loaded when `NEXT_PUBLIC_ANALYTICS=enabled` and users have opted in.
