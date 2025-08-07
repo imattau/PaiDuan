@@ -14,6 +14,7 @@ import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 import { NextIntlClientProvider } from 'next-intl';
 import { trackPageview, analyticsEnabled, consentGiven } from '../utils/analytics';
+import { AuthProvider } from '../context/authContext';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   useOffline();
@@ -45,7 +46,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         }
       }}
     >
-      <>
+      <AuthProvider>
         <ThemeProvider>
           <GestureProvider>
             <NotificationsProvider>
@@ -65,7 +66,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             </NotificationsProvider>
           </GestureProvider>
         </ThemeProvider>
-      </>
+      </AuthProvider>
     </NextIntlClientProvider>
   );
 }

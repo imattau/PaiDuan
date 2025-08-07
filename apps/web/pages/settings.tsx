@@ -4,6 +4,7 @@ import useT from '../hooks/useT';
 import { useRouter } from 'next/router';
 import useAlwaysSD from '../hooks/useAlwaysSD';
 import SettingsLayout from '../components/SettingsLayout';
+import { clearKey } from '../utils/keyStorage';
 
 const swatches = ['#3b82f6', '#f43f5e', '#10b981', '#f59e0b', '#6366f1', '#ec4899'];
 
@@ -110,6 +111,17 @@ export default function SettingsPage() {
             <option value="zh">{t('language_chinese')}</option>
             <option value="ar">{t('language_arabic')}</option>
           </select>
+        </div>
+        <div className="rounded bg-brand-panel p-4">
+          <button
+            onClick={() => {
+              clearKey();
+              window.location.href = '/';
+            }}
+            className="btn-outline"
+          >
+            🔓 Logout / Reset Identity
+          </button>
         </div>
       </div>
     </SettingsLayout>

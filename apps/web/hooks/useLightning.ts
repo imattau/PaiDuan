@@ -1,4 +1,6 @@
 import { SimplePool, Filter } from 'nostr-tools';
+import { useAuth } from '../context/authContext';
+import { signWithAuth } from '../utils/signWithAuth';
 
 interface ZapArgs {
   lightningAddress: string;
@@ -30,6 +32,7 @@ function relayList(): string[] {
 
 export default function useLightning() {
   const pool = new SimplePool();
+  const auth = useAuth();
 
   const payLn = async (lnaddr: string, sats: number, comment?: string) => {
     const [name, domain] = lnaddr.split('@');
@@ -86,7 +89,7 @@ export default function useLightning() {
       results.push({ ...p, invoice: res.invoice });
     }
 
-    if (pubkey && typeof window !== 'undefined' && (window as any).nostr) {
+    if (pubkey && auth?.pubkey) {
       try {
         const event: any = {
           kind: 9736,
@@ -96,8 +99,9 @@ export default function useLightning() {
             noteId: eventId,
             splits: results.map((p) => ({ lnaddr: p.lnaddr, pct: p.pct, sats: p.sats })),
           }),
+          pubkey: auth.pubkey,
         };
-        const signed = await (window as any).nostr.signEvent(event);
+        const signed = await signWithAuth(event, auth);
         pool.publish(relayList(), signed);
       } catch (err) {
         console.error(err);

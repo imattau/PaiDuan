@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import useLightning from './useLightning';
 
+vi.mock('../context/authContext', () => ({
+  useAuth: () => ({ pubkey: 'pk', privkey: 'priv', method: 'manual' }),
+}));
+
+vi.mock('../utils/signWithAuth', () => ({
+  signWithAuth: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig' })),
+}));
+
 vi.mock('nostr-tools', () => ({
   SimplePool: class {
     get() {
@@ -34,7 +42,6 @@ describe('useLightning', () => {
     // @ts-ignore
     global.window = {
       open: vi.fn(),
-      nostr: { signEvent: vi.fn(async (e) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })) },
     };
 
     const { createZap } = useLightning();
