@@ -78,7 +78,7 @@ export default function FeedPage() {
   );
 
   const renderTagList = () => (
-    <div className="pt-20 h-screen overflow-y-auto bg-background text-foreground">
+    <div className="pt-20 h-screen overflow-y-auto pb-14 bg-background text-foreground">
       {tags.map((t) => (
         <div key={t} className="p-4 border-b border-foreground/20">
           <Link href={`/${locale}/feed?tag=${t}`} className="block w-full text-left hover:text-accent">
@@ -109,7 +109,7 @@ export default function FeedPage() {
           {t('back')}
         </button>
       )}
-      <UploadButton onClick={() => setShowWizard(true)} />
+      <UploadButton onClick={() => setShowWizard(true)} isOpen={showWizard} />
       {showWizard && (
         <CreatorWizard
           onClose={() => setShowWizard(false)}

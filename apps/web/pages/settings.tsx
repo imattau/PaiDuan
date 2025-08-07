@@ -39,7 +39,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 text-foreground space-y-6">
+    <div className="min-h-screen bg-background p-4 pb-14 text-foreground space-y-6">
       <div className="rounded border border-foreground/20 p-4">
         <h2 className="mb-2 text-lg font-semibold">{t('appearance')}</h2>
         <button

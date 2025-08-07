@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Range, getTrackBackground } from 'react-range';
 import { SimplePool } from 'nostr-tools';
@@ -20,6 +20,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
   const [duration, setDuration] = useState(0);
   const [range, setRange] = useState<[number, number]>([0, 0]);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const recordingRef = useRef<HTMLVideoElement>(null);
 
   const [posterUrl, setPosterUrl] = useState('');
   const [posterBlob, setPosterBlob] = useState<Blob | null>(null);
@@ -41,6 +42,22 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
     if (f) handleFile(f);
   };
 
+  const onLoaded = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.duration > MAX_DURATION) {
+      toast.error('Video must be 3 minutes or less');
+      setFile(null);
+      setVideoUrl('');
+      setPosterBlob(null);
+      setPosterUrl('');
+      return;
+    }
+    setDuration(video.duration);
+    setRange([0, video.duration]);
+    setStep(1);
+  };
+
   // Recording via getUserMedia
   const [recording, setRecording] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -51,7 +68,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       streamRef.current = stream;
-      videoRef.current!.srcObject = stream;
+      recordingRef.current!.srcObject = stream;
       const recorder = new MediaRecorder(stream);
       recorderRef.current = recorder;
       chunksRef.current = [];
@@ -60,7 +77,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
         handleFile(blob);
         stream.getTracks().forEach((t) => t.stop());
-        videoRef.current!.srcObject = null;
+        recordingRef.current!.srcObject = null;
       };
       recorder.start();
       setRecording(true);
@@ -74,26 +91,6 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
     setRecording(false);
   };
 
-  useEffect(() => {
-    if (!videoUrl) return;
-    const video = videoRef.current;
-    if (!video) return;
-    const onLoaded = () => {
-      if (video.duration > MAX_DURATION) {
-        toast.error('Video must be 3 minutes or less');
-        setFile(null);
-        setVideoUrl('');
-        setPosterBlob(null);
-        setPosterUrl('');
-        return;
-      }
-      setDuration(video.duration);
-      setRange([0, video.duration]);
-      setStep(1);
-    };
-    video.addEventListener('loadedmetadata', onLoaded);
-    return () => video.removeEventListener('loadedmetadata', onLoaded);
-  }, [videoUrl]);
 
   const capturePoster = () => {
     const video = videoRef.current;
@@ -230,6 +227,15 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         </label>
       </div>
 
+      {videoUrl && (
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          style={{ display: 'none' }}
+          onLoadedMetadata={onLoaded}
+        />
+      )}
+
       {/* Upload input */}
       {mode === 'upload' && (
         <input
@@ -245,7 +251,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
       {mode === 'record' && (
         <>
           <video
-            ref={videoRef}
+            ref={recordingRef}
             autoPlay
             playsInline
             muted
