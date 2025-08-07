@@ -1,9 +1,5 @@
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
-
-const ffmpeg = createFFmpeg({
-  log: false,
-  corePath: '/ffmpeg/ffmpeg-core.js',
-});
+let ffmpeg: any;
+let fetchFile: any;
 
 export async function trimVideo(
   blob: Blob,
@@ -13,7 +9,13 @@ export async function trimVideo(
   if (typeof window === 'undefined') {
     throw new Error('trimVideo can only run in the browser');
   }
-  if (!ffmpeg.isLoaded()) {
+  if (!ffmpeg) {
+    const ffmpegModule = await import('@ffmpeg/ffmpeg');
+    ffmpeg = ffmpegModule.createFFmpeg({
+      log: false,
+      corePath: '/ffmpeg/ffmpeg-core.js',
+    });
+    fetchFile = ffmpegModule.fetchFile;
     await ffmpeg.load();
   }
   const data = await fetchFile(blob);
