@@ -59,16 +59,17 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   // Subscribe to comments
   useEffect(() => {
     const pool = poolRef.current;
-    const sub = (pool as any).sub(relays, [{ kinds: [1], '#e': [videoId] }]);
-    sub.on('event', (ev: any) => {
-      setEvents((prev) => {
-        if (prev.find((p) => p.id === ev.id)) return prev;
-        const next = [...prev, ev].sort((a, b) => a.created_at - b.created_at);
-        return next;
-      });
+    const sub = (pool as any).subscribeMany(relays, [{ kinds: [1], '#e': [videoId] }], {
+      onevent: (ev: any) => {
+        setEvents((prev) => {
+          if (prev.find((p) => p.id === ev.id)) return prev;
+          const next = [...prev, ev].sort((a, b) => a.created_at - b.created_at);
+          return next;
+        });
+      },
     });
     return () => {
-      sub.unsub();
+      sub.close();
     };
   }, [videoId]);
 
@@ -99,14 +100,15 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
     const listener = () => loadReports();
     window.addEventListener('modqueue', listener);
     const pool = poolRef.current as any;
-    const sub = pool.sub(relays, [{ kinds: [9001] }]);
-    sub.on('event', (ev: any) => {
-      const tag = ev.tags.find((t: string[]) => t[0] === 'e');
-      if (tag) setHiddenIds((prev) => new Set(prev).add(tag[1]));
+    const sub = pool.subscribeMany(relays, [{ kinds: [9001] }], {
+      onevent: (ev: any) => {
+        const tag = ev.tags.find((t: string[]) => t[0] === 'e');
+        if (tag) setHiddenIds((prev) => new Set(prev).add(tag[1]));
+      },
     });
     return () => {
       window.removeEventListener('modqueue', listener);
-      sub.unsub();
+      sub.close();
     };
   }, []);
 

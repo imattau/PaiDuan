@@ -58,56 +58,62 @@ export default function ProfilePage() {
     const pool = (poolRef.current ||= new SimplePool());
     const relays = relayList();
 
-    const metaSub = pool.sub(relays, [
-      { kinds: [0], authors: [pubkey], limit: 1 } as Filter,
-    ]);
-    metaSub.on('event', (ev: NostrEvent) => {
-      try {
-        const content = JSON.parse(ev.content);
-        setName(content.name || '');
-        setPicture(content.picture || '');
-        setBio(content.about || '');
-        if (Array.isArray(content.zapSplits)) {
-          setZapSplits(
-            content.zapSplits
-              .filter((s: any) => typeof s.lnaddr === 'string' && typeof s.pct === 'number')
-              .slice(0, 4),
-          );
-        }
-      } catch {
-        /* ignore */
-      }
-    });
+    const metaSub = pool.subscribeMany(
+      relays,
+      [{ kinds: [0], authors: [pubkey], limit: 1 } as Filter],
+      {
+        onevent: (ev: NostrEvent) => {
+          try {
+            const content = JSON.parse(ev.content);
+            setName(content.name || '');
+            setPicture(content.picture || '');
+            setBio(content.about || '');
+            if (Array.isArray(content.zapSplits)) {
+              setZapSplits(
+                content.zapSplits
+                  .filter((s: any) => typeof s.lnaddr === 'string' && typeof s.pct === 'number')
+                  .slice(0, 4),
+              );
+            }
+          } catch {
+            /* ignore */
+          }
+        },
+      },
+    );
 
-    const videoSub = pool.sub(relays, [
-      { kinds: [30023], authors: [pubkey], limit: 100 } as Filter,
-    ]);
     const nextVideos: VideoCardProps[] = [];
-    videoSub.on('event', (ev: NostrEvent) => {
-      const videoTag = ev.tags.find((t) => t[0] === 'v');
-      if (!videoTag) return;
-      const posterTag = ev.tags.find((t) => t[0] === 'image');
-      const manifestTag = ev.tags.find((t) => t[0] === 'vman');
-      const zapTag = ev.tags.find((t) => t[0] === 'zap');
-      const tTags = ev.tags.filter((t) => t[0] === 't').map((t) => t[1]);
-      nextVideos.push({
-        videoUrl: videoTag[1],
-        posterUrl: posterTag ? posterTag[1] : undefined,
-        manifestUrl: manifestTag ? manifestTag[1] : undefined,
-        author: ev.pubkey.slice(0, 8),
-        caption: tTags.join(' '),
-        eventId: ev.id,
-        lightningAddress: zapTag ? zapTag[1] : '',
-        pubkey: ev.pubkey,
-        zapTotal: 0,
-        onLike: () => {},
-      });
-      setVideos([...nextVideos]);
-    });
+    const videoSub = pool.subscribeMany(
+      relays,
+      [{ kinds: [30023], authors: [pubkey], limit: 100 } as Filter],
+      {
+        onevent: (ev: NostrEvent) => {
+          const videoTag = ev.tags.find((t) => t[0] === 'v');
+          if (!videoTag) return;
+          const posterTag = ev.tags.find((t) => t[0] === 'image');
+          const manifestTag = ev.tags.find((t) => t[0] === 'vman');
+          const zapTag = ev.tags.find((t) => t[0] === 'zap');
+          const tTags = ev.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+          nextVideos.push({
+            videoUrl: videoTag[1],
+            posterUrl: posterTag ? posterTag[1] : undefined,
+            manifestUrl: manifestTag ? manifestTag[1] : undefined,
+            author: ev.pubkey.slice(0, 8),
+            caption: tTags.join(' '),
+            eventId: ev.id,
+            lightningAddress: zapTag ? zapTag[1] : '',
+            pubkey: ev.pubkey,
+            zapTotal: 0,
+            onLike: () => {},
+          });
+          setVideos([...nextVideos]);
+        },
+      },
+    );
 
     return () => {
-      metaSub.unsub();
-      videoSub.unsub();
+      metaSub.close();
+      videoSub.close();
     };
   }, [pubkey]);
 

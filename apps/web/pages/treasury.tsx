@@ -22,6 +22,7 @@ export default function TreasuryPage() {
   const poolRef = useRef<SimplePool>();
 
   useEffect(() => {
+    let sub: { close: () => void } | undefined;
     const init = async () => {
       const admin = process.env.NEXT_PUBLIC_ADMIN_PUBKEY;
       const treasury = process.env.NEXT_PUBLIC_TREASURY_LNADDR;
@@ -33,20 +34,24 @@ export default function TreasuryPage() {
       setAuthorised(true);
       const pool = (poolRef.current ||= new SimplePool());
       const since = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
-      const sub = pool.sub(relayList(), [{ kinds: [9736], since } as Filter]);
-      sub.on('event', (ev: NostrEvent) => {
-        try {
-          const content = JSON.parse(ev.content);
-          const split = (content.splits || []).find((s: any) => s.lnaddr === treasury);
-          if (split?.sats) {
-            setTotal((t) => t + Number(split.sats));
+      sub = pool.subscribeMany(relayList(), [{ kinds: [9736], since } as Filter], {
+        onevent: (ev: NostrEvent) => {
+          try {
+            const content = JSON.parse(ev.content);
+            const split = (content.splits || []).find((s: any) => s.lnaddr === treasury);
+            if (split?.sats) {
+              setTotal((t) => t + Number(split.sats));
+            }
+          } catch {
+            /* ignore */
           }
-        } catch {
-          /* ignore */
-        }
+        },
       });
     };
     init();
+    return () => {
+      sub?.close();
+    };
   }, []);
 
   if (!authorised) {

@@ -89,8 +89,8 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     if (typeof window === 'undefined') return;
     const nostr = (window as any).nostr;
     if (!nostr) return;
-    let zapSub: { unsub: () => void } | null = null;
-    let commentSub: { unsub: () => void } | null = null;
+    let zapSub: { close: () => void } | null = null;
+    let commentSub: { close: () => void } | null = null;
 
     (async () => {
       try {
@@ -106,33 +106,35 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
         const myVideoIds = myVideos.map((v) => v.id);
 
         // subscribe to zap receipts
-        zapSub = pool.sub(relays, [{ kinds: [9735], '#p': [pubkey] }]);
-        zapSub.on('event', (ev: NostrEvent) => {
-          const eTag = ev.tags.find((t) => t[0] === 'e');
-          const amt = ev.tags.find((t) => t[0] === 'amount');
-          pushNotification({
-            id: ev.id,
-            type: 'zap',
-            from: ev.pubkey,
-            amount: amt ? Math.round(parseInt(amt[1] || '0', 10) / 1000) : undefined,
-            noteId: eTag ? eTag[1] : '',
-            created_at: ev.created_at,
-          });
+        zapSub = pool.subscribeMany(relays, [{ kinds: [9735], '#p': [pubkey] }], {
+          onevent: (ev: NostrEvent) => {
+            const eTag = ev.tags.find((t) => t[0] === 'e');
+            const amt = ev.tags.find((t) => t[0] === 'amount');
+            pushNotification({
+              id: ev.id,
+              type: 'zap',
+              from: ev.pubkey,
+              amount: amt ? Math.round(parseInt(amt[1] || '0', 10) / 1000) : undefined,
+              noteId: eTag ? eTag[1] : '',
+              created_at: ev.created_at,
+            });
+          },
         });
 
         // subscribe to comments on my videos
         if (myVideoIds.length > 0) {
-          commentSub = pool.sub(relays, [{ kinds: [1], '#e': myVideoIds }]);
-          commentSub.on('event', (ev: NostrEvent) => {
-            const eTag = ev.tags.find((t) => t[0] === 'e');
-            pushNotification({
-              id: ev.id,
-              type: 'comment',
-              from: ev.pubkey,
-              text: ev.content.slice(0, 100),
-              noteId: eTag ? eTag[1] : '',
-              created_at: ev.created_at,
-            });
+          commentSub = pool.subscribeMany(relays, [{ kinds: [1], '#e': myVideoIds }], {
+            onevent: (ev: NostrEvent) => {
+              const eTag = ev.tags.find((t) => t[0] === 'e');
+              pushNotification({
+                id: ev.id,
+                type: 'comment',
+                from: ev.pubkey,
+                text: ev.content.slice(0, 100),
+                noteId: eTag ? eTag[1] : '',
+                created_at: ev.created_at,
+              });
+            },
           });
         }
       } catch {
@@ -141,8 +143,8 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     })();
 
     return () => {
-      zapSub?.unsub();
-      commentSub?.unsub();
+      zapSub?.close();
+      commentSub?.close();
     };
   }, []);
 

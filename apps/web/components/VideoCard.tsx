@@ -65,18 +65,19 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   useEffect(() => {
     const pool: any = new SimplePool();
     const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
-    const sub = pool.sub(relays, [{ kinds: [0], authors: [pubkey], limit: 1 }]);
-    sub.on('event', (ev: any) => {
-      try {
-        const content = JSON.parse(ev.content);
-        if (content.picture) setAvatar(content.picture);
-        if (content.name) setDisplayName(content.name);
-      } catch {
-        /* ignore */
-      }
+    const sub = pool.subscribeMany(relays, [{ kinds: [0], authors: [pubkey], limit: 1 }], {
+      onevent: (ev: any) => {
+        try {
+          const content = JSON.parse(ev.content);
+          if (content.picture) setAvatar(content.picture);
+          if (content.name) setDisplayName(content.name);
+        } catch {
+          /* ignore */
+        }
+      },
     });
     return () => {
-      sub.unsub();
+      sub.close();
     };
   }, [pubkey]);
 
