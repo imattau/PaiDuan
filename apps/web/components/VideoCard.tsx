@@ -45,6 +45,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [avatar, setAvatar] = useState('');
   const [displayName, setDisplayName] = useState(author);
   const isFollowing = following.includes(pubkey);
+  const [online, setOnline] = useState(true);
 
   const handleShare = () => {
     const url = `${window.location.origin}/v/${eventId}`;
@@ -69,6 +70,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       sub.unsub();
     };
   }, [pubkey]);
+
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    update();
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
 
   const bind = useGesture(
     {
@@ -148,7 +160,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <button onClick={onLike} className="hover:text-accent">
           <Heart />
         </button>
-        <button className="relative hover:text-accent" onClick={() => setCommentsOpen(true)}>
+        <button
+          className="relative hover:text-accent disabled:opacity-50"
+          onClick={() => online && setCommentsOpen(true)}
+          disabled={!online}
+          title={!online ? 'Offline – reconnect to interact.' : undefined}
+        >
           <MessageCircle />
           {commentCount > 0 && (
             <span className="absolute -right-2 -top-2 text-xs text-foreground">{commentCount}</span>
@@ -159,6 +176,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           eventId={eventId}
           pubkey={pubkey}
           total={zapTotal}
+          disabled={!online}
+          title={!online ? 'Offline – reconnect to interact.' : undefined}
         />
         <button onClick={handleShare} className="hover:text-accent">
           <Share2 />

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2rem; }
+    #thumbs img { width: 100px; height: 100px; object-fit: cover; margin: 4px; }
+  </style>
+</head>
+<body>
+  <h1>You are offline</h1>
+  <p>Previously viewed videos are available below.</p>
+  <div id="thumbs"></div>
+  <script>
+    caches.keys().then(function(names){
+      names.forEach(function(name){
+        caches.open(name).then(function(cache){
+          cache.keys().then(function(keys){
+            keys.forEach(function(request){
+              if(/\.(jpg|jpeg|png|webm)$/.test(request.url)){
+                var img=document.createElement('img');
+                img.src=request.url;
+                document.getElementById('thumbs').appendChild(img);
+              }
+            });
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

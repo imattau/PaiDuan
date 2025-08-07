@@ -14,6 +14,29 @@ Visit <http://localhost:3000/feed> for the swipeable video feed demo.
 
 Client-side video trimming relies on [`@ffmpeg/ffmpeg`](https://github.com/ffmpegwasm/ffmpeg.wasm) and toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
 
+## PWA features
+
+Zapstr can be installed as a Progressive Web App. On first visit an install
+banner invites you to add it to your home screen. You can also use your
+browser's “Install” menu option.
+
+### Offline behaviour
+
+The app caches core routes, avatars, thumbnails and recent videos for offline
+use. Static assets are served cache‑first, avatars and thumbnails are
+stale‑while‑revalidate, while API and relay requests fall back to network‑first
+with an `offline.html` page when the network is unavailable.
+
+### Cache limits
+
+Media caches keep roughly one hundred entries for up to a week and avatar
+caches store up to fifty images.
+
+### Clearing cached videos
+
+Visit the Settings page and use the “Clear cached videos” option to remove
+stored media if space is needed.
+
 ## Tests
 
 ```bash
