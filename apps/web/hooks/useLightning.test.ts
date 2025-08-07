@@ -3,6 +3,11 @@ import useLightning from './useLightning';
 
 vi.mock('nostr-tools', () => ({
   SimplePool: class {
+    get() {
+      return Promise.resolve({
+        content: JSON.stringify({ zapSplits: [{ lnaddr: 'col@example.com', pct: 10 }] }),
+      });
+    }
     publish() {
       return {} as any;
     }
@@ -14,29 +19,34 @@ describe('useLightning', () => {
     vi.resetAllMocks();
   });
 
-  it('fetches invoice via lnurl-pay', async () => {
+  it('splits zap between recipients', async () => {
+    process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ json: async () => ({ callback: 'https://example.com/cb' }) })
-      .mockResolvedValueOnce({ json: async () => ({ pr: 'lnbc1invoice' }) });
+      .mockResolvedValueOnce({ json: async () => ({ callback: 'https://cb1' }) })
+      .mockResolvedValueOnce({ json: async () => ({ pr: 'inv1' }) })
+      .mockResolvedValueOnce({ json: async () => ({ callback: 'https://cb2' }) })
+      .mockResolvedValueOnce({ json: async () => ({ pr: 'inv2' }) })
+      .mockResolvedValueOnce({ json: async () => ({ callback: 'https://cb3' }) })
+      .mockResolvedValueOnce({ json: async () => ({ pr: 'inv3' }) });
     // @ts-ignore
     global.fetch = fetchMock;
     // @ts-ignore
     global.window = {
-      location: { href: '' },
+      open: vi.fn(),
       nostr: { signEvent: vi.fn(async (e) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })) },
     };
 
     const { createZap } = useLightning();
-    const { invoice } = await createZap({
+    const { invoices } = await createZap({
       lightningAddress: 'user@example.com',
       amount: 100,
       eventId: 'note',
       pubkey: 'pk',
     });
 
-    expect(invoice).toBe('lnbc1invoice');
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect((global as any).window.location.href).toBe('lightning:lnbc1invoice');
+    expect(invoices.length).toBe(3);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect((global as any).window.open).toHaveBeenCalledTimes(3);
   });
 });
