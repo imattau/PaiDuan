@@ -7,15 +7,29 @@ interface ZapButtonProps {
   eventId?: string;
   pubkey: string;
   total?: number;
+  disabled?: boolean;
+  title?: string;
 }
 
-export const ZapButton: React.FC<ZapButtonProps> = ({ lightningAddress, eventId, pubkey, total = 0 }) => {
+export const ZapButton: React.FC<ZapButtonProps> = ({
+  lightningAddress,
+  eventId,
+  pubkey,
+  total = 0,
+  disabled,
+  title,
+}) => {
   const [open, setOpen] = useState(false);
   const [count, setCount] = useState(total);
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="flex flex-col items-center text-foreground hover:text-accent">
+      <button
+        onClick={() => !disabled && setOpen(true)}
+        className="flex flex-col items-center text-foreground hover:text-accent disabled:opacity-50"
+        disabled={disabled}
+        title={title}
+      >
         <Zap />
         <span className="text-xs">{count}</span>
       </button>

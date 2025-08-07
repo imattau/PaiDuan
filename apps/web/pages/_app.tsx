@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { NotificationsProvider } from '../hooks/useNotifications';
 import NotificationDrawer from '../components/NotificationDrawer';
 import { ThemeProvider } from '../hooks/useTheme';
+import InstallBanner from '../components/InstallBanner';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -13,6 +14,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <NotificationsProvider>
           <Component {...pageProps} />
           <NotificationDrawer />
+          <InstallBanner />
           <Toaster />
         </NotificationsProvider>
       </GestureProvider>
