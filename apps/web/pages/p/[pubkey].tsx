@@ -66,11 +66,13 @@ export default function ProfilePage() {
       const videoTag = ev.tags.find((t) => t[0] === 'v');
       if (!videoTag) return;
       const posterTag = ev.tags.find((t) => t[0] === 'image');
+      const manifestTag = ev.tags.find((t) => t[0] === 'vman');
       const zapTag = ev.tags.find((t) => t[0] === 'zap');
       const tTags = ev.tags.filter((t) => t[0] === 't').map((t) => t[1]);
       nextVideos.push({
         videoUrl: videoTag[1],
         posterUrl: posterTag ? posterTag[1] : undefined,
+        manifestUrl: manifestTag ? manifestTag[1] : undefined,
         author: ev.pubkey.slice(0, 8),
         caption: tTags.join(' '),
         eventId: ev.id,

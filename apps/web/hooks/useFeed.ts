@@ -57,6 +57,7 @@ export function useFeed(mode: FeedMode): FeedResult {
       const videoTag = event.tags.find((t) => t[0] === 'v');
       if (!videoTag) return;
       const posterTag = event.tags.find((t) => t[0] === 'image');
+      const manifestTag = event.tags.find((t) => t[0] === 'vman');
       const zapTag = event.tags.find((t) => t[0] === 'zap');
       const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
       tTags.forEach((t) => {
@@ -65,6 +66,7 @@ export function useFeed(mode: FeedMode): FeedResult {
       nextItems.push({
         videoUrl: videoTag[1],
         posterUrl: posterTag ? posterTag[1] : undefined,
+        manifestUrl: manifestTag ? manifestTag[1] : undefined,
         author: event.pubkey.slice(0, 8),
         caption: tTags.join(' '),
         eventId: event.id,
