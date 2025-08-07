@@ -16,10 +16,21 @@ Client-side video trimming relies on [`@ffmpeg/ffmpeg`](https://github.com/ffmpe
 
 ## PWA features
 
-- Installable on desktop and mobile (Add to Home Screen).
-- Works offline: cached pages, avatars, and the last 20 videos watched.
+The web client ships as a Progressive Web App:
+
+- Installable on desktop and mobile via the browser menu or the in‑app install banner.
+- Works offline by caching pages, avatars and the last 20 videos watched.
 - Zap / comment buttons disable while offline.
 - Clear cached videos via **Settings → Storage**.
+
+To generate the service worker for production run:
+
+```bash
+pnpm --filter @paiduan/web build
+pnpm --filter @paiduan/web build:pwa
+```
+
+Open the app and choose **Install** (or **Add to Home Screen**) to install it.
 
 ## Tests
 
