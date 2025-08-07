@@ -1,11 +1,29 @@
-import { Html, Head, Main, NextScript } from 'next/document';
+import NextDocument, {
+  Html,
+  Head,
+  Main,
+  NextScript,
+  DocumentContext,
+  DocumentProps,
+} from 'next/document';
 
-export default function Document() {
+function isRTL(locale?: string) {
+  return ['ar', 'he', 'fa', 'ur'].includes(locale?.split('-')[0] || '');
+}
+
+type Props = DocumentProps & { dir: 'rtl' | 'ltr' };
+
+export default function Document({ dir }: Props) {
   return (
     <Html lang="en">
       <Head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icons/icon-192.svg" sizes="192x192" type="image/svg+xml" />
+        <link
+          rel="icon"
+          href="/icons/icon-192.svg"
+          sizes="192x192"
+          type="image/svg+xml"
+        />
         <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
         {process.env.NEXT_PUBLIC_ANALYTICS === 'enabled' && (
           <script
@@ -25,10 +43,16 @@ if (localStorage.getItem('analytics-consent') === '1') {
           />
         )}
       </Head>
-      <body>
+      <body dir={dir}>
         <Main />
         <NextScript />
       </body>
     </Html>
   );
 }
+
+Document.getInitialProps = async (ctx: DocumentContext) => {
+  const initialProps = await NextDocument.getInitialProps(ctx);
+  const locale = (ctx.query?.locale as string) || 'en';
+  return { ...initialProps, dir: isRTL(locale) ? 'rtl' : 'ltr' };
+};

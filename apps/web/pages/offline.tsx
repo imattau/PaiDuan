@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function Offline() {
   const [thumbs, setThumbs] = useState<string[]>([]);
@@ -26,7 +27,15 @@ export default function Offline() {
       <p>Previously viewed videos are available below.</p>
       <div className="flex flex-wrap justify-center" id="thumbs">
         {thumbs.map((src) => (
-          <img key={src} src={src} className="w-24 h-24 object-cover m-1" />
+          <Image
+            key={src}
+            src={src}
+            alt=""
+            width={96}
+            height={96}
+            className="w-24 h-24 object-cover m-1"
+            unoptimized
+          />
         ))}
       </div>
     </div>

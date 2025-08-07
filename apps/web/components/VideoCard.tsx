@@ -6,6 +6,7 @@ import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
 import ReportModal from './ReportModal';
 import Link from 'next/link';
+import Image from 'next/image';
 import { SimplePool } from 'nostr-tools';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
@@ -204,7 +205,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       <div className="absolute bottom-0 left-0 w-full p-4">
         <Link href={`/p/${pubkey}`} className="flex items-center space-x-3">
           {avatar ? (
-            <img src={avatar} alt={displayName} className="h-10 w-10 rounded-full object-cover" />
+            <Image
+              src={avatar}
+              alt={displayName}
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-full object-cover"
+              unoptimized
+            />
           ) : (
             <div className="h-10 w-10 rounded-full bg-foreground/20" />
           )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { X, Sun, Moon } from 'lucide-react';
 import useSearch from '../hooks/useSearch';
@@ -74,10 +75,13 @@ const SearchBar: React.FC = () => {
                 onClick={() => handleCreator(c.pubkey)}
               >
                 {c.picture ? (
-                  <img
+                  <Image
                     src={c.picture}
                     alt={c.name}
+                    width={32}
+                    height={32}
                     className="h-8 w-8 rounded-full object-cover"
+                    unoptimized
                   />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-foreground/20" />
@@ -97,10 +101,13 @@ const SearchBar: React.FC = () => {
                 onClick={() => handleVideo(v.eventId)}
               >
                 {v.posterUrl ? (
-                  <img
+                  <Image
                     src={v.posterUrl}
                     alt="poster"
+                    width={64}
+                    height={48}
                     className="h-12 w-16 object-cover"
+                    unoptimized
                   />
                 ) : (
                   <div className="h-12 w-16 bg-foreground/20" />
