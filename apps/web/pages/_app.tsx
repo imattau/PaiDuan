@@ -11,7 +11,7 @@ import useOffline from '../utils/useOffline';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
-import { NextIntlProvider } from 'next-intl';
+import { NextIntlClientProvider } from 'next-intl';
 import { trackPageview, analyticsEnabled, consentGiven } from '../utils/analytics';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -33,7 +33,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [router]);
 
   return (
-    <NextIntlProvider locale={locale} messages={pageProps.messages}>
+    <NextIntlClientProvider locale={locale} messages={pageProps.messages}>
       <>
         <ThemeProvider>
           <GestureProvider>
@@ -54,7 +54,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           </GestureProvider>
         </ThemeProvider>
       </>
-    </NextIntlProvider>
+    </NextIntlClientProvider>
   );
 }
 
