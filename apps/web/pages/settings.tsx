@@ -5,6 +5,9 @@ import { useRouter } from 'next/router';
 import useAlwaysSD from '../hooks/useAlwaysSD';
 import SettingsLayout from '../components/SettingsLayout';
 import { clearKey } from '../utils/keyStorage';
+import { KeysCard } from '../components/settings/KeysCard';
+import { ChangePassphrase } from '../components/settings/ChangePassphrase';
+import { AuthLockControls } from '../components/AuthLockControls';
 
 const swatches = ['#3b82f6', '#f43f5e', '#10b981', '#f59e0b', '#6366f1', '#ec4899'];
 
@@ -43,6 +46,11 @@ export default function SettingsPage() {
   return (
     <SettingsLayout>
       <div className="space-y-6">
+        <KeysCard />
+        <div className="flex gap-3">
+          <AuthLockControls />
+          <ChangePassphrase />
+        </div>
         <div className="rounded bg-brand-panel p-4">
           <h2 className="mb-2 text-lg font-semibold">{t('appearance')}</h2>
           <button onClick={toggleMode} className="btn-outline">

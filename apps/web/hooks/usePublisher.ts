@@ -13,8 +13,12 @@ export function usePublisher() {
       created_at: Math.floor(Date.now() / 1000),
     };
 
-    const signed = await signWithAuth(event, auth);
-    // publish signed event
+    try {
+      const signed = await signWithAuth(event, auth);
+      // publish signed event
+    } catch (e: any) {
+      alert(e.message || 'Sign-in required');
+    }
   }
 
   return { publishNote };

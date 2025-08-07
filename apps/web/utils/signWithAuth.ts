@@ -1,17 +1,17 @@
-import { signEvent as localSign, Event as NostrEvent } from 'nostr-tools';
+import { signEvent as localSign } from 'nostr-tools';
 
-interface AuthInfo {
-  pubkey: string;
-  privkey?: string;
-  method: string;
-}
-
-export async function signWithAuth(event: NostrEvent, auth: AuthInfo | null) {
-  if (auth?.method === 'nip07' && (window as any)?.nostr?.signEvent) {
+export async function signWithAuth(
+  event: any,
+  authCtx: { auth: any; privkeyHex?: string | null }
+) {
+  if (authCtx?.auth?.method === 'nip07' && (window as any)?.nostr?.signEvent) {
     return await (window as any).nostr.signEvent(event);
-  } else if (auth?.privkey) {
-    return localSign(event, auth.privkey);
-  } else {
-    throw new Error('No signing method available.');
   }
+  if (authCtx?.privkeyHex) {
+    return localSign(event, authCtx.privkeyHex);
+  }
+  throw new Error(
+    'Locked or public-only. Unlock with your passphrase or connect a NIP-07 signer.'
+  );
 }
+
