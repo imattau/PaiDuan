@@ -32,19 +32,19 @@ export function useSearch(query: string): SearchResults {
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [creators, setCreators] = useState<CreatorResult[]>([]);
   const poolRef = useRef<SimplePool>();
-  const subRef = useRef<{ unsub: () => void } | null>(null);
+  const subRef = useRef<{ close: () => void } | null>(null);
   const timerRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!query) {
       setVideos([]);
       setCreators([]);
-      subRef.current?.unsub();
+      subRef.current?.close();
       return;
     }
 
     const pool = (poolRef.current ||= new SimplePool());
-    subRef.current?.unsub();
+    subRef.current?.close();
     if (timerRef.current) clearTimeout(timerRef.current);
 
     const relays = relayList();
@@ -63,51 +63,51 @@ export function useSearch(query: string): SearchResults {
       filters.push({ kinds: [0], search: q, limit: 20 } as Filter);
     }
 
-    const sub = pool.sub(relays, filters);
     const nextVideos: VideoCardProps[] = [];
     const nextCreators: CreatorResult[] = [];
-
-    sub.on('event', (ev: NostrEvent) => {
-      if (ev.kind === 30023) {
-        const videoTag = ev.tags.find((t) => t[0] === 'v');
-        if (!videoTag) return;
-        const posterTag = ev.tags.find((t) => t[0] === 'image');
-        const manifestTag = ev.tags.find((t) => t[0] === 'vman');
-        const zapTag = ev.tags.find((t) => t[0] === 'zap');
-        const tTags = ev.tags.filter((t) => t[0] === 't').map((t) => t[1]);
-        nextVideos.push({
-          videoUrl: videoTag[1],
-          posterUrl: posterTag ? posterTag[1] : undefined,
-          manifestUrl: manifestTag ? manifestTag[1] : undefined,
-          author: ev.pubkey.slice(0, 8),
-          caption: tTags.join(' '),
-          eventId: ev.id,
-          lightningAddress: zapTag ? zapTag[1] : '',
-          pubkey: ev.pubkey,
-          zapTotal: 0,
-          onLike: () => {},
-        });
-        setVideos([...nextVideos]);
-      } else if (ev.kind === 0) {
-        try {
-          const content = JSON.parse(ev.content);
-          nextCreators.push({
+    const sub = pool.subscribeMany(relays, filters, {
+      onevent: (ev: NostrEvent) => {
+        if (ev.kind === 30023) {
+          const videoTag = ev.tags.find((t) => t[0] === 'v');
+          if (!videoTag) return;
+          const posterTag = ev.tags.find((t) => t[0] === 'image');
+          const manifestTag = ev.tags.find((t) => t[0] === 'vman');
+          const zapTag = ev.tags.find((t) => t[0] === 'zap');
+          const tTags = ev.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+          nextVideos.push({
+            videoUrl: videoTag[1],
+            posterUrl: posterTag ? posterTag[1] : undefined,
+            manifestUrl: manifestTag ? manifestTag[1] : undefined,
+            author: ev.pubkey.slice(0, 8),
+            caption: tTags.join(' '),
+            eventId: ev.id,
+            lightningAddress: zapTag ? zapTag[1] : '',
             pubkey: ev.pubkey,
-            name: content.name || ev.pubkey.slice(0, 8),
-            picture: content.picture,
+            zapTotal: 0,
+            onLike: () => {},
           });
-          setCreators([...nextCreators]);
-        } catch {
-          /* ignore */
+          setVideos([...nextVideos]);
+        } else if (ev.kind === 0) {
+          try {
+            const content = JSON.parse(ev.content);
+            nextCreators.push({
+              pubkey: ev.pubkey,
+              name: content.name || ev.pubkey.slice(0, 8),
+              picture: content.picture,
+            });
+            setCreators([...nextCreators]);
+          } catch {
+            /* ignore */
+          }
         }
-      }
+      },
     });
 
-    timerRef.current = setTimeout(() => sub.unsub(), 20000);
+    timerRef.current = setTimeout(() => sub.close(), 20000);
     subRef.current = sub;
 
     return () => {
-      sub.unsub();
+      sub.close();
     };
   }, [query]);
 
