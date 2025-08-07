@@ -28,6 +28,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
   const [progress, setProgress] = useState(0);
   const [publishing, setPublishing] = useState(false);
   const [trimming, setTrimming] = useState(false);
+  const [mode, setMode] = useState<'upload' | 'record'>('upload');
 
   const handleFile = (blob: Blob) => {
     const url = URL.createObjectURL(blob);
@@ -50,6 +51,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       streamRef.current = stream;
+      videoRef.current!.srcObject = stream;
       const recorder = new MediaRecorder(stream);
       recorderRef.current = recorder;
       chunksRef.current = [];
@@ -58,6 +60,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
         handleFile(blob);
         stream.getTracks().forEach((t) => t.stop());
+        videoRef.current!.srcObject = null;
       };
       recorder.start();
       setRecording(true);
@@ -206,19 +209,56 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
 
   const renderStep1 = () => (
     <div className="p-4 space-y-4">
-      <input
-        type="file"
-        accept="video/mp4,video/webm"
-        onChange={handleFileInput}
-        capture="environment"
-      />
-      {navigator.mediaDevices && (
-        <button
-          onClick={recording ? stopRecording : startRecording}
-          className="rounded bg-blue-500 px-4 py-2 text-white"
-        >
-          {recording ? 'Stop' : 'Record'}
-        </button>
+      <div className="mb-4 space-x-4">
+        <label className="cursor-pointer">
+          <input
+            type="radio"
+            className="mr-1"
+            checked={mode === 'upload'}
+            onChange={() => setMode('upload')}
+          />
+          Upload
+        </label>
+        <label className="cursor-pointer">
+          <input
+            type="radio"
+            className="mr-1"
+            checked={mode === 'record'}
+            onChange={() => setMode('record')}
+          />
+          Record
+        </label>
+      </div>
+
+      {/* Upload input */}
+      {mode === 'upload' && (
+        <input
+          type="file"
+          accept="video/mp4,video/webm"
+          onChange={handleFileInput}
+          capture="environment"
+          disabled={!!file || recording}
+        />
+      )}
+
+      {/* Record UI */}
+      {mode === 'record' && (
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full rounded border"
+          />
+          <button
+            onClick={recording ? stopRecording : startRecording}
+            className="mt-2 rounded bg-blue-500 px-4 py-2 text-white"
+            disabled={!!file}
+          >
+            {recording ? 'Stop' : 'Record'}
+          </button>
+        </>
       )}
     </div>
   );
