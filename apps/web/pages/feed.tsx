@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import Feed from '../components/Feed';
 import UploadButton from '../components/UploadButton';
 import CreatorWizard from '../components/CreatorWizard';
 import useFeed, { FeedMode } from '../hooks/useFeed';
 import useFollowing from '../hooks/useFollowing';
-import { VideoCardProps } from '../components/VideoCard';
+import { VideoCard, VideoCardProps } from '../components/VideoCard';
 import SearchBar from '../components/SearchBar';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -96,7 +95,13 @@ export default function FeedPage() {
       {tab === 'tags' && !selectedTag ? (
         renderTagList()
       ) : (
-        <Feed items={items} />
+        <div className="h-[calc(100vh-104px)] overflow-y-auto snap-y snap-mandatory">
+          {items.map((v) => (
+            <div key={v.eventId} className="snap-center flex justify-center">
+              <VideoCard {...v} />
+            </div>
+          ))}
+        </div>
       )}
       {tab === 'tags' && selectedTag && (
         <button
