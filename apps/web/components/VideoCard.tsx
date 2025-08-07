@@ -12,6 +12,7 @@ import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
 import useOffline from '../utils/useOffline';
 import useAdaptiveSource from '../hooks/useAdaptiveSource';
+import { motion } from 'framer-motion';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -134,9 +135,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   };
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
-      className="relative h-screen w-screen overflow-hidden bg-background text-foreground"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="relative h-screen w-screen overflow-hidden rounded-2xl bg-brand-surface text-white shadow-card"
       onDoubleClick={onLike}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
@@ -251,7 +255,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         open={reportOpen}
         onClose={() => setReportOpen(false)}
       />
-    </div>
+    </motion.div>
   );
 };
 

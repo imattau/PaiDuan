@@ -55,8 +55,8 @@ export default function TreasuryPage() {
   }, []);
 
   if (!authorised) {
-    return <div className="p-4">Access denied</div>;
+    return <div className="p-4 pb-14">Access denied</div>;
   }
 
-  return <div className="p-4">Today&apos;s total: {total} sats</div>;
+  return <div className="p-4 pb-14">Today&apos;s total: {total} sats</div>;
 }

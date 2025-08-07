@@ -5,6 +5,7 @@ import { GestureProvider } from '@paiduan/ui';
 import { Toaster } from 'react-hot-toast';
 import { NotificationsProvider } from '../hooks/useNotifications';
 import NotificationDrawer from '../components/NotificationDrawer';
+import NavBar from '../components/NavBar';
 import { ThemeProvider } from '../hooks/useTheme';
 import InstallBanner from '../components/InstallBanner';
 import useOffline from '../utils/useOffline';
@@ -58,6 +59,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
                 <Component {...pageProps} />
               </Sentry.ErrorBoundary>
               <NotificationDrawer />
+              <NavBar />
               <InstallBanner />
               <Toaster />
             </NotificationsProvider>

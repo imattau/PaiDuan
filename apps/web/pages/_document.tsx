@@ -25,6 +25,10 @@ export default function Document({ dir }: Props) {
           type="image/svg+xml"
         />
         <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         {process.env.NEXT_PUBLIC_ANALYTICS === 'enabled' && (
           <script
             dangerouslySetInnerHTML={{
@@ -43,7 +47,7 @@ if (localStorage.getItem('analytics-consent') === '1') {
           />
         )}
       </Head>
-      <body dir={dir}>
+      <body dir={dir} className="font-sans">
         <Main />
         <NextScript />
       </body>

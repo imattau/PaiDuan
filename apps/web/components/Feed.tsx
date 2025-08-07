@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSpring, animated, useGesture } from '@paiduan/ui';
 import { VideoCard, VideoCardProps } from './VideoCard';
+import EmptyState from './EmptyState';
 
 interface FeedProps {
   items: VideoCardProps[];
@@ -30,6 +31,15 @@ export const Feed: React.FC<FeedProps> = ({ items }) => {
   useEffect(() => {
     api.start({ y: -index * 100 });
   }, [index]);
+
+  if (items.length === 0) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center text-white">
+        <EmptyState />
+        <p className="mt-4">Be the first to upload!</p>
+      </div>
+    );
+  }
 
   return (
     <div {...bind()} className="relative h-screen w-screen overflow-hidden">
