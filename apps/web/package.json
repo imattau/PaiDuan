@@ -15,6 +15,7 @@
     "@react-spring/web": "^9.7.2",
     "@sentry/nextjs": "^10.2.0",
     "framer-motion": "^12.23.12",
+    "react-intersection-observer": "^9.16.0",
     "lucide-react": "^0.344.0",
     "next": "^14.2.3",
     "next-intl": "^4.3.4",
