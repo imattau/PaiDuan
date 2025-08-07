@@ -5,11 +5,12 @@ import useFeed, { FeedMode } from '../hooks/useFeed';
 import useFollowing from '../hooks/useFollowing';
 import { VideoCard, VideoCardProps } from '../components/VideoCard';
 import SearchBar from '../components/SearchBar';
+import SideNav from '../components/SideNav';
+import VideoInfoPane from '../components/VideoInfoPane';
+import { CurrentVideoProvider } from '../hooks/useCurrentVideo';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import useT from '../hooks/useT';
-import { CurrentVideoProvider } from '../hooks/useCurrentVideo';
-import VideoInfoPane from '../components/VideoInfoPane';
 
 const TAB_KEY = 'feed-tab';
 const TAG_KEY = 'feed-tag';
@@ -79,7 +80,7 @@ export default function FeedPage() {
   );
 
   const renderTagList = () => (
-    <div className="pt-20 h-screen overflow-y-auto pb-14 bg-background text-foreground">
+    <div className="pt-20 h-screen overflow-y-auto pb-14 bg-background text-foreground lg:ml-52 lg:mr-72">
       {tags.map((t) => (
         <div key={t} className="p-4 border-b border-foreground/20">
           <Link href={`/${locale}/feed?tag=${t}`} className="block w-full text-left hover:text-accent">
@@ -92,16 +93,21 @@ export default function FeedPage() {
 
   return (
     <CurrentVideoProvider>
-      <SearchBar />
+      <SideNav />
       <VideoInfoPane />
+      <SearchBar />
       {renderTabs()}
       {tab === 'tags' && !selectedTag ? (
         renderTagList()
       ) : (
-        <div className="h-[calc(100vh-104px)] overflow-y-auto snap-y snap-mandatory">
+        <div
+          className="h-[calc(100vh-104px)] overflow-y-auto snap-y snap-mandatory flex flex-col items-center lg:ml-52 lg:mr-72"
+        >
           {items.map((v) => (
-            <div key={v.eventId} className="snap-center flex justify-center">
-              <VideoCard {...v} />
+            <div key={v.eventId} className="snap-center flex justify-center w-full">
+              <div className="w-full max-w-[460px]">
+                <VideoCard {...v} />
+              </div>
             </div>
           ))}
         </div>

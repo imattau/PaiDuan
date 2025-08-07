@@ -1,19 +1,8 @@
 import { createContext, useContext, useState } from 'react';
 
-type VideoMeta = {
-  eventId: string;
-  pubkey: string;
-  caption: string;
-  posterUrl?: string;
-};
+type VideoMeta = { eventId: string; pubkey: string; caption: string; posterUrl?: string };
 
-const Ctx = createContext<
-  | {
-      current: VideoMeta | null;
-      setCurrent: (m: VideoMeta | null) => void;
-    }
-  | null
->(null);
+const Ctx = createContext<{ current: VideoMeta | null; setCurrent: (v: VideoMeta | null) => void } | null>(null);
 
 export function CurrentVideoProvider({ children }: { children: React.ReactNode }) {
   const [current, setCurrent] = useState<VideoMeta | null>(null);
@@ -22,8 +11,6 @@ export function CurrentVideoProvider({ children }: { children: React.ReactNode }
 
 export function useCurrentVideo() {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error('useCurrentVideo must be inside provider');
+  if (!ctx) throw new Error('useCurrentVideo outside provider');
   return ctx;
 }
-
-export type { VideoMeta };
