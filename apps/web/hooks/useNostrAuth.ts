@@ -2,6 +2,7 @@ import { getPublicKey, generateSecretKey, nip19 } from 'nostr-tools';
 import { bytesToHex } from '@noble/hashes/utils';
 import { saveKey } from '../utils/keyStorage';
 import { encryptPrivkeyHex } from '../utils/cryptoVault';
+import { promptPassphrase } from '../utils/promptPassphrase';
 
 function privHexFrom(input: string): string {
   const s = input.trim();
@@ -50,20 +51,34 @@ export function useNostrAuth() {
     }
     const privHex = privHexFrom(input);
     const pubkey = getPublicKey(privHex);
-    const pass = prompt('Set a passphrase to encrypt your key');
-    if (!pass) return;
-    if (pass.length < 8) throw new Error('Passphrase must be at least 8 characters');
-    if (pass.length < 12) alert('Warning: short passphrases are easier to guess');
+    let pass: string | null;
+    while (true) {
+      pass = await promptPassphrase('Set a passphrase to encrypt your key');
+      if (!pass) return;
+      if (pass.length < 8) {
+        alert('Passphrase must be at least 8 characters');
+        continue;
+      }
+      if (pass.length < 12) alert('Warning: short passphrases are easier to guess');
+      break;
+    }
     const encPriv = await encryptPrivkeyHex(privHex, pass);
     saveKey({ method: 'manual', pubkey, encPriv });
     window.location.href = '/feed';
   }
 
   async function generateKey() {
-    const pass = prompt('Set a passphrase to encrypt your new key');
-    if (!pass) return;
-    if (pass.length < 8) throw new Error('Passphrase must be at least 8 characters');
-    if (pass.length < 12) alert('Warning: short passphrases are easier to guess');
+    let pass: string | null;
+    while (true) {
+      pass = await promptPassphrase('Set a passphrase to encrypt your new key');
+      if (!pass) return;
+      if (pass.length < 8) {
+        alert('Passphrase must be at least 8 characters');
+        continue;
+      }
+      if (pass.length < 12) alert('Warning: short passphrases are easier to guess');
+      break;
+    }
     const privHex = bytesToHex(generateSecretKey());
     const pubkey = getPublicKey(privHex);
     const encPriv = await encryptPrivkeyHex(privHex, pass);

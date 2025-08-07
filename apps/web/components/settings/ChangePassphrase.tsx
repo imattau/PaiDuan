@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/authContext';
 import { encryptPrivkeyHex } from '../../utils/cryptoVault';
 import { saveKey } from '../../utils/keyStorage';
+import { promptPassphrase } from '../../utils/promptPassphrase';
 
 export function ChangePassphrase() {
   const auth = useAuth();
@@ -9,7 +10,7 @@ export function ChangePassphrase() {
 
   async function run() {
     if (!auth.privkeyHex) {
-      const p = prompt('Enter current passphrase');
+      const p = await promptPassphrase('Enter current passphrase');
       if (!p) return;
       try {
         await auth.unlock(p);
@@ -19,8 +20,12 @@ export function ChangePassphrase() {
       }
     }
     if (!auth.privkeyHex) return;
-    const newPass = prompt('Enter new passphrase');
+    const newPass = await promptPassphrase('Enter new passphrase');
     if (!newPass) return;
+    if (newPass.length < 8) {
+      alert('Passphrase must be at least 8 characters');
+      return;
+    }
     const encPriv = await encryptPrivkeyHex(auth.privkeyHex, newPass);
     const updated = { ...auth.auth, encPriv } as any;
     saveKey(updated);

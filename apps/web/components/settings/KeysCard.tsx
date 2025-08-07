@@ -3,6 +3,7 @@ import { nip19 } from 'nostr-tools';
 import { hexToBytes } from '@noble/hashes/utils';
 import { encryptPrivkeyHex } from '../../utils/cryptoVault';
 import { saveKey } from '../../utils/keyStorage';
+import { promptPassphrase } from '../../utils/promptPassphrase';
 import { Card } from '../ui/Card';
 
 export function KeysCard() {
@@ -34,7 +35,7 @@ export function KeysCard() {
   }
 
   async function unlock() {
-    const pass = prompt('Enter passphrase');
+    const pass = await promptPassphrase('Enter passphrase');
     if (!pass) return;
     try {
       await auth.unlock(pass);
@@ -46,7 +47,7 @@ export function KeysCard() {
 
   async function changePassphrase() {
     if (!auth.privkeyHex) {
-      const p = prompt('Enter current passphrase');
+      const p = await promptPassphrase('Enter current passphrase');
       if (!p) return;
       try {
         await auth.unlock(p);
@@ -56,8 +57,12 @@ export function KeysCard() {
       }
     }
     if (!auth.privkeyHex) return;
-    const newPass = prompt('Enter new passphrase');
+    const newPass = await promptPassphrase('Enter new passphrase');
     if (!newPass) return;
+    if (newPass.length < 8) {
+      alert('Passphrase must be at least 8 characters');
+      return;
+    }
     const encPriv = await encryptPrivkeyHex(auth.privkeyHex, newPass);
     const updated = { ...auth.auth, encPriv } as any;
     saveKey(updated);
