@@ -2,33 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* semantic palette */
 :root {
   --background: 0 0% 100%;
-  --foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
+  --foreground: 220 14% 12%;
+  --surface: 0 0% 100%;
+  --muted: 220 9% 46%;
   --accent: 262 83% 58%;
-  --border: 214.3 31.8% 91.4%;
+  --border: 220 13% 91%;
 }
-
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 213 31% 91%;
-  --muted: 217.2 32.6% 17.5%;
+  --background: 220 14% 8%;
+  --foreground: 220 15% 92%;
+  --surface: 220 12% 12%;
+  --muted: 220 10% 70%;
   --accent: 262 83% 58%;
-  --border: 217.2 32.6% 17.5%;
+  --border: 220 12% 20%;
 }
 
-@layer base {
-  body {
-    @apply bg-background text-foreground;
+body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
+
+@layer utilities {
+  .text-muted-foreground { color: hsl(var(--foreground) / 0.6); }
+}
+
+/* Button system — works in light & dark */
+@layer components {
+  .btn { @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2; }
+  .btn-primary {
+    background: hsl(var(--accent)); color: white; border: none;
+  }
+  .btn-secondary {
+    @apply border;
+    background: hsl(var(--surface)); color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+  .btn-danger {
+    background: #ef4444; color: white;
+  }
+  .btn-ghost {
+    background: transparent; color: hsl(var(--foreground));
   }
 }
 
-.btn-outline { @apply rounded border border-white/30 px-3 py-1 hover:bg-white/10; }
-@layer components {
-  .btn-primary { @apply px-4 py-2.5 rounded-xl bg-accent text-white font-medium hover:brightness-110 focus-visible:ring-2 ring-offset-2; }
-  .btn-secondary { @apply px-4 py-2.5 rounded-xl border font-medium hover:bg-white/10 focus-visible:ring-2 ring-offset-2; }
-  .btn-danger { @apply px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-500 focus-visible:ring-2 ring-offset-2; }
-  /* Tailwind can't @apply slash-opacity. Do it with raw CSS. */
-  .text-muted-foreground { color: hsl(var(--foreground) / 0.6); }
-}

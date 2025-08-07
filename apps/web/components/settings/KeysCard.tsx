@@ -81,7 +81,7 @@ export function KeysCard() {
       <div className="flex flex-wrap gap-3 pt-2">
         {auth.auth.method !== 'nip07' && auth.auth.method !== 'public' && (
           !auth.isUnlocked ? (
-            <button className="btn-primary" onClick={unlock}>
+            <button className="btn btn-primary" onClick={unlock}>
               Unlock
             </button>
           ) : (
@@ -91,13 +91,13 @@ export function KeysCard() {
                 description="Never share this key. Continue?"
                 onConfirm={copyNsecSafely}
               />
-              <button className="btn-secondary" onClick={changePassphrase}>
+              <button className="btn btn-secondary" onClick={changePassphrase}>
                 Change passphrase
               </button>
             </>
           )
         )}
-        <button className="btn-secondary" onClick={exportVault}>
+        <button className="btn btn-secondary" onClick={exportVault}>
           Export encrypted vault
         </button>
       </div>
@@ -119,7 +119,7 @@ function Field({ label, value, onCopy }: { label: string; value: string; onCopy:
 
 function Confirm({ label, description, onConfirm }: { label: string; description: string; onConfirm: () => void }) {
   return (
-    <button className="btn-danger" onClick={() => window.confirm(description) && onConfirm()}>
+    <button className="btn btn-danger" onClick={() => window.confirm(description) && onConfirm()}>
       {label}
     </button>
   );
