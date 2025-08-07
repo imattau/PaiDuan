@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require('tailwindcss/plugin');
+
 module.exports = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx}',
@@ -15,5 +17,11 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  variants: {
+    extend: {
+      margin: ['rtl'],
+      padding: ['rtl'],
+    },
+  },
+  plugins: [plugin(require('tailwindcss-plugin-rtl'))],
 };

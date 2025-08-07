@@ -4,6 +4,7 @@ import { X, Sun, Moon } from 'lucide-react';
 import useSearch from '../hooks/useSearch';
 import NotificationBell from './NotificationBell';
 import { useTheme } from '../hooks/useTheme';
+import useT from '../hooks/useT';
 
 const SearchBar: React.FC = () => {
   const [value, setValue] = useState('');
@@ -11,6 +12,7 @@ const SearchBar: React.FC = () => {
   const router = useRouter();
   const { videos, creators } = useSearch(query);
   const { mode, toggleMode } = useTheme();
+  const t = useT();
 
   useEffect(() => {
     const handler = setTimeout(() => setQuery(value.trim()), 300);
@@ -40,7 +42,7 @@ const SearchBar: React.FC = () => {
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Search"
+          placeholder={t('search')}
           className="flex-1 rounded bg-background px-2 py-1 text-foreground"
         />
         {value && (
@@ -50,7 +52,7 @@ const SearchBar: React.FC = () => {
         )}
         <button
           onClick={toggleMode}
-          title="Toggle light/dark"
+          title={t('toggle_theme')}
           className="hover:text-accent"
         >
           {mode === 'dark' ? <Sun /> : <Moon />}
@@ -64,7 +66,7 @@ const SearchBar: React.FC = () => {
       >
         {creators.length > 0 && (
           <div className="p-4 border-b border-foreground/20">
-            <div className="mb-2 text-sm">Creators</div>
+            <div className="mb-2 text-sm">{t('creators')}</div>
             {creators.map((c) => (
               <div
                 key={c.pubkey}
@@ -87,7 +89,7 @@ const SearchBar: React.FC = () => {
         )}
         {videos.length > 0 && (
           <div className="p-4">
-            <div className="mb-2 text-sm">Videos</div>
+            <div className="mb-2 text-sm">{t('videos')}</div>
             {videos.map((v) => (
               <div
                 key={v.eventId}
