@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
   try {
-    await fetch('https://stats.zapstr.app/api/event', {
+    await fetch('https://stats.paiduan.app/api/event', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

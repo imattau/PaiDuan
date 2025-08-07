@@ -32,8 +32,8 @@ export default function Document({ dir }: Props) {
 if (localStorage.getItem('analytics-consent') === '1') {
   window.plausible = window.plausible || function(){(window.plausible.q = window.plausible.q || []).push(arguments)};
   var s=document.createElement('script');
-  s.src='https://stats.zapstr.app/js/script.js';
-  s.setAttribute('data-domain','zapstr.app');
+  s.src='https://stats.paiduan.app/js/script.js';
+  s.setAttribute('data-domain','paiduan.app');
   s.setAttribute('data-api','/api/event');
   s.defer=true;
   document.head.appendChild(s);

@@ -180,7 +180,7 @@ the full URL (e.g. `<origin>/v/<id>`) to the clipboard. Tags can be shared via
 
 Zapstr can report anonymous usage metrics and runtime errors.
 
-- Analytics are powered by a self-hosted [Plausible](https://plausible.io) instance at `stats.zapstr.app`.
+- Analytics are powered by a self-hosted [Plausible](https://plausible.io) instance at `stats.paiduan.app`.
   The script is only loaded when `NEXT_PUBLIC_ANALYTICS=enabled` and users have opted in.
   Events are proxied through `/api/event` to avoid third-party cookies. Custom events include `zap_click`,
   `comment_send`, `install_prompt_shown` and `install_prompt_accepted`, along with page views for feed,
