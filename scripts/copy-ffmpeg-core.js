@@ -1,7 +1,7 @@
 const { copyFileSync, mkdirSync } = require('fs');
 const { dirname, join } = require('path');
 
-const coreDir = dirname(require.resolve('@ffmpeg/core/dist/ffmpeg-core.js'));
+const coreDir = dirname(require.resolve('@ffmpeg/core-mt'));
 const destDir = join(__dirname, '..', 'apps', 'web', 'public', 'ffmpeg');
 
 mkdirSync(destDir, { recursive: true });
