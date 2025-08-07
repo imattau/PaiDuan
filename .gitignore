@@ -6,3 +6,4 @@ out
 dist
 .env
 .DS_Store
+apps/web/public/ffmpeg/
