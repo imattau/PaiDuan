@@ -3,14 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --accent: #3b82f6;
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: 0 0% 100%;
+  --foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --accent: 262 83% 58%;
+  --border: 214.3 31.8% 91.4%;
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #ffffff;
+  --background: 222.2 84% 4.9%;
+  --foreground: 213 31% 91%;
+  --muted: 217.2 32.6% 17.5%;
+  --accent: 262 83% 58%;
+  --border: 217.2 32.6% 17.5%;
 }
 
 @layer base {
@@ -24,5 +29,6 @@
   .btn-primary { @apply px-4 py-2.5 rounded-xl bg-accent text-white font-medium hover:brightness-110 focus-visible:ring-2 ring-offset-2; }
   .btn-secondary { @apply px-4 py-2.5 rounded-xl border font-medium hover:bg-white/10 focus-visible:ring-2 ring-offset-2; }
   .btn-danger { @apply px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-500 focus-visible:ring-2 ring-offset-2; }
-  .text-muted-foreground { @apply text-foreground/60; }
+  /* Tailwind can't @apply slash-opacity. Do it with raw CSS. */
+  .text-muted-foreground { color: hsl(var(--foreground) / 0.6); }
 }

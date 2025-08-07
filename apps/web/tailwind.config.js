@@ -12,9 +12,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        accent: 'var(--accent)',
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        muted: 'hsl(var(--muted))',
+        accent: 'hsl(var(--accent))',
+        border: 'hsl(var(--border))',
         brand: {
           DEFAULT: '#7c3aed',
           surface: '#1a1b1f',
