@@ -122,12 +122,12 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   return (
     <animated.div
       style={{ transform: y.to((py) => `translateY(${py}%)`) }}
-      className="fixed inset-x-0 bottom-0 z-50 h-1/2 bg-black text-white"
+      className="fixed inset-x-0 bottom-0 z-50 h-1/2 bg-background text-foreground"
       {...bind()}
     >
-      <div className="flex items-center justify-between border-b border-white/10 p-2">
+      <div className="flex items-center justify-between border-b border-foreground/10 p-2">
         <span className="font-semibold">Comments</span>
-        <button onClick={onClose} className="p-1">
+        <button onClick={onClose} className="p-1 hover:text-accent">
           <X />
         </button>
       </div>
@@ -135,15 +135,15 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
         {topLevel.map((c) => (
           <div key={c.id}>
             <div className="flex items-start space-x-2">
-              <div className="h-8 w-8 rounded-full bg-gray-500" />
+              <div className="h-8 w-8 rounded-full bg-foreground/20" />
               <div>
                 <div className="text-sm font-semibold">@{c.pubkey.slice(0, 8)}</div>
                 <div className="text-sm">{c.content}</div>
-                <div className="text-xs text-gray-400">
+                <div className="text-xs text-foreground/50">
                   {new Date(c.created_at * 1000).toLocaleString()}
                 </div>
                 <button
-                  className="text-xs text-blue-400"
+                  className="text-xs text-accent"
                   onClick={() => setReplyTo(c)}
                 >
                   Reply
@@ -152,15 +152,15 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
             </div>
             {repliesMap[c.id]?.map((r) => (
               <div key={r.id} className="mt-2 ml-8 flex items-start space-x-2">
-                <div className="h-6 w-6 rounded-full bg-gray-500" />
+                <div className="h-6 w-6 rounded-full bg-foreground/20" />
                 <div>
                   <div className="text-sm font-semibold">@{r.pubkey.slice(0, 8)}</div>
                   <div className="text-sm">{r.content}</div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-foreground/50">
                     {new Date(r.created_at * 1000).toLocaleString()}
                   </div>
                   <button
-                    className="text-xs text-blue-400"
+                    className="text-xs text-accent"
                     onClick={() => setReplyTo(r)}
                   >
                     Reply
@@ -171,11 +171,11 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
           </div>
         ))}
       </div>
-      <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 p-2">
+      <div className="absolute bottom-0 left-0 right-0 border-t border-foreground/10 p-2">
         {replyTo && (
-          <div className="mb-1 text-xs text-gray-400">
+          <div className="mb-1 text-xs text-foreground/50">
             Replying to @{replyTo.pubkey.slice(0, 8)}{' '}
-            <button onClick={() => setReplyTo(null)} className="underline">
+            <button onClick={() => setReplyTo(null)} className="underline hover:text-accent">
               cancel
             </button>
           </div>
@@ -185,7 +185,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Add a comment"
-          className="w-full rounded bg-gray-800 p-2 text-sm outline-none"
+          className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
           disabled={!open}
         />
       </div>

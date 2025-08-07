@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { X } from 'lucide-react';
+import { X, Sun, Moon } from 'lucide-react';
 import useSearch from '../hooks/useSearch';
 import NotificationBell from './NotificationBell';
+import { useTheme } from '../hooks/useTheme';
 
 const SearchBar: React.FC = () => {
   const [value, setValue] = useState('');
   const [query, setQuery] = useState('');
   const router = useRouter();
   const { videos, creators } = useSearch(query);
+  const { mode, toggleMode } = useTheme();
 
   useEffect(() => {
     const handler = setTimeout(() => setQuery(value.trim()), 300);
@@ -34,27 +36,34 @@ const SearchBar: React.FC = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-20 flex h-12 items-center space-x-2 bg-black/80 p-2">
+      <div className="fixed top-0 left-0 right-0 z-20 flex h-12 items-center space-x-2 bg-background/80 p-2 text-foreground">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Search"
-          className="flex-1 rounded px-2 py-1 text-black"
+          className="flex-1 rounded bg-background px-2 py-1 text-foreground"
         />
         {value && (
-          <button onClick={clear} className="text-white">
+          <button onClick={clear} className="hover:text-accent">
             <X />
           </button>
         )}
+        <button
+          onClick={toggleMode}
+          title="Toggle light/dark"
+          className="hover:text-accent"
+        >
+          {mode === 'dark' ? <Sun /> : <Moon />}
+        </button>
         <NotificationBell />
       </div>
       <div
-        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-black text-white transition-transform duration-300 ${
+        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-background text-foreground transition-transform duration-300 ${
           showDrawer ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         {creators.length > 0 && (
-          <div className="p-4 border-b border-white/20">
+          <div className="p-4 border-b border-foreground/20">
             <div className="mb-2 text-sm">Creators</div>
             {creators.map((c) => (
               <div
@@ -69,7 +78,7 @@ const SearchBar: React.FC = () => {
                     className="h-8 w-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="h-8 w-8 rounded-full bg-gray-500" />
+                  <div className="h-8 w-8 rounded-full bg-foreground/20" />
                 )}
                 <div>{c.name}</div>
               </div>
@@ -92,7 +101,7 @@ const SearchBar: React.FC = () => {
                     className="h-12 w-16 object-cover"
                   />
                 ) : (
-                  <div className="h-12 w-16 bg-gray-500" />
+                  <div className="h-12 w-16 bg-foreground/20" />
                 )}
                 <div className="text-sm">{v.caption}</div>
               </div>

@@ -2,7 +2,7 @@ import { Button } from '@paiduan/ui';
 
 export default function Home() {
   return (
-    <div className="bg-red-500 min-h-screen flex items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
       <Button label="Click me" />
     </div>
   );
