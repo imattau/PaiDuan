@@ -12,31 +12,26 @@ const NotificationDrawer: React.FC = () => {
     if (noteId) router.push(`/v/${noteId}`);
   };
 
+  if (notifications.length === 0) return null;
+
   return (
     <div
-      className={
-        `fixed top-12 left-0 right-0 z-30 max-h-1/2 transform overflow-y-auto bg-background text-foreground transition-transform duration-300 ${
-          open ? 'translate-y-0' : '-translate-y-full'
-        }`
-      }
+      className={`fixed top-12 left-0 right-0 z-30 max-h-1/2 transform overflow-y-auto bg-background text-foreground transition-transform duration-300 ${
+        open ? 'translate-y-0' : '-translate-y-full'
+      }`}
     >
       <div className="flex items-center justify-between border-b border-foreground/20 p-2">
         <span className="font-semibold">Notifications</span>
-        {notifications.length > 0 && (
-          <button
-            className="text-sm text-accent"
-            onClick={() => {
-              markAllAsRead();
-              setOpen(false);
-            }}
-          >
-            Mark all read
-          </button>
-        )}
+        <button
+          className="text-sm text-accent"
+          onClick={() => {
+            markAllAsRead();
+            setOpen(false);
+          }}
+        >
+          Mark all read
+        </button>
       </div>
-      {notifications.length === 0 && (
-        <div className="p-4 text-center text-sm">No new notifications</div>
-      )}
       {notifications.map((n) => (
         <div
           key={n.id}

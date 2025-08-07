@@ -1,18 +1,21 @@
 import { useAuth } from '../../context/authContext';
 import { nip19 } from 'nostr-tools';
 import { hexToBytes } from '@noble/hashes/utils';
+import { encryptPrivkeyHex } from '../../utils/cryptoVault';
+import { saveKey } from '../../utils/keyStorage';
+import { Card } from '../ui/Card';
 
 export function KeysCard() {
   const auth = useAuth();
   if (!auth.auth) return null;
 
-  const pubhex = auth.pubkey ?? '';
-  const npub = pubhex ? nip19.npubEncode(pubhex) : '';
+  const pubHex = auth.pubkey ?? '';
+  const npub = pubHex ? nip19.npubEncode(pubHex) : '';
 
-  async function copy(text: string, label: string) {
+  const copy = async (text: string) => {
     await navigator.clipboard.writeText(text);
-    alert(`${label} copied`);
-  }
+    alert('Copied');
+  };
 
   function exportVault() {
     if (auth.auth.method === 'nip07' || auth.auth.method === 'public') {
@@ -30,56 +33,94 @@ export function KeysCard() {
     URL.revokeObjectURL(url);
   }
 
-  async function copyNsec() {
+  async function unlock() {
+    const pass = prompt('Enter passphrase');
+    if (!pass) return;
+    try {
+      await auth.unlock(pass);
+      alert('Unlocked');
+    } catch {
+      alert('Incorrect passphrase');
+    }
+  }
+
+  async function changePassphrase() {
     if (!auth.privkeyHex) {
-      const pass = prompt('Enter passphrase');
-      if (!pass) return;
+      const p = prompt('Enter current passphrase');
+      if (!p) return;
       try {
-        await auth.unlock(pass);
+        await auth.unlock(p);
       } catch {
         alert('Incorrect passphrase');
         return;
       }
     }
     if (!auth.privkeyHex) return;
+    const newPass = prompt('Enter new passphrase');
+    if (!newPass) return;
+    const encPriv = await encryptPrivkeyHex(auth.privkeyHex, newPass);
+    const updated = { ...auth.auth, encPriv } as any;
+    saveKey(updated);
+    alert('Passphrase updated');
+    auth.lock();
+  }
+
+  async function copyNsecSafely() {
+    if (!auth.privkeyHex) return;
     const nsec = nip19.nsecEncode(hexToBytes(auth.privkeyHex));
-    await copy(nsec, 'nsec');
+    await copy(nsec);
   }
 
   return (
-    <div className="rounded-2xl border p-4 space-y-3">
-      <h3 className="text-lg font-semibold">Keys</h3>
-      <div>
-        <div className="text-sm text-gray-500">Public key (hex)</div>
-        <div className="break-all text-sm">{pubhex}</div>
-        <button
-          className="underline text-sm"
-          onClick={() => copy(pubhex, 'Public key (hex)')}
-        >
-          Copy hex
-        </button>
+    <Card title="Keys" desc="Your public keys and encrypted private key.">
+      <div className="space-y-3">
+        <Field label="Public key (hex)" value={pubHex} onCopy={() => copy(pubHex)} />
+        <Field label="Public key (npub)" value={npub} onCopy={() => copy(npub)} />
       </div>
-      <div>
-        <div className="text-sm text-gray-500">Public key (npub)</div>
-        <div className="break-all text-sm">{npub}</div>
-        <button
-          className="underline text-sm"
-          onClick={() => copy(npub, 'npub')}
-        >
-          Copy npub
-        </button>
-      </div>
-      <div className="flex gap-3 pt-2">
-        <button className="px-3 py-2 rounded border" onClick={exportVault}>
+
+      <div className="flex flex-wrap gap-3 pt-2">
+        {auth.auth.method !== 'nip07' && auth.auth.method !== 'public' && (
+          !auth.isUnlocked ? (
+            <button className="btn-primary" onClick={unlock}>
+              Unlock
+            </button>
+          ) : (
+            <>
+              <Confirm
+                label="Copy nsec"
+                description="Never share this key. Continue?"
+                onConfirm={copyNsecSafely}
+              />
+              <button className="btn-secondary" onClick={changePassphrase}>
+                Change passphrase
+              </button>
+            </>
+          )
+        )}
+        <button className="btn-secondary" onClick={exportVault}>
           Export encrypted vault
         </button>
-        {auth.auth.method !== 'nip07' && auth.auth.method !== 'public' && (
-          <button className="px-3 py-2 rounded border" onClick={copyNsec}>
-            {auth.isUnlocked ? 'Copy nsec' : 'Unlock & copy nsec'}
-          </button>
-        )}
       </div>
+    </Card>
+  );
+}
+
+function Field({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) {
+  return (
+    <div>
+      <div className="mb-1 text-sm text-muted-foreground">{label}</div>
+      <pre className="bg-black/20 rounded-lg p-3 text-xs overflow-auto">{value}</pre>
+      <button onClick={onCopy} className="mt-1 text-sm underline">
+        Copy
+      </button>
     </div>
   );
 }
 
+function Confirm({ label, description, onConfirm }: { label: string; description: string; onConfirm: () => void }) {
+  return (
+    <button className="btn-danger" onClick={() => window.confirm(description) && onConfirm()}>
+      {label}
+    </button>
+  );
+}
