@@ -13,7 +13,7 @@ export default function NavBar() {
     { href: `/${locale}/settings`, icon: <User />, label: 'Profile' },
   ];
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-30 flex justify-around bg-brand-surface/90 backdrop-blur shadow-card">
+    <nav className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-brand-surface/90 backdrop-blur shadow-card">
       {links.map(({ href, icon, label }) => {
         const active = asPath.startsWith(href);
         return (
