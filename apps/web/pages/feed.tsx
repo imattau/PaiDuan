@@ -8,6 +8,8 @@ import SearchBar from '../components/SearchBar';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import useT from '../hooks/useT';
+import { CurrentVideoProvider } from '../hooks/useCurrentVideo';
+import VideoInfoPane from '../components/VideoInfoPane';
 
 const TAB_KEY = 'feed-tab';
 const TAG_KEY = 'feed-tag';
@@ -89,8 +91,9 @@ export default function FeedPage() {
   );
 
   return (
-    <>
+    <CurrentVideoProvider>
       <SearchBar />
+      <VideoInfoPane />
       {renderTabs()}
       {tab === 'tags' && !selectedTag ? (
         renderTagList()
@@ -121,6 +124,6 @@ export default function FeedPage() {
           onPublished={handlePublished}
         />
       )}
-    </>
+    </CurrentVideoProvider>
   );
 }

@@ -13,6 +13,8 @@ import toast from 'react-hot-toast';
 import useOffline from '../utils/useOffline';
 import useAdaptiveSource from '../hooks/useAdaptiveSource';
 import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { useCurrentVideo } from '../hooks/useCurrentVideo';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -56,6 +58,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const online = useOffline();
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const { setCurrent } = useCurrentVideo();
+  const { ref, inView } = useInView({ threshold: 0.7 });
 
   const handleShare = () => {
     const url = `${window.location.origin}/v/${eventId}`;
@@ -81,6 +85,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       sub.close();
     };
   }, [pubkey]);
+
+  useEffect(() => {
+    if (inView) setCurrent({ eventId, pubkey, caption, posterUrl });
+  }, [inView, setCurrent, eventId, pubkey, caption, posterUrl]);
 
 
   const bind = useGesture(
@@ -136,7 +144,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   return (
     <motion.div
-      ref={containerRef}
+      ref={(el) => {
+        containerRef.current = el;
+        ref(el);
+      }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
