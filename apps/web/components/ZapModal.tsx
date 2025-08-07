@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import useLightning from '../hooks/useLightning';
+import { toast } from 'react-hot-toast';
 
 interface ZapModalProps {
   lightningAddress: string;
@@ -21,6 +22,7 @@ export const ZapModal: React.FC<ZapModalProps> = ({ lightningAddress, eventId, p
       onSuccess(amt);
     } catch (err) {
       console.error(err);
+      toast.error('Split payout failed – zap cancelled');
     }
     onClose();
   };

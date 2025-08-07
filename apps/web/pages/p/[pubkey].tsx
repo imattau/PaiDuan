@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
+import { toast } from 'react-hot-toast';
 import VideoCard, { VideoCardProps } from '../../components/VideoCard';
 import useFollowing, { getFollowers } from '../../hooks/useFollowing';
 import SearchBar from '../../components/SearchBar';
@@ -27,6 +28,8 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
   const [bio, setBio] = useState('');
+  const [zapSplits, setZapSplits] = useState<{ lnaddr: string; pct: number }[]>([]);
+  const [myPubkey, setMyPubkey] = useState('');
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [selected, setSelected] = useState<VideoCardProps | null>(null);
   const { following, follow, unfollow } = useFollowing();
@@ -34,10 +37,20 @@ export default function ProfilePage() {
 
   const isFollowing = pubkey ? following.includes(pubkey) : false;
 
+  const isOwner = pubkey === myPubkey;
+
   useEffect(() => {
     if (!pubkey) return;
     setFollowers(getFollowers(pubkey));
   }, [pubkey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const nostr = (window as any).nostr;
+    if (nostr?.getPublicKey) {
+      nostr.getPublicKey().then((pk: string) => setMyPubkey(pk)).catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     if (!pubkey) return;
@@ -53,6 +66,13 @@ export default function ProfilePage() {
         setName(content.name || '');
         setPicture(content.picture || '');
         setBio(content.about || '');
+        if (Array.isArray(content.zapSplits)) {
+          setZapSplits(
+            content.zapSplits
+              .filter((s: any) => typeof s.lnaddr === 'string' && typeof s.pct === 'number')
+              .slice(0, 4),
+          );
+        }
       } catch {
         /* ignore */
       }
@@ -100,6 +120,51 @@ export default function ProfilePage() {
     setFollowers(getFollowers(pubkey));
   };
 
+  const totalPct = zapSplits.reduce((sum, s) => sum + s.pct, 0);
+
+  const addSplit = () => {
+    if (zapSplits.length >= 4) return;
+    setZapSplits([...zapSplits, { lnaddr: '', pct: 0 }]);
+  };
+
+  const updateSplit = (idx: number, key: 'lnaddr' | 'pct', value: string) => {
+    const next = [...zapSplits];
+    if (key === 'pct') {
+      next[idx].pct = Number(value);
+    } else {
+      next[idx].lnaddr = value;
+    }
+    setZapSplits(next);
+  };
+
+  const removeSplit = (idx: number) => {
+    const next = [...zapSplits];
+    next.splice(idx, 1);
+    setZapSplits(next);
+  };
+
+  const saveSplits = async () => {
+    try {
+      const nostr = (window as any).nostr;
+      if (!nostr) throw new Error('nostr extension required');
+      const content: any = { name, picture, about: bio };
+      if (zapSplits.length) content.zapSplits = zapSplits;
+      const event: any = {
+        kind: 0,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [],
+        content: JSON.stringify(content),
+      };
+      const signed = await nostr.signEvent(event);
+      const pool = (poolRef.current ||= new SimplePool());
+      await pool.publish(relayList(), signed);
+      toast.success('Revenue share updated');
+    } catch (err) {
+      console.error(err);
+      toast.error('Update failed');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white pt-12">
       <SearchBar />
@@ -126,6 +191,49 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {isOwner && (
+        <div className="p-4">
+          <div className="mb-2 text-lg font-semibold">Revenue Share</div>
+          {zapSplits.map((s, i) => (
+            <div key={i} className="mb-2 flex items-center space-x-2">
+              <input
+                value={s.lnaddr}
+                onChange={(e) => updateSplit(i, 'lnaddr', e.target.value)}
+                placeholder="ln@addr"
+                className="flex-1 rounded border px-2 py-1 bg-white text-black"
+              />
+              <input
+                type="number"
+                min={0}
+                max={95}
+                value={s.pct}
+                onChange={(e) => updateSplit(i, 'pct', e.target.value)}
+                className="w-20 rounded border px-2 py-1 bg-white text-black"
+              />
+              <button onClick={() => removeSplit(i)} className="text-sm underline">
+                remove
+              </button>
+            </div>
+          ))}
+          {zapSplits.length < 4 && totalPct < 95 && (
+            <button
+              onClick={addSplit}
+              className="mb-2 rounded border px-2 py-1 text-sm"
+            >
+              Add collaborator
+            </button>
+          )}
+          <div className="mb-2 text-sm">Total {totalPct}% / 95%</div>
+          <button
+            onClick={saveSplits}
+            disabled={totalPct > 95}
+            className="rounded bg-blue-500 px-3 py-1 text-sm disabled:opacity-50"
+          >
+            Save
+          </button>
+        </div>
+      )}
 
       <div className="p-4 grid grid-cols-2 gap-4">
         {videos.map((v) => (

@@ -58,6 +58,18 @@ curl -F "file=@video.mp4" -F "poster=@poster.jpg" https://nostr.media/api/upload
 
 The response returns `video` and `poster` URLs that can be used in a kind 30023 event.
 
+## Revenue share
+
+Zaps sent to a video are split between the creator and the platform treasury. By default the creator receives 95 % and the treasury
+receives 5 %. Creators can add up to four collaborator Lightning addresses on their profile page; the percentage for each
+collaborator is deducted from the creator's 95 % share. The total of all collaborator percentages plus the 5 % treasury fee must
+not exceed 100 %.
+
+Revenue splits are stored in the creator's kind 0 metadata as a `zapSplits` array and can be edited from the **Revenue Share**
+card when viewing your own profile at `/p/<pubkey>`. When a zap is sent, the app performs separate LNURL‑pay requests for each
+recipient and records the distribution in a public kind 9736 event. The treasury address is configured via the `NEXT_PUBLIC_TREASURY_LNADDR`
+environment variable.
+
 ## Transcoding & adaptive bitrate
 
 Uploaded videos are transcoded to multiple WebM resolutions and served adaptively.
