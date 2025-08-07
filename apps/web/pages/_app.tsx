@@ -18,6 +18,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   useOffline();
   const router = useRouter();
   const locale = (router.query.locale as string) || 'en';
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_SENTRY_DSN && consentGiven()) {
@@ -33,7 +34,16 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [router]);
 
   return (
-    <NextIntlClientProvider locale={locale} messages={pageProps.messages}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={pageProps.messages}
+      timeZone={timeZone}
+      onError={(err) => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(err);
+        }
+      }}
+    >
       <>
         <ThemeProvider>
           <GestureProvider>
