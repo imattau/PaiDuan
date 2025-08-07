@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const locales = ['en', 'zh', 'ar'];
+import { locales } from './utils/locales';
 const PUBLIC_FILE = /\.(.*)$/;
 
 function getLocale(req: NextRequest): string {
