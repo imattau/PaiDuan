@@ -80,7 +80,7 @@ export default function FeedPage() {
   );
 
   const renderTagList = () => (
-    <div className="pt-20 h-screen overflow-y-auto pb-14 bg-background text-foreground lg:ml-52 lg:mr-72">
+    <div className="pt-20 h-screen overflow-y-auto pb-14 bg-background text-foreground lg:ml-48 lg:mr-72">
       {tags.map((t) => (
         <div key={t} className="p-4 border-b border-foreground/20">
           <Link href={`/${locale}/feed?tag=${t}`} className="block w-full text-left hover:text-accent">
@@ -101,7 +101,7 @@ export default function FeedPage() {
         renderTagList()
       ) : (
         <div
-          className="h-[calc(100vh-104px)] overflow-y-auto snap-y snap-mandatory flex flex-col items-center lg:ml-52 lg:mr-72"
+          className="h-[calc(100vh-104px)] overflow-y-auto snap-y snap-mandatory flex flex-col items-center lg:ml-48 lg:mr-72"
         >
           {items.map((v) => (
             <div key={v.eventId} className="snap-center flex justify-center w-full">

@@ -16,7 +16,8 @@ module.exports = {
         foreground: 'var(--foreground)',
         brand: {
           DEFAULT: '#7c3aed',
-          surface: '#18181b',
+          surface: '#1a1b1f',
+          panel: '#202125',
         },
       },
       fontFamily: {

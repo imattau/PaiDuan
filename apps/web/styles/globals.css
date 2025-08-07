@@ -18,3 +18,5 @@
     @apply bg-background text-foreground;
   }
 }
+
+.btn-outline { @apply rounded border border-white/30 px-3 py-1 hover:bg-white/10; }
