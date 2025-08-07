@@ -1,13 +1,19 @@
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import type { FFmpeg } from '@ffmpeg/ffmpeg';
 
-const ffmpeg = createFFmpeg({ log: false, corePath: '/ffmpeg/ffmpeg-core.js' });
+let ffmpeg: FFmpeg | null = null;
+let fetchFile: ((input: Blob | string) => Promise<Uint8Array>) | null = null;
 
 export async function trimVideo(blob: Blob, start: number, end: number): Promise<Blob> {
   if (typeof window === 'undefined') {
     throw new Error('trimVideo can only run in the browser');
   }
+  if (!ffmpeg) {
+    const ffmpegModule = await import('@ffmpeg/ffmpeg');
+    ffmpeg = ffmpegModule.createFFmpeg({ log: false, corePath: '/ffmpeg/ffmpeg-core.js' });
+    fetchFile = ffmpegModule.fetchFile;
+  }
   if (!ffmpeg.isLoaded()) await ffmpeg.load();
-  const data = await fetchFile(blob);
+  const data = await fetchFile!(blob);
   ffmpeg.FS('writeFile', 'input.mp4', data);
   const duration = end - start;
   await ffmpeg.run(
