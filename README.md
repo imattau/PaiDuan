@@ -56,6 +56,14 @@ videos in real time. A bell icon in the app bar shows the count of unseen
 alerts and opens a slide‑down drawer listing the newest notifications. Unread
 items persist in `localStorage` so the badge survives a reload.
 
+## Settings & theming
+
+The `/settings` page provides controls for the app's appearance. Switch between
+light and dark themes, pick an accent colour, or clear cached videos,
+notifications and follow data. Preferences are saved in `localStorage` and
+applied across all pages. A sun/moon icon in the toolbar also toggles light and
+dark modes without leaving the feed.
+
 ## Feed modes
 
 The feed supports three modes:

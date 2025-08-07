@@ -27,14 +27,14 @@ export const ZapModal: React.FC<ZapModalProps> = ({ lightningAddress, eventId, p
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/70">
-      <div className="rounded bg-white p-4 text-black w-64">
+      <div className="w-64 rounded bg-background p-4 text-foreground">
         <h2 className="mb-2 text-lg font-semibold">Send sats</h2>
         <div className="mb-2 flex space-x-2">
           {preset.map((p) => (
             <button
               key={p}
               onClick={() => send(p)}
-              className="flex-1 rounded border px-2 py-1"
+              className="flex-1 rounded border px-2 py-1 hover:bg-accent hover:text-white"
             >
               {p}
             </button>
@@ -45,17 +45,17 @@ export const ZapModal: React.FC<ZapModalProps> = ({ lightningAddress, eventId, p
             type="number"
             value={custom}
             onChange={(e) => setCustom(e.target.value)}
-            className="flex-1 rounded border px-2 py-1"
+            className="flex-1 rounded border px-2 py-1 bg-background"
             placeholder="Custom"
           />
           <button
             onClick={() => custom && send(Number(custom))}
-            className="rounded border px-2 py-1"
+            className="rounded border px-2 py-1 hover:bg-accent hover:text-white"
           >
             Zap
           </button>
         </div>
-        <button onClick={onClose} className="mt-3 text-sm underline">
+        <button onClick={onClose} className="mt-3 text-sm underline hover:text-accent">
           Cancel
         </button>
       </div>

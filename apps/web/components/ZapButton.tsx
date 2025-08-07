@@ -15,7 +15,7 @@ export const ZapButton: React.FC<ZapButtonProps> = ({ lightningAddress, eventId,
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="flex flex-col items-center text-white">
+      <button onClick={() => setOpen(true)} className="flex flex-col items-center text-foreground hover:text-accent">
         <Zap />
         <span className="text-xs">{count}</span>
       </button>

@@ -58,7 +58,7 @@ export default function FeedPage() {
   };
 
   const renderTabs = () => (
-    <div className="fixed top-12 left-0 right-0 z-10 flex justify-around bg-black/80 text-white">
+    <div className="fixed top-12 left-0 right-0 z-10 flex justify-around bg-background/80 text-foreground">
       {(['all', 'following', 'tags'] as Tab[]).map((t) => (
         <button
           key={t}
@@ -66,7 +66,7 @@ export default function FeedPage() {
             setTab(t);
             if (t !== 'tags') setSelectedTag(undefined);
           }}
-          className={`flex-1 py-2 ${tab === t ? 'border-b-2 border-white' : ''}`}
+          className={`flex-1 py-2 ${tab === t ? 'border-b-2 border-foreground' : ''}`}
         >
           {t === 'all' ? 'For You' : t === 'following' ? 'Following' : 'Tags'}
         </button>
@@ -75,10 +75,10 @@ export default function FeedPage() {
   );
 
   const renderTagList = () => (
-    <div className="pt-20 h-screen overflow-y-auto bg-black text-white">
+    <div className="pt-20 h-screen overflow-y-auto bg-background text-foreground">
       {tags.map((t) => (
-        <div key={t} className="p-4 border-b border-white/20">
-          <Link href={`/feed?tag=${t}`} className="block w-full text-left">
+        <div key={t} className="p-4 border-b border-foreground/20">
+          <Link href={`/feed?tag=${t}`} className="block w-full text-left hover:text-accent">
             #{t}
           </Link>
         </div>
@@ -97,7 +97,7 @@ export default function FeedPage() {
       )}
       {tab === 'tags' && selectedTag && (
         <button
-          className="fixed left-4 top-14 z-20 text-white"
+          className="fixed left-4 top-14 z-20 text-foreground hover:text-accent"
           onClick={() => {
             setSelectedTag(undefined);
             router.push('/feed');

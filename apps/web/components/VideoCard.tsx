@@ -124,7 +124,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-screen overflow-hidden bg-black text-white"
+      className="relative h-screen w-screen overflow-hidden bg-background text-foreground"
       onDoubleClick={onLike}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
@@ -145,13 +145,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       />
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
-        <button onClick={onLike} className="text-white">
+        <button onClick={onLike} className="hover:text-accent">
           <Heart />
         </button>
-        <button className="relative text-white" onClick={() => setCommentsOpen(true)}>
+        <button className="relative hover:text-accent" onClick={() => setCommentsOpen(true)}>
           <MessageCircle />
           {commentCount > 0 && (
-            <span className="absolute -right-2 -top-2 text-xs">{commentCount}</span>
+            <span className="absolute -right-2 -top-2 text-xs text-foreground">{commentCount}</span>
           )}
         </button>
         <ZapButton
@@ -160,7 +160,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           pubkey={pubkey}
           total={zapTotal}
         />
-        <button onClick={handleShare} className="text-white">
+        <button onClick={handleShare} className="hover:text-accent">
           <Share2 />
         </button>
       </div>
@@ -170,12 +170,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           {avatar ? (
             <img src={avatar} alt={displayName} className="h-10 w-10 rounded-full object-cover" />
           ) : (
-            <div className="h-10 w-10 rounded-full bg-gray-500" />
+            <div className="h-10 w-10 rounded-full bg-foreground/20" />
           )}
           <div className="font-semibold">@{displayName}</div>
         </Link>
         {!isFollowing && (
-          <button onClick={() => follow(pubkey)} className="mt-2 text-sm text-white">
+          <button
+            onClick={() => follow(pubkey)}
+            className="mt-2 rounded bg-accent px-2 py-1 text-sm text-white"
+          >
             Follow
           </button>
         )}
@@ -184,10 +187,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
       <animated.div
         style={{ opacity }}
-        className="absolute bottom-1/4 left-0 right-0 h-1 bg-white/50"
+        className="absolute bottom-1/4 left-0 right-0 h-1 bg-foreground/50"
       >
-        <div className="absolute left-1/2 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
-        <div className="absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-black/50 px-1 text-xs">
+        <div className="absolute left-1/2 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground" />
+        <div className="absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-background/50 px-1 text-xs">
           {seekPreview.toFixed(1)}s
         </div>
       </animated.div>
