@@ -86,9 +86,9 @@ dark modes without leaving the feed.
 
 The feed supports three modes:
 
-* **For You** – shows all recent videos.
-* **Following** – filters to events authored by pubkeys in the local following list.
-* **Tags** – displays popular `t` tags from recent videos and lets you explore by hashtag.
+- **For You** – shows all recent videos.
+- **Following** – filters to events authored by pubkeys in the local following list.
+- **Tags** – displays popular `t` tags from recent videos and lets you explore by hashtag.
 
 The following list is populated from the browser's `localStorage`. A helper
 `follow(pubkey)` is available in `useFollowing` to add new authors.
@@ -105,11 +105,24 @@ feed. The following list and follower counts are persisted in the browser's
 
 The top navigation includes a search bar that lets you look up videos and creators.
 
-* `@creator` – search by display name or other metadata.
-* `#tag` – filter videos by hashtag.
-* plain text – matches caption text, tags and creator bios.
+- `@creator` – search by display name or other metadata.
+- `#tag` – filter videos by hashtag.
+- plain text – matches caption text, tags and creator bios.
 
 Search results link directly to profile pages (`/p/<pubkey>`) and stand-alone
 video pages (`/v/<id>`). Every video card also has a Share button that copies
 the full URL (e.g. `<origin>/v/<id>`) to the clipboard. Tags can be shared via
 `/feed?tag=<tag>`.
+
+## Analytics & crash reporting
+
+Zapstr can report anonymous usage metrics and runtime errors.
+
+- Analytics are powered by a self-hosted [Plausible](https://plausible.io) instance at `stats.zapstr.app`.
+  The script is only loaded when `NEXT_PUBLIC_ANALYTICS=enabled` and users have opted in.
+  Events are proxied through `/api/event` to avoid third-party cookies. Custom events include `zap_click`,
+  `comment_send`, `install_prompt_shown` and `install_prompt_accepted`, along with page views for feed,
+  video and profile pages.
+- Crash reports use [`@sentry/nextjs`](https://docs.sentry.io/platforms/javascript/guides/nextjs/). Provide your own DSN via `NEXT_PUBLIC_SENTRY_DSN`.
+- Users can opt out of both analytics and crash reporting via **Settings → Privacy → Send anonymous usage data**.
+  The preference is stored in `localStorage` and a reload applies the change.
