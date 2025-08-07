@@ -31,7 +31,7 @@ export default function InstallBanner() {
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50 bg-background/90 p-4 flex items-center justify-between">
-      <span>{t('install_zapstr')}</span>
+      <span>{t('install_paiduan')}</span>
       <div className="space-x-2">
         <button onClick={handleInstall} className="rounded bg-accent px-3 py-1 text-white">
           {t('install')}
