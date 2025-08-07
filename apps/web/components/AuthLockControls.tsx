@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/authContext';
+import { promptPassphrase } from '../utils/promptPassphrase';
 
 export function AuthLockControls() {
   const auth = useAuth();
@@ -8,7 +9,7 @@ export function AuthLockControls() {
   if (!auth.auth || auth.auth.method === 'public') return null;
 
   async function unlock() {
-    const pass = prompt('Enter passphrase');
+    const pass = await promptPassphrase('Enter passphrase');
     if (!pass) return;
     setBusy(true);
     try {
