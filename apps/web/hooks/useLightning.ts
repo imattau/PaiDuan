@@ -103,8 +103,8 @@ export default function useLightning() {
         };
         const signed = await signWithAuth(event, auth);
         pool.publish(relayList(), signed);
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        alert(err.message || 'Sign-in required');
       }
     }
 
