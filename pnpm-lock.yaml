@@ -7,6 +7,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      next-pwa:
+        specifier: ^5.6.0
+        version: 5.6.0(@babel/core@7.28.0)(next@14.2.31(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(webpack@5.101.0)
+      workbox-window:
+        specifier: ^7.3.0
+        version: 7.3.0
     devDependencies:
       eslint:
         specifier: ^8.57.0
@@ -81,6 +88,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.16
         version: 10.4.21(postcss@8.5.6)
+      babel-loader:
+        specifier: ^10.0.0
+        version: 10.0.0(@babel/core@7.28.0)(webpack@5.101.0)
       eslint-config-next:
         specifier: ^14.2.3
         version: 14.2.31(eslint@8.57.1)(typescript@5.9.2)
@@ -1535,6 +1545,13 @@ packages:
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
     engines: {node: '>= 0.4'}
+
+  babel-loader@10.0.0:
+    resolution: {integrity: sha512-z8jt+EdS61AMw22nSfoNJAZ0vrtmhPRVi6ghL3rCeRZI8cdNYFiV5xeV3HbE7rlZZNmGH8BVccwWt8/ED0QOHA==}
+    engines: {node: ^18.20.0 || ^20.10.0 || >=22.0.0}
+    peerDependencies:
+      '@babel/core': ^7.12.0
+      webpack: '>=5.61.0'
 
   babel-loader@8.4.1:
     resolution: {integrity: sha512-nXzRChX+Z1GoE6yWavBQg6jDslyFF3SDjl2paADuoQtQW10JqShJt62R6eJQ5m/pjJFDT8xgKIWSP85OY8eXeA==}
@@ -3625,6 +3642,9 @@ packages:
   workbox-core@6.6.0:
     resolution: {integrity: sha512-GDtFRF7Yg3DD859PMbPAYPeJyg5gJYXuBQAC+wyrWuuXgpfoOrIQIvFRZnQ7+czTIQjIr1DhLEGFzZanAT/3bQ==}
 
+  workbox-core@7.3.0:
+    resolution: {integrity: sha512-Z+mYrErfh4t3zi7NVTvOuACB0A/jA3bgxUN3PwtAVHvfEsZxV9Iju580VEETug3zYJRc0Dmii/aixI/Uxj8fmw==}
+
   workbox-expiration@6.6.0:
     resolution: {integrity: sha512-baplYXcDHbe8vAo7GYvyAmlS4f6998Jff513L4XvlzAOxcl8F620O91guoJ5EOf5qeXG4cGdNZHkkVAPouFCpw==}
 
@@ -3664,6 +3684,9 @@ packages:
 
   workbox-window@6.6.0:
     resolution: {integrity: sha512-L4N9+vka17d16geaJXXRjENLFldvkWy7JyGxElRD0JvBxvFEd8LOhr+uXCcar/NzAmIBRv9EZ+M+Qr4mOoBITw==}
+
+  workbox-window@7.3.0:
+    resolution: {integrity: sha512-qW8PDy16OV1UBaUNGlTVcepzrlzyzNW/ZJvFQQs2j2TzGsg6IKjcpZC1RSquqQnTOafl5pCj5bGfAHlCjOOjdA==}
 
   wrap-ansi@7.0.0:
     resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
@@ -5228,6 +5251,12 @@ snapshots:
   axe-core@4.10.3: {}
 
   axobject-query@4.1.0: {}
+
+  babel-loader@10.0.0(@babel/core@7.28.0)(webpack@5.101.0):
+    dependencies:
+      '@babel/core': 7.28.0
+      find-up: 5.0.0
+      webpack: 5.101.0
 
   babel-loader@8.4.1(@babel/core@7.28.0)(webpack@5.101.0):
     dependencies:
@@ -7664,6 +7693,8 @@ snapshots:
 
   workbox-core@6.6.0: {}
 
+  workbox-core@7.3.0: {}
+
   workbox-expiration@6.6.0:
     dependencies:
       idb: 7.1.1
@@ -7730,6 +7761,11 @@ snapshots:
     dependencies:
       '@types/trusted-types': 2.0.7
       workbox-core: 6.6.0
+
+  workbox-window@7.3.0:
+    dependencies:
+      '@types/trusted-types': 2.0.7
+      workbox-core: 7.3.0
 
   wrap-ansi@7.0.0:
     dependencies:
