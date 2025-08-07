@@ -1,59 +1,21 @@
-import withPWA from 'next-pwa';
+import withPWA from 'next-pwa'
+import runtimeCaching from 'next-pwa/cache.js'
 
-const runtimeCaching = [
-  {
-    urlPattern: /^\/$/,
-    handler: 'NetworkFirst',
-  },
-  {
-    urlPattern: /^\/feed/,
-    handler: 'NetworkFirst',
-  },
-  {
-    urlPattern: /^\/settings/,
-    handler: 'NetworkFirst',
-  },
-  {
-    urlPattern: /^\/p\/.*/,
-    handler: 'NetworkFirst',
-  },
-  {
-    urlPattern: /^\/v\/.*/,
-    handler: 'NetworkFirst',
-  },
-  {
-    urlPattern: /.*\.(webm|jpg)$/,
-    handler: 'CacheFirst',
-    options: {
-      cacheName: 'media',
-      expiration: {
-        maxEntries: 100,
-        maxAgeSeconds: 7 * 24 * 60 * 60,
-      },
-    },
-  },
-  {
-    urlPattern: /avatar/,
-    handler: 'StaleWhileRevalidate',
-    options: {
-      cacheName: 'avatars',
-      expiration: {
-        maxEntries: 50,
-      },
-    },
-  },
-];
+const isProd = process.env.NODE_ENV === 'production'
 
-const nextConfig = {
-  pwa: {
-    dest: 'public',
-    runtimeCaching,
-    skipWaiting: true,
-    register: true,
-    fallbacks: {
-      document: '/offline.html',
-    },
-  },
-};
+const withPWAConfig = withPWA({
+  dest: 'public',
+  disable: !isProd,
+  runtimeCaching,
+  buildExcludes: [/middleware-manifest\.json$/],
+  fallbacks: {
+    image: '/offline.jpg',
+    document: '/offline.html'
+  }
+})
 
-export default withPWA(nextConfig);
+export default withPWAConfig({
+  reactStrictMode: true,
+  experimental: { appDir: false },
+  typescript: { ignoreBuildErrors: true }
+})

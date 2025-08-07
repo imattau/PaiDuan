@@ -2,20 +2,20 @@ import { useEffect, useState } from 'react';
 import useInstallPrompt from '../hooks/useInstallPrompt';
 
 export default function InstallBanner() {
-  const { showPrompt, deferredPrompt } = useInstallPrompt();
+  const { canInstall, showPrompt } = useInstallPrompt();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem('install-dismissed');
-    if (!dismissed && deferredPrompt) {
+    const dismissed = localStorage.getItem('installDismissed');
+    if (!dismissed && canInstall) {
       setVisible(true);
     }
-  }, [deferredPrompt]);
+  }, [canInstall]);
 
   if (!visible) return null;
 
   const handleDismiss = () => {
-    localStorage.setItem('install-dismissed', '1');
+    localStorage.setItem('installDismissed', '1');
     setVisible(false);
   };
 

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { SimplePool } from 'nostr-tools';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
+import useOffline from '../utils/useOffline';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -45,7 +46,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [avatar, setAvatar] = useState('');
   const [displayName, setDisplayName] = useState(author);
   const isFollowing = following.includes(pubkey);
-  const [online, setOnline] = useState(true);
+  const online = useOffline();
 
   const handleShare = () => {
     const url = `${window.location.origin}/v/${eventId}`;
@@ -54,10 +55,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   };
 
   useEffect(() => {
-    const pool = new SimplePool();
+    const pool: any = new SimplePool();
     const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
     const sub = pool.sub(relays, [{ kinds: [0], authors: [pubkey], limit: 1 }]);
-    sub.on('event', (ev) => {
+    sub.on('event', (ev: any) => {
       try {
         const content = JSON.parse(ev.content);
         if (content.picture) setAvatar(content.picture);
@@ -71,16 +72,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     };
   }, [pubkey]);
 
-  useEffect(() => {
-    const update = () => setOnline(navigator.onLine);
-    update();
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
-    return () => {
-      window.removeEventListener('online', update);
-      window.removeEventListener('offline', update);
-    };
-  }, []);
 
   const bind = useGesture(
     {
@@ -179,7 +170,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         />
-        <button onClick={handleShare} className="hover:text-accent">
+        <button onClick={handleShare} className="hover:text-accent disabled:opacity-50" disabled={!online} title={!online ? 'Offline – reconnect to interact.' : undefined}>
           <Share2 />
         </button>
       </div>

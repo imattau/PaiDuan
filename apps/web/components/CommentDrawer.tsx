@@ -46,14 +46,14 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
         }
       },
     },
-    { drag: { from: () => [0, y.get()] } },
+    { drag: { from: () => [0, y.get()] } as any },
   );
 
   // Subscribe to comments
   useEffect(() => {
     const pool = poolRef.current;
-    const sub = pool.sub(relays, [{ kinds: [1], '#e': [videoId] }]);
-    sub.on('event', (ev) => {
+    const sub = (pool as any).sub(relays, [{ kinds: [1], '#e': [videoId] }]);
+    sub.on('event', (ev: any) => {
       setEvents((prev) => {
         if (prev.find((p) => p.id === ev.id)) return prev;
         const next = [...prev, ev].sort((a, b) => a.created_at - b.created_at);
