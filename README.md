@@ -38,6 +38,10 @@ Open the app and choose **Install** (or **Add to Home Screen**) to install it.
 pnpm test
 ```
 
+## Creator Analytics
+
+Creators can access a private dashboard at `/analytics` (alias `/p/<pubkey>/analytics`) showing views, zaps, comments, follower changes and revenue. A cron job (`scripts/aggregate-creator-stats.ts`) aggregates daily metrics and stores them in a lightweight DB. The API (`GET /api/creator-stats?pubkey=<hex>`) returns total counts and a 30-day `dailySeries`. Use the **Download CSV** button to export `date,views,zapsSats,comments,followerDelta,revenueAud` columns.
+
 ## Moderation & reports
 
 Users can flag inappropriate videos or comments via the **⋮** menu on each item. Reports include a reason and optional notes and are published as Nostr kind 30041 events. When an item receives three unique reports, or if reported by an admin, it is hidden from public feeds pending review.
