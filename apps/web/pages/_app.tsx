@@ -14,10 +14,6 @@ import * as Sentry from '@sentry/nextjs';
 import { NextIntlProvider } from 'next-intl';
 import { trackPageview, analyticsEnabled, consentGiven } from '../utils/analytics';
 
-function isRTL(locale?: string) {
-  return ['ar', 'he', 'fa', 'ur'].includes(locale?.split('-')[0] || '');
-}
-
 export default function MyApp({ Component, pageProps }: AppProps) {
   useOffline();
   const router = useRouter();
@@ -38,7 +34,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <NextIntlProvider locale={locale} messages={pageProps.messages}>
-      <body dir={isRTL(locale) ? 'rtl' : 'ltr'}>
+      <>
         <ThemeProvider>
           <GestureProvider>
             <NotificationsProvider>
@@ -57,7 +53,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             </NotificationsProvider>
           </GestureProvider>
         </ThemeProvider>
-      </body>
+      </>
     </NextIntlProvider>
   );
 }

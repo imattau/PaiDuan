@@ -53,5 +53,5 @@ export default function TreasuryPage() {
     return <div className="p-4">Access denied</div>;
   }
 
-  return <div className="p-4">Today's total: {total} sats</div>;
+  return <div className="p-4">Today&apos;s total: {total} sats</div>;
 }

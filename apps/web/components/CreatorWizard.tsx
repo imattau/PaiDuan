@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { Range, getTrackBackground } from 'react-range';
 import { SimplePool } from 'nostr-tools';
 import { VideoCardProps } from './VideoCard';
@@ -264,7 +265,16 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         <button onClick={capturePoster} className="rounded bg-blue-500 px-4 py-2 text-white">
           Capture Poster
         </button>
-        {posterUrl && <img src={posterUrl} className="h-16" />}
+        {posterUrl && (
+          <Image
+            src={posterUrl}
+            alt="poster"
+            width={1280}
+            height={720}
+            className="h-16 w-auto"
+            unoptimized
+          />
+        )}
       </div>
       <button
         onClick={handleNext}
@@ -282,7 +292,16 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
   const renderStep3 = () => (
     <div className="p-4 space-y-4">
       <video src={videoUrl} controls className="w-full" />
-      {posterUrl && <img src={posterUrl} className="h-32" />}
+      {posterUrl && (
+        <Image
+          src={posterUrl}
+          alt="poster"
+          width={1280}
+          height={720}
+          className="h-32 w-auto"
+          unoptimized
+        />
+      )}
       <input
         type="text"
         value={caption}

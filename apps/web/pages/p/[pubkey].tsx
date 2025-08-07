@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
 import { toast } from 'react-hot-toast';
@@ -170,10 +171,13 @@ export default function ProfilePage() {
       <SearchBar />
       <div className="h-32 w-full bg-gray-700" />
       <div className="p-4 -mt-12 flex items-start space-x-4">
-        <img
+        <Image
           src={picture || '/placeholder.png'}
           alt={name}
+          width={96}
+          height={96}
           className="h-24 w-24 rounded-full border-4 border-black object-cover"
+          unoptimized
         />
         <div className="flex-1">
           <div className="text-2xl font-semibold">
@@ -236,15 +240,26 @@ export default function ProfilePage() {
       )}
 
       <div className="p-4 grid grid-cols-2 gap-4">
-        {videos.map((v) => (
-          <img
-            key={v.eventId}
-            src={v.posterUrl || ''}
-            alt="poster"
-            className="w-full aspect-video object-cover cursor-pointer"
-            onClick={() => setSelected(v)}
-          />
-        ))}
+        {videos.map((v) =>
+          v.posterUrl ? (
+            <Image
+              key={v.eventId}
+              src={v.posterUrl}
+              alt="poster"
+              width={1920}
+              height={1080}
+              className="w-full aspect-video object-cover cursor-pointer"
+              onClick={() => setSelected(v)}
+              unoptimized
+            />
+          ) : (
+            <div
+              key={v.eventId}
+              className="w-full aspect-video bg-foreground/20 cursor-pointer"
+              onClick={() => setSelected(v)}
+            />
+          ),
+        )}
       </div>
 
       {selected && (
