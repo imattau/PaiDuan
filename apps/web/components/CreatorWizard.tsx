@@ -278,34 +278,42 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
         max={duration}
         step={0.1}
         onChange={(values) => setRange([values[0], values[1]])}
-        renderTrack={({ props, children }) => (
-          <div
-            {...props}
-            style={{
-              height: '4px',
-              background: getTrackBackground({
-                values: range,
-                colors: ['#ccc', '#548BF4', '#ccc'],
-                min: 0,
-                max: duration,
-              }),
-              width: '100%',
-            }}
-          >
-            {children}
-          </div>
-        )}
-        renderThumb={({ props }) => (
-          <div
-            {...props}
-            style={{
-              height: '12px',
-              width: '12px',
-              backgroundColor: '#FFF',
-              border: '1px solid #999',
-            }}
-          />
-        )}
+        renderTrack={({ props, children }) => {
+          const { key, ...trackProps } = props as { key?: string } & React.HTMLAttributes<HTMLDivElement>;
+          return (
+            <div
+              key={key}
+              {...trackProps}
+              style={{
+                height: '4px',
+                background: getTrackBackground({
+                  values: range,
+                  colors: ['#ccc', '#548BF4', '#ccc'],
+                  min: 0,
+                  max: duration,
+                }),
+                width: '100%',
+              }}
+            >
+              {children}
+            </div>
+          );
+        }}
+        renderThumb={({ props }) => {
+          const { key, ...thumbProps } = props as { key?: string } & React.HTMLAttributes<HTMLDivElement>;
+          return (
+            <div
+              key={key}
+              {...thumbProps}
+              style={{
+                height: '12px',
+                width: '12px',
+                backgroundColor: '#FFF',
+                border: '1px solid #999',
+              }}
+            />
+          );
+        }}
       />
       <div className="flex space-x-2">
         <button onClick={capturePoster} className="rounded bg-blue-500 px-4 py-2 text-white">
