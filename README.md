@@ -59,3 +59,11 @@ The feed supports three modes:
 
 The following list is populated from the browser's `localStorage`. A helper
 `follow(pubkey)` is available in `useFollowing` to add new authors.
+
+## Profiles
+
+Each creator has a profile page at `/p/<pubkey>` that displays their avatar,
+name, bio, follower count and recent videos. Viewers can follow or unfollow a
+creator from this page or by using the Follow button shown under videos in the
+feed. The following list and follower counts are persisted in the browser's
+`localStorage`.
