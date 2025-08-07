@@ -1,4 +1,5 @@
-import type { AppProps } from 'next/app';
+import type { AppProps, AppContext } from 'next/app';
+import App from 'next/app';
 import '../styles/globals.css';
 import { GestureProvider } from '@paiduan/ui';
 import { Toaster } from 'react-hot-toast';
@@ -10,11 +11,17 @@ import useOffline from '../utils/useOffline';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
+import { NextIntlProvider } from 'next-intl';
 import { trackPageview, analyticsEnabled, consentGiven } from '../utils/analytics';
+
+function isRTL(locale?: string) {
+  return ['ar', 'he', 'fa', 'ur'].includes(locale?.split('-')[0] || '');
+}
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   useOffline();
   const router = useRouter();
+  const locale = (router.query.locale as string) || 'en';
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_SENTRY_DSN && consentGiven()) {
@@ -30,23 +37,34 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [router]);
 
   return (
-    <ThemeProvider>
-      <GestureProvider>
-        <NotificationsProvider>
-          <Sentry.ErrorBoundary
-            fallback={
-              <div className="p-4 text-center" onClick={() => window.location.reload()}>
-                Something went wrong – tap to reload
-              </div>
-            }
-          >
-            <Component {...pageProps} />
-          </Sentry.ErrorBoundary>
-          <NotificationDrawer />
-          <InstallBanner />
-          <Toaster />
-        </NotificationsProvider>
-      </GestureProvider>
-    </ThemeProvider>
+    <NextIntlProvider locale={locale} messages={pageProps.messages}>
+      <body dir={isRTL(locale) ? 'rtl' : 'ltr'}>
+        <ThemeProvider>
+          <GestureProvider>
+            <NotificationsProvider>
+              <Sentry.ErrorBoundary
+                fallback={
+                  <div className="p-4 text-center" onClick={() => window.location.reload()}>
+                    Something went wrong – tap to reload
+                  </div>
+                }
+              >
+                <Component {...pageProps} />
+              </Sentry.ErrorBoundary>
+              <NotificationDrawer />
+              <InstallBanner />
+              <Toaster />
+            </NotificationsProvider>
+          </GestureProvider>
+        </ThemeProvider>
+      </body>
+    </NextIntlProvider>
   );
 }
+
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await App.getInitialProps(appContext);
+  const locale = (appContext.router?.query?.locale as string) || 'en';
+  const messages = (await import(`../locales/${locale}/common.json`)).default;
+  return { ...appProps, pageProps: { ...appProps.pageProps, messages } };
+};

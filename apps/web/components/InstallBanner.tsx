@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import useInstallPrompt from '../hooks/useInstallPrompt';
 import { trackEvent } from '../utils/analytics';
+import useT from '../hooks/useT';
 
 export default function InstallBanner() {
   const { canInstall, showPrompt } = useInstallPrompt();
   const [visible, setVisible] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     const dismissed = localStorage.getItem('installDismissed');
@@ -29,13 +31,13 @@ export default function InstallBanner() {
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50 bg-background/90 p-4 flex items-center justify-between">
-      <span>Install Zapstr</span>
+      <span>{t('install_zapstr')}</span>
       <div className="space-x-2">
         <button onClick={handleInstall} className="rounded bg-accent px-3 py-1 text-white">
-          Install
+          {t('install')}
         </button>
         <button onClick={handleDismiss} className="rounded bg-gray-200 px-3 py-1">
-          Dismiss
+          {t('dismiss')}
         </button>
       </div>
     </div>

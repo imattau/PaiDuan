@@ -1,0 +1,26 @@
+{
+  "search": "Search",
+  "toggle_theme": "Toggle light/dark",
+  "creators": "Creators",
+  "videos": "Videos",
+  "for_you": "For You",
+  "following": "Following",
+  "tags": "Tags",
+  "back": "Back",
+  "install_zapstr": "Install Zapstr",
+  "install": "Install",
+  "dismiss": "Dismiss",
+  "appearance": "Appearance",
+  "switch_to_light": "Switch to light",
+  "switch_to_dark": "Switch to dark",
+  "accent_colour": "Accent Colour",
+  "storage": "Storage",
+  "clear_cached_data": "Clear cached data",
+  "privacy": "Privacy",
+  "send_anonymous_usage_data": "Send anonymous usage data",
+  "language": "Language",
+  "language_english": "English",
+  "language_chinese": "中文",
+  "language_arabic": "العربية"
+}
+

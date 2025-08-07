@@ -8,6 +8,7 @@ import { VideoCardProps } from '../components/VideoCard';
 import SearchBar from '../components/SearchBar';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import useT from '../hooks/useT';
 
 const TAB_KEY = 'feed-tab';
 const TAG_KEY = 'feed-tag';
@@ -20,6 +21,8 @@ export default function FeedPage() {
   const [tab, setTab] = useState<Tab>('all');
   const [selectedTag, setSelectedTag] = useState<string | undefined>();
   const [showWizard, setShowWizard] = useState(false);
+  const t = useT();
+  const locale = (router.query.locale as string) || 'en';
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -59,16 +62,16 @@ export default function FeedPage() {
 
   const renderTabs = () => (
     <div className="fixed top-12 left-0 right-0 z-10 flex justify-around bg-background/80 text-foreground">
-      {(['all', 'following', 'tags'] as Tab[]).map((t) => (
+      {(['all', 'following', 'tags'] as Tab[]).map((tabKey) => (
         <button
-          key={t}
+          key={tabKey}
           onClick={() => {
-            setTab(t);
-            if (t !== 'tags') setSelectedTag(undefined);
+            setTab(tabKey);
+            if (tabKey !== 'tags') setSelectedTag(undefined);
           }}
-          className={`flex-1 py-2 ${tab === t ? 'border-b-2 border-foreground' : ''}`}
+          className={`flex-1 py-2 ${tab === tabKey ? 'border-b-2 border-foreground' : ''}`}
         >
-          {t === 'all' ? 'For You' : t === 'following' ? 'Following' : 'Tags'}
+          {tabKey === 'all' ? t('for_you') : tabKey === 'following' ? t('following') : t('tags')}
         </button>
       ))}
     </div>
@@ -78,7 +81,7 @@ export default function FeedPage() {
     <div className="pt-20 h-screen overflow-y-auto bg-background text-foreground">
       {tags.map((t) => (
         <div key={t} className="p-4 border-b border-foreground/20">
-          <Link href={`/feed?tag=${t}`} className="block w-full text-left hover:text-accent">
+          <Link href={`/${locale}/feed?tag=${t}`} className="block w-full text-left hover:text-accent">
             #{t}
           </Link>
         </div>
@@ -100,10 +103,10 @@ export default function FeedPage() {
           className="fixed left-4 top-14 z-20 text-foreground hover:text-accent"
           onClick={() => {
             setSelectedTag(undefined);
-            router.push('/feed');
+            router.push(`/${locale}/feed`);
           }}
         >
-          Back
+          {t('back')}
         </button>
       )}
       <UploadButton onClick={() => setShowWizard(true)} />

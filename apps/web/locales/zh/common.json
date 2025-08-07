@@ -1,0 +1,26 @@
+{
+  "search": "搜索",
+  "toggle_theme": "切换明暗模式",
+  "creators": "创作者",
+  "videos": "视频",
+  "for_you": "推荐",
+  "following": "关注",
+  "tags": "标签",
+  "back": "返回",
+  "install_zapstr": "安装 Zapstr",
+  "install": "安装",
+  "dismiss": "忽略",
+  "appearance": "外观",
+  "switch_to_light": "切换到亮色",
+  "switch_to_dark": "切换到暗色",
+  "accent_colour": "主题颜色",
+  "storage": "存储",
+  "clear_cached_data": "清除缓存数据",
+  "privacy": "隐私",
+  "send_anonymous_usage_data": "发送匿名使用数据",
+  "language": "语言",
+  "language_english": "英语",
+  "language_chinese": "中文",
+  "language_arabic": "阿拉伯语"
+}
+

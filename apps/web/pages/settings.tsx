@@ -1,11 +1,16 @@
 import React from 'react';
 import { useTheme } from '../hooks/useTheme';
+import useT from '../hooks/useT';
+import { useRouter } from 'next/router';
 
 const swatches = ['#3b82f6', '#f43f5e', '#10b981', '#f59e0b', '#6366f1', '#ec4899'];
 
 export default function SettingsPage() {
   const { mode, toggleMode, accent, setAccent } = useTheme();
   const [analytics, setAnalytics] = React.useState(false);
+  const t = useT();
+  const router = useRouter();
+  const locale = (router.query.locale as string) || 'en';
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -34,16 +39,16 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-background p-4 text-foreground space-y-6">
       <div className="rounded border border-foreground/20 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Appearance</h2>
+        <h2 className="mb-2 text-lg font-semibold">{t('appearance')}</h2>
         <button
           onClick={toggleMode}
           className="rounded border border-foreground/20 px-3 py-1 hover:bg-accent hover:text-white"
         >
-          {mode === 'dark' ? 'Switch to light' : 'Switch to dark'}
+          {mode === 'dark' ? t('switch_to_light') : t('switch_to_dark')}
         </button>
       </div>
       <div className="rounded border border-foreground/20 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Accent Colour</h2>
+        <h2 className="mb-2 text-lg font-semibold">{t('accent_colour')}</h2>
         <div className="flex space-x-2">
           {swatches.map((c) => (
             <button
@@ -62,20 +67,40 @@ export default function SettingsPage() {
         </div>
       </div>
       <div className="rounded border border-foreground/20 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Storage</h2>
+        <h2 className="mb-2 text-lg font-semibold">{t('storage')}</h2>
         <button
           onClick={clearStorage}
           className="rounded border border-foreground/20 px-3 py-1 hover:bg-accent hover:text-white"
         >
-          Clear cached data
+          {t('clear_cached_data')}
         </button>
       </div>
       <div className="rounded border border-foreground/20 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Privacy</h2>
+        <h2 className="mb-2 text-lg font-semibold">{t('privacy')}</h2>
         <label className="flex items-center space-x-2">
           <input type="checkbox" checked={analytics} onChange={toggleAnalytics} />
-          <span>Send anonymous usage data</span>
+          <span>{t('send_anonymous_usage_data')}</span>
         </label>
+      </div>
+      <div className="rounded border border-foreground/20 p-4">
+        <h2 className="mb-2 text-lg font-semibold">{t('language')}</h2>
+        <select
+          value={locale}
+          onChange={(e) => {
+            const next = e.target.value;
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('locale', next);
+              document.cookie = `locale=${next}; path=/; max-age=31536000`;
+              const path = router.asPath.replace(/^\/[a-zA-Z-]+/, '');
+              router.push(`/${next}${path}`);
+            }
+          }}
+          className="rounded border border-foreground/20 px-3 py-1 bg-background"
+        >
+          <option value="en">{t('language_english')}</option>
+          <option value="zh">{t('language_chinese')}</option>
+          <option value="ar">{t('language_arabic')}</option>
+        </select>
       </div>
     </div>
   );

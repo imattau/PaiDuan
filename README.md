@@ -82,6 +82,17 @@ notifications and follow data. Preferences are saved in `localStorage` and
 applied across all pages. A sun/moon icon in the toolbar also toggles light and
 dark modes without leaving the feed.
 
+## Internationalisation
+
+The web app uses [`next-intl`](https://next-intl-docs.vercel.app/) with explicit
+locale prefixes (`/en`, `/zh`, `/ar`). English is the default locale. Add new
+languages by creating `apps/web/locales/<code>/common.json` and updating
+`apps/web/middleware.ts`.
+
+Right-to-left scripts such as Arabic are supported. The `<body>` element
+receives `dir="rtl"` and Tailwind's RTL plugin mirrors paddings and margins
+automatically.
+
 ## Feed modes
 
 The feed supports three modes:
