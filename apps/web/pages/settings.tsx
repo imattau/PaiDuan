@@ -5,6 +5,21 @@ const swatches = ['#3b82f6', '#f43f5e', '#10b981', '#f59e0b', '#6366f1', '#ec489
 
 export default function SettingsPage() {
   const { mode, toggleMode, accent, setAccent } = useTheme();
+  const [analytics, setAnalytics] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setAnalytics(localStorage.getItem('analytics-consent') === '1');
+  }, []);
+
+  const toggleAnalytics = () => {
+    const next = !analytics;
+    setAnalytics(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('analytics-consent', next ? '1' : '0');
+      window.location.reload();
+    }
+  };
 
   const clearStorage = () => {
     if (typeof window === 'undefined') return;
@@ -54,6 +69,13 @@ export default function SettingsPage() {
         >
           Clear cached data
         </button>
+      </div>
+      <div className="rounded border border-foreground/20 p-4">
+        <h2 className="mb-2 text-lg font-semibold">Privacy</h2>
+        <label className="flex items-center space-x-2">
+          <input type="checkbox" checked={analytics} onChange={toggleAnalytics} />
+          <span>Send anonymous usage data</span>
+        </label>
       </div>
     </div>
   );

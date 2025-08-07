@@ -3,6 +3,7 @@ import { SimplePool, Event as NostrEvent } from 'nostr-tools';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import { X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { trackEvent } from '../utils/analytics';
 
 interface CommentDrawerProps {
   videoId: string;
@@ -96,6 +97,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       setReplyTo(null);
       await poolRef.current.publish(relays, signed);
       toast.success('Comment sent');
+      trackEvent('comment_send');
     } catch (err) {
       console.error(err);
       toast.error('Failed to send');
@@ -142,10 +144,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
                 <div className="text-xs text-foreground/50">
                   {new Date(c.created_at * 1000).toLocaleString()}
                 </div>
-                <button
-                  className="text-xs text-accent"
-                  onClick={() => setReplyTo(c)}
-                >
+                <button className="text-xs text-accent" onClick={() => setReplyTo(c)}>
                   Reply
                 </button>
               </div>
@@ -159,10 +158,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
                   <div className="text-xs text-foreground/50">
                     {new Date(r.created_at * 1000).toLocaleString()}
                   </div>
-                  <button
-                    className="text-xs text-accent"
-                    onClick={() => setReplyTo(r)}
-                  >
+                  <button className="text-xs text-accent" onClick={() => setReplyTo(r)}>
                     Reply
                   </button>
                 </div>

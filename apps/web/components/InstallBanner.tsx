@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import useInstallPrompt from '../hooks/useInstallPrompt';
+import { trackEvent } from '../utils/analytics';
 
 export default function InstallBanner() {
   const { canInstall, showPrompt } = useInstallPrompt();
@@ -9,6 +10,7 @@ export default function InstallBanner() {
     const dismissed = localStorage.getItem('installDismissed');
     if (!dismissed && canInstall) {
       setVisible(true);
+      trackEvent('install_prompt_shown');
     }
   }, [canInstall]);
 
@@ -21,6 +23,7 @@ export default function InstallBanner() {
 
   const handleInstall = () => {
     showPrompt();
+    trackEvent('install_prompt_accepted');
     handleDismiss();
   };
 
