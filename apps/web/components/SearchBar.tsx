@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { X } from 'lucide-react';
 import useSearch from '../hooks/useSearch';
+import NotificationBell from './NotificationBell';
 
 const SearchBar: React.FC = () => {
   const [value, setValue] = useState('');
@@ -45,6 +46,7 @@ const SearchBar: React.FC = () => {
             <X />
           </button>
         )}
+        <NotificationBell />
       </div>
       <div
         className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-black text-white transition-transform duration-300 ${
