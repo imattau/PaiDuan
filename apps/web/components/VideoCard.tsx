@@ -1,9 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import { Heart, MessageCircle } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
+import Link from 'next/link';
+import { SimplePool } from 'nostr-tools';
+import useFollowing from '../hooks/useFollowing';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -37,6 +40,28 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [commentCount, setCommentCount] = useState(0);
   const holdTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
+  const { following, follow } = useFollowing();
+  const [avatar, setAvatar] = useState('');
+  const [displayName, setDisplayName] = useState(author);
+  const isFollowing = following.includes(pubkey);
+
+  useEffect(() => {
+    const pool = new SimplePool();
+    const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
+    const sub = pool.sub(relays, [{ kinds: [0], authors: [pubkey], limit: 1 }]);
+    sub.on('event', (ev) => {
+      try {
+        const content = JSON.parse(ev.content);
+        if (content.picture) setAvatar(content.picture);
+        if (content.name) setDisplayName(content.name);
+      } catch {
+        /* ignore */
+      }
+    });
+    return () => {
+      sub.unsub();
+    };
+  }, [pubkey]);
 
   const bind = useGesture(
     {
@@ -130,12 +155,21 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         />
       </div>
 
-      <div className="absolute bottom-0 left-0 w-full p-4 flex items-center space-x-3">
-        <div className="h-10 w-10 rounded-full bg-gray-500" />
-        <div>
-          <div className="font-semibold">@{author}</div>
-          <div className="text-sm">{caption}</div>
-        </div>
+      <div className="absolute bottom-0 left-0 w-full p-4">
+        <Link href={`/p/${pubkey}`} className="flex items-center space-x-3">
+          {avatar ? (
+            <img src={avatar} alt={displayName} className="h-10 w-10 rounded-full object-cover" />
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-gray-500" />
+          )}
+          <div className="font-semibold">@{displayName}</div>
+        </Link>
+        {!isFollowing && (
+          <button onClick={() => follow(pubkey)} className="mt-2 text-sm text-white">
+            Follow
+          </button>
+        )}
+        <div className="text-sm mt-1">{caption}</div>
       </div>
 
       <animated.div
