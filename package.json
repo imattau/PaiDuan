@@ -6,7 +6,8 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "format": "prettier --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "cron:summary": "node scripts/cron-summary.js"
   },
   "packageManager": "pnpm@10.5.2",
   "devDependencies": {

@@ -1,0 +1,81 @@
+import React, { useState } from 'react';
+import { SimplePool } from 'nostr-tools';
+import toast from 'react-hot-toast';
+
+const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
+
+interface Props {
+  targetId: string;
+  targetKind: 'video' | 'comment';
+  open: boolean;
+  onClose: () => void;
+}
+
+const ReportModal: React.FC<Props> = ({ targetId, targetKind, open, onClose }) => {
+  const [reason, setReason] = useState('spam');
+  const [details, setDetails] = useState('');
+
+  const submit = async () => {
+    const nostr = (window as any).nostr;
+    if (!nostr) {
+      toast.error('nostr extension required');
+      return;
+    }
+    try {
+      const reporterPubKey = await nostr.getPublicKey();
+      const ts = Math.floor(Date.now() / 1000);
+      const report = { targetId, targetKind, reason, reporterPubKey, ts, details };
+      const event = { kind: 30041, created_at: ts, content: JSON.stringify(report) };
+      const signed = await nostr.signEvent(event);
+      const pool: any = new SimplePool();
+      await pool.publish(relays, signed);
+      await fetch('/api/modqueue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(report),
+      });
+      window.dispatchEvent(new Event('modqueue'));
+      toast.success('Reported');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to report');
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-80 rounded bg-background p-4 text-foreground">
+        <h2 className="mb-2 font-semibold">Report</h2>
+        <select
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          className="mb-2 w-full rounded border p-2 text-sm"
+        >
+          <option value="spam">Spam</option>
+          <option value="nudity">Nudity</option>
+          <option value="harassment">Harassment</option>
+          <option value="other">Other</option>
+        </select>
+        <textarea
+          value={details}
+          onChange={(e) => setDetails(e.target.value)}
+          className="mb-2 w-full rounded border p-2 text-sm"
+          placeholder="Details (optional)"
+        />
+        <div className="flex justify-end space-x-2">
+          <button className="px-3 py-1" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="rounded bg-accent px-3 py-1 text-white" onClick={submit}>
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReportModal;
