@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import useCreatorAnalytics from '../../../../hooks/useCreatorAnalytics';
+import useCreatorAnalytics from '../../../hooks/useCreatorAnalytics';
 import { StatCard, TimeSeriesChart } from '@paiduan/ui';
 
 export default function CreatorAnalytics() {
