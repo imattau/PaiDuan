@@ -7,6 +7,7 @@ import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { getPool, RELAYS } from '@/lib/nostr';
+import { Button } from '@paiduan/ui';
 
 export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   const { state } = useAuth();
@@ -142,21 +143,21 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
             />
-            <button className="btn btn-secondary" onClick={finishCrop}>
+            <Button className="btn-secondary" onClick={finishCrop}>
               Done
-            </button>
+            </Button>
           </div>
         )}
         {!rawImage && picture && (
           <img src={picture} alt="avatar" className="h-24 w-24 rounded-full object-cover" />
         )}
-        <button
+        <Button
           onClick={saveProfile}
           disabled={loading}
-          className="btn btn-primary disabled:opacity-50"
+          className="btn-primary disabled:opacity-50"
         >
           {loading ? 'Saving…' : 'Save'}
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { encryptPrivkeyHex } from '@/utils/cryptoVault';
 import { saveKey } from '@/utils/keyStorage';
 import { promptPassphrase } from '@/utils/promptPassphrase';
+import { Button } from '@paiduan/ui';
 
 function privHexFrom(input: string): string {
   const s = input.trim();
@@ -83,13 +84,13 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs">
-      <button
-        className="btn btn-primary w-full"
+      <Button
+        className="btn-primary w-full"
         onClick={connectExtension}
         disabled={!(globalThis as any).nostr}
       >
         Continue with Nostr Extension
-      </button>
+      </Button>
 
       <div className="space-y-2 rounded-xl border p-4">
         <label className="text-sm font-medium">Remote signer (NIP‑46)</label>
@@ -99,17 +100,17 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
           placeholder="nostrconnect:..."
           className="input w-full"
         />
-        <button className="btn btn-secondary w-full" onClick={connectRemote}>
+        <Button className="btn-secondary w-full" onClick={connectRemote}>
           Connect remote signer
-        </button>
+        </Button>
       </div>
 
-      <button className="btn btn-secondary w-full" onClick={importKey}>
+      <Button className="btn-secondary w-full" onClick={importKey}>
         Import nsec / hex
-      </button>
-      <button className="btn btn-secondary w-full" onClick={generateKey}>
+      </Button>
+      <Button className="btn-secondary w-full" onClick={generateKey}>
         Generate new key
-      </button>
+      </Button>
     </div>
   );
 }
