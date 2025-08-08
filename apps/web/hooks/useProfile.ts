@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import * as kinds from 'nostr-tools/kinds';
+import * as nostrKinds from 'nostr-tools/kinds';
 import type { Filter } from 'nostr-tools/filter';
 import { getPool, RELAYS } from '@/lib/nostr';
 
@@ -11,7 +11,7 @@ export function useProfile(pubkey?: string) {
     const pool = getPool();
     const sub = pool.subscribeMany(
       RELAYS,
-      [{ kinds: [kinds.Metadata], authors: [pubkey], limit: 1 } as Filter],
+      [{ kinds: [nostrKinds.Metadata], authors: [pubkey], limit: 1 } as Filter],
       {
         onevent: (ev) => {
           try {
