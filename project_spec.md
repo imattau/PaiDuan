@@ -53,8 +53,7 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, a
 | 7   | Poster capture     | Frame capture via `<canvas>`; store as JPEG/WebP; attach to upload payload.                                                                                                        |
 | 8   | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; capture `video`, `poster` & `manifest` URLs and publish kind‑30023 event with `v`, `image`, `vman`, optional `zap` and one `t` tag per topic.                                                                                  |
 | 9   | Error handling     | Toasts for FFmpeg load failure, file type issues, upload errors.                                                                                                                   |
-| 10  | Responsive design  | Wizard, video preview, and controls adapt cleanly to mobile/desktop.                                                                                                               |
-
+| 10  | Responsive design  | Wizard lets steps manage their own widths; metadata step displays preview and fields side-by-side on large (`lg`) screens. |
 ### Acceptance Criteria
 
 - CreatorWizard first screen is option chooser.
