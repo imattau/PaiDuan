@@ -1,11 +1,11 @@
 import {
   SimplePool,
-  relayInit,
   generateSecretKey,
   getPublicKey,
   nip04,
   type EventTemplate,
 } from 'nostr-tools';
+import { Relay } from 'nostr-tools/relay';
 import type { Signer } from './types';
 
 type Nip46Session = {
@@ -70,17 +70,17 @@ export class Nip46Signer implements Signer {
   }
 
   private async rpc(method: string, params: any[]): Promise<any> {
-    const conns = await Promise.all(
-      this.session.relays.map(async (url) => {
-        const r = relayInit(url);
-        try {
-          await r.connect();
-        } catch {
-          /* ignore */
-        }
-        return r;
-      }),
-    );
+    const conns = (
+      await Promise.all(
+        this.session.relays.map(async (url) => {
+          try {
+            return await Relay.connect(url);
+          } catch {
+            return undefined;
+          }
+        }),
+      )
+    ).filter((r): r is Relay => !!r);
 
     const myPub = getPublicKey(this.session.myPrivkey);
     const id = Math.random().toString(36).slice(2);
