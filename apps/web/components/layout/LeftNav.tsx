@@ -27,7 +27,7 @@ export default function LeftNav({
       <SearchBar showActions={false} />
 
       {/* Profile mini card */}
-      <MiniProfileCard />
+      <MiniProfileCard stats={me.stats} />
 
       {/* Nav */}
       <nav className={`${cardStyle} p-2`}>
@@ -69,20 +69,6 @@ export default function LeftNav({
         <NotificationBell />
       </div>
 
-      {/* Stats */}
-      <div className={`${cardStyle} p-4 text-sm`}>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Followers</span>
-          <span className="text-[0.9rem] font-light">{me.stats.followers.toLocaleString()}</span>
-        </div>
-        <div className="flex items-center justify-between mt-1">
-          <span className="text-muted-foreground">Following</span>
-          <span className="text-[0.9rem] font-light">{me.stats.following.toLocaleString()}</span>
-        </div>
-        <Link href="/settings" className="mt-3 inline-block text-sm underline">
-          Profile settings
-        </Link>
-      </div>
     </div>
   );
 }
