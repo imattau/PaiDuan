@@ -48,41 +48,45 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
           Cancel
         </button>
       </div>
-      {preview && (
-        <video
-          controls
-          src={preview}
-          className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
-        />
-      )}
-      <input
-        type="text"
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
-        placeholder="Caption"
-        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
-      />
-      <input
-        type="text"
-        value={tags}
-        onChange={(e) => setTags(e.target.value)}
-        placeholder="Tags (comma separated)"
-        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
-      />
-      <input
-        type="text"
-        value={copyright}
-        onChange={(e) => setCopyright(e.target.value)}
-        placeholder="Copyright information"
-        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
-      />
-      <label className="flex items-center gap-2">
-        <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
-        <span className="text-sm">NSFW</span>
-      </label>
-      <button className="btn btn-primary disabled:opacity-60" disabled={busy} onClick={upload}>
-        {busy ? 'Uploading…' : 'Upload'}
-      </button>
+      <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+        {preview && (
+          <video
+            controls
+            src={preview}
+            className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
+          />
+        )}
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder="Caption"
+            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+          />
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="Tags (comma separated)"
+            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+          />
+          <input
+            type="text"
+            value={copyright}
+            onChange={(e) => setCopyright(e.target.value)}
+            placeholder="Copyright information"
+            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+          />
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
+            <span className="text-sm">NSFW</span>
+          </label>
+          <button className="btn btn-primary disabled:opacity-60" disabled={busy} onClick={upload}>
+            {busy ? 'Uploading…' : 'Upload'}
+          </button>
+        </div>
+      </div>
     </section>
   );
 }
