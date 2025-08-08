@@ -23,7 +23,11 @@ export default function NavBar() {
           <Link
             key={href}
             href={href}
-            className="flex flex-col items-center py-2 text-sm text-white/80"
+            className={`flex flex-col items-center px-3 py-2 rounded-md text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
+              active
+                ? 'bg-accent/20 text-accent'
+                : 'text-muted-foreground hover:bg-accent/10 hover:text-accent'
+            }`}
             aria-current={active ? 'page' : undefined}
           >
             <motion.div
@@ -32,7 +36,7 @@ export default function NavBar() {
             >
               {icon}
             </motion.div>
-            <span className={active ? 'text-white' : ''}>{label}</span>
+            <span>{label}</span>
           </Link>
         );
       })}

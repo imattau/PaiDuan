@@ -21,7 +21,9 @@ export default function RightPanel({
             <div>
               <div className="font-semibold">{author.name}</div>
               <div className="text-sm text-muted-foreground">@{author.username}</div>
-              <div className="text-xs text-muted-foreground mt-1">{author.followers.toLocaleString()} followers</div>
+              <div className="text-[0.9rem] font-light text-muted-foreground mt-1">
+                {author.followers.toLocaleString()} followers
+              </div>
               <div className="mt-3 flex gap-2">
                 <Link href={`/p/${author.pubkey}`} className="btn btn-secondary">
                   View profile

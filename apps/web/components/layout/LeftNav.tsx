@@ -5,6 +5,7 @@ import MiniProfileCard from '@/components/MiniProfileCard';
 import NotificationBell from '@/components/NotificationBell';
 import { useTheme } from '@/context/themeContext';
 import { Sun, Moon } from 'lucide-react';
+import { useRouter } from 'next/router';
 
 export default function LeftNav({
   me,
@@ -17,6 +18,7 @@ export default function LeftNav({
   };
 }) {
   const { mode, toggleMode } = useTheme();
+  const { asPath } = useRouter();
 
   return (
     <div className="space-y-6">
@@ -29,38 +31,29 @@ export default function LeftNav({
       {/* Nav */}
       <nav className="bg-card border border-token rounded-2xl p-2">
         <ul className="flex flex-col">
-          <li>
-            <Link
-              className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 inline-block"
-              href="/feed"
-            >
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link
-              className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 inline-block"
-              href="/following"
-            >
-              Following
-            </Link>
-          </li>
-          <li>
-            <Link
-              className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 inline-block"
-              href="/create"
-            >
-              Create
-            </Link>
-          </li>
-          <li>
-            <Link
-              className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 inline-block"
-              href="/settings"
-            >
-              Settings
-            </Link>
-          </li>
+          {[
+            { href: '/feed', label: 'Home' },
+            { href: '/following', label: 'Following' },
+            { href: '/create', label: 'Create' },
+            { href: '/settings', label: 'Settings' },
+          ].map(({ href, label }) => {
+            const active = asPath.startsWith(href);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
+                    active
+                      ? 'bg-accent/20 text-accent'
+                      : 'text-muted-foreground hover:bg-accent/10 hover:text-accent'
+                  }`}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
@@ -79,11 +72,11 @@ export default function LeftNav({
       <div className="bg-card border border-token rounded-2xl p-4 text-sm">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Followers</span>
-          <span className="font-medium">{me.stats.followers.toLocaleString()}</span>
+          <span className="text-[0.9rem] font-light">{me.stats.followers.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between mt-1">
           <span className="text-muted-foreground">Following</span>
-          <span className="font-medium">{me.stats.following.toLocaleString()}</span>
+          <span className="text-[0.9rem] font-light">{me.stats.following.toLocaleString()}</span>
         </div>
         <Link href="/settings" className="mt-3 inline-block text-sm underline">
           Profile settings
