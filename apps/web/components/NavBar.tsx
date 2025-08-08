@@ -26,7 +26,7 @@ export default function NavBar() {
             className={`flex flex-col items-center px-3 py-2 rounded-md text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
               active
                 ? 'bg-accent/20 text-accent'
-                : 'text-muted-foreground hover:bg-accent/10 hover:text-accent'
+                : 'text-muted-foreground hover:bg-accent/20 hover:text-accent'
             }`}
             aria-current={active ? 'page' : undefined}
           >
