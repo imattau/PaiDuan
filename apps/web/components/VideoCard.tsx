@@ -163,7 +163,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="relative h-screen w-screen overflow-hidden rounded-2xl bg-brand-surface text-white shadow-card"
+      className="relative h-full w-full overflow-hidden rounded-2xl bg-brand-surface text-white shadow-card"
       onDoubleClick={onLike}
       onClick={() => setSelectedVideo(eventId, pubkey)}
       onPointerDown={handlePointerDown}

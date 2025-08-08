@@ -34,7 +34,7 @@ export const Feed: React.FC<FeedProps> = ({ items }) => {
 
   if (items.length === 0) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center text-white">
+      <div className="flex h-full w-full flex-col items-center justify-center text-white">
         <EmptyState />
         <p className="mt-4">Be the first to upload!</p>
       </div>
@@ -42,13 +42,13 @@ export const Feed: React.FC<FeedProps> = ({ items }) => {
   }
 
   return (
-    <div {...bind()} className="relative h-screen w-screen overflow-hidden">
+    <div {...bind()} className="relative h-full w-full overflow-hidden">
       <animated.div
         style={{ transform: y.to((py) => `translateY(${py}%)`) }}
         className="h-full w-full"
       >
         {items.map((item, i) => (
-          <div key={i} className="h-screen w-screen">
+          <div key={i} className="h-full w-full">
             <VideoCard {...item} />
           </div>
         ))}
