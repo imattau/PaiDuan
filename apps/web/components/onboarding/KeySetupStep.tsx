@@ -1,11 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  nip19,
-  generateSecretKey as generatePrivateKey,
-  getPublicKey
-} from 'nostr-tools';
+import { nip19, generateSecretKey, getPublicKey } from 'nostr-tools';
 import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { encryptPrivkeyHex } from '@/utils/cryptoVault';
@@ -56,7 +52,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
   };
 
   const generateKey = async () => {
-    const priv = bytesToHex(generatePrivateKey());
+    const priv = bytesToHex(generateSecretKey());
     await saveLocalKey(priv, 'generated');
   };
 
