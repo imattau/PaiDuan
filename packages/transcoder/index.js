@@ -4,34 +4,25 @@ import { pipeline } from 'stream/promises';
 import { randomUUID } from 'crypto';
 import Gst from 'gstreamer-superficial';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-async function main() {
-  const srcUrl = process.argv[2];
-  if (!srcUrl) {
-    console.error('Usage: pnpm --filter transcoder start <srcUrl>');
-    process.exit(1);
+export class Transcoder {
+  constructor({ heights = [240, 480, 720], outDir = 'variants' } = {}) {
+    this.heights = heights;
+    this.outDir = outDir;
   }
 
-  const id = randomUUID();
-  const outDir = path.join('variants', id);
-  mkdirSync(outDir, { recursive: true });
-
-  // download source
-  const res = await fetch(srcUrl);
-  if (!res.ok || !res.body) {
-    console.error('Failed to download source');
-    process.exit(1);
+  async downloadSource(srcUrl, dir) {
+    const res = await fetch(srcUrl);
+    if (!res.ok || !res.body) {
+      throw new Error('Failed to download source');
+    }
+    const inputPath = path.join(dir, 'source');
+    await pipeline(res.body, createWriteStream(inputPath));
+    return inputPath;
   }
-  const inputPath = path.join(outDir, 'source');
-  await pipeline(res.body, createWriteStream(inputPath));
 
-  const variants = {
-    '240': path.join(outDir, '240.webm'),
-    '480': path.join(outDir, '480.webm'),
-    '720': path.join(outDir, '720.webm'),
-  };
-
-  async function transcodeVariant(height, file) {
+  async transcodeVariant(inputPath, height, file) {
     return new Promise((resolve, reject) => {
       const pipelineStr =
         `filesrc location="${inputPath}" ! decodebin ! videoconvert ! videoscale ! ` +
@@ -54,22 +45,45 @@ async function main() {
     });
   }
 
-  for (const [h, file] of Object.entries(variants)) {
-    await transcodeVariant(h, file);
-    variants[h] = file;
+  writeManifest(variants, dir) {
+    const manifest = {};
+    for (const [h, file] of Object.entries(variants)) {
+      manifest[h] = `/${file.replace(/\\/g, '/')}`;
+    }
+    writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest));
   }
 
-  const manifest = {
-    '240': `/${variants['240'].replace(/\\/g, '/')}`,
-    '480': `/${variants['480'].replace(/\\/g, '/')}`,
-    '720': `/${variants['720'].replace(/\\/g, '/')}`,
-  };
-  writeFileSync(path.join(outDir, 'manifest.json'), JSON.stringify(manifest));
+  async transcode(srcUrl) {
+    const id = randomUUID();
+    const outDir = path.join(this.outDir, id);
+    mkdirSync(outDir, { recursive: true });
 
-  console.log('Created variants in', outDir);
+    const inputPath = await this.downloadSource(srcUrl, outDir);
+    const variants = {};
+    for (const h of this.heights) {
+      const file = path.join(outDir, `${h}.webm`);
+      await this.transcodeVariant(inputPath, h, file);
+      variants[h] = file;
+    }
+    this.writeManifest(variants, outDir);
+    return outDir;
+  }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
+  const srcUrl = process.argv[2];
+  if (!srcUrl) {
+    console.error('Usage: pnpm --filter transcoder start <srcUrl>');
+    process.exit(1);
+  }
+
+  const transcoder = new Transcoder();
+  transcoder
+    .transcode(srcUrl)
+    .then((outDir) => console.log('Created variants in', outDir))
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
+}
