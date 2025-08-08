@@ -12,12 +12,16 @@ type ThemeCtx = {
 const Ctx = createContext<ThemeCtx>({} as ThemeCtx)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<Mode>(() =>
-    (typeof window !== 'undefined' && (localStorage.getItem('theme-mode') as Mode)) || 'system'
-  )
-  const [accent, setAccent] = useState<string>(() =>
-    (typeof window !== 'undefined' && (localStorage.getItem('theme-accent') as string)) || '#3b82f6'
-  )
+  const [mode, setMode] = useState<Mode>('system')
+  const [accent, setAccent] = useState<string>('#3b82f6')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const storedMode = localStorage.getItem('theme-mode') as Mode | null
+    if (storedMode) setMode(storedMode)
+    const storedAccent = localStorage.getItem('theme-accent') as string | null
+    if (storedAccent) setAccent(storedAccent)
+  }, [])
 
   useEffect(() => {
     const root = document.documentElement
