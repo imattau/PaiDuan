@@ -80,7 +80,7 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
   }
 
   return (
-    <section className="rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
+    <section className="max-w-4xl mx-auto rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button className="btn btn-secondary" onClick={onBack}>
