@@ -16,22 +16,18 @@ function getLocale(req: NextRequest): string {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (
-    PUBLIC_FILE.test(pathname) ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api')
-  ) {
+  if (PUBLIC_FILE.test(pathname) || pathname.startsWith('/_next') || pathname.startsWith('/api')) {
     return NextResponse.next();
   }
 
   // Allow the root path to render without locale redirection so that
   // unauthenticated users can see the landing page hero.
-  if (pathname === '/') {
+  if (pathname === '/' || pathname.startsWith('/onboarding')) {
     return NextResponse.next();
   }
 
   const hasLocale = locales.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
+    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
   );
   if (hasLocale) return NextResponse.next();
 
@@ -42,4 +38,3 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/((?!_next|api).*)'],
 };
-
