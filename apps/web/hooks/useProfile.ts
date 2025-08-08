@@ -22,5 +22,5 @@ export function useProfile(pubkey?: string) {
     );
     return () => sub.close();
   }, [pubkey]);
-  return meta as { name?: string; picture?: string; about?: string } | null;
+  return meta as { name?: string; picture?: string; about?: string; lud16?: string } | null;
 }

@@ -3,6 +3,7 @@ import SideNav from '../components/SideNav';
 import { Accordion } from '../components/ui/Accordion';
 import { KeysCard } from '../components/settings/KeysCard';
 import { AccountCard } from '@/components/settings/AccountCard';
+import { LightningCard } from '../components/settings/LightningCard';
 import { NetworkCard } from '../components/settings/NetworkCard';
 import { AppearanceCard } from '../components/settings/AppearanceCard';
 import { LanguageCard } from '@/components/settings/LanguageCard';
@@ -23,6 +24,7 @@ export default function Settings() {
                 <div className="space-y-6">
                   <KeysCard />
                   <AccountCard />
+                  <LightningCard />
                   <NetworkCard />
                 </div>
               ),
