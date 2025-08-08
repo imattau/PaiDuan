@@ -13,13 +13,31 @@ import { PrivacyCard } from '../components/settings/PrivacyCard';
 import { ProfileCard } from '../components/settings/ProfileCard';
 
 export default function Settings() {
+  const [initialOpenIndex, setInitialOpenIndex] = React.useState<number | null>(
+    null,
+  );
+
+  React.useEffect(() => {
+    if (window.location.hash === '#profile') {
+      setInitialOpenIndex(0);
+    }
+  }, []);
+
   return (
     <>
       <SideNav />
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
-        <ProfileCard />
         <Accordion
+          initialOpenIndex={initialOpenIndex}
           items={[
+            {
+              title: 'Profile',
+              content: (
+                <div id="profile">
+                  <ProfileCard />
+                </div>
+              ),
+            },
             {
               title: 'Account & Keys',
               content: (
