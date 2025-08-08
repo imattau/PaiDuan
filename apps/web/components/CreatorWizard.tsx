@@ -5,6 +5,7 @@ import { SimplePool } from 'nostr-tools';
 import { VideoCardProps } from './VideoCard';
 import { trimVideo } from '../utils/trimVideo';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CreatorWizardProps {
   onClose: () => void;
@@ -30,6 +31,8 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
   const [publishing, setPublishing] = useState(false);
   const [trimming, setTrimming] = useState(false);
   const [mode, setMode] = useState<'upload' | 'record'>('upload');
+
+  const { state } = useAuth();
 
   const handleFile = (blob: Blob) => {
     const url = URL.createObjectURL(blob);
@@ -156,14 +159,14 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
           ['vman', transRes.manifest],
         ],
         content: '',
+        pubkey: state.status === 'ready' ? state.pubkey : undefined,
       };
       const lnaddr = localStorage.getItem('lnaddr');
       if (lnaddr) {
         event.tags.push(['zap', lnaddr]);
       }
-      const nostr = (window as any).nostr;
-      if (!nostr) throw new Error('nostr extension required');
-      const signed = await nostr.signEvent(event);
+      if (state.status !== 'ready') throw new Error('signer required');
+      const signed = await state.signer.signEvent(event);
       await pool.publish(['wss://relay.damus.io', 'wss://nos.lol'], signed);
       const newItem: VideoCardProps = {
         videoUrl: uploadRes.video,

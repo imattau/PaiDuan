@@ -1,12 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import useLightning from './useLightning';
 
-vi.mock('../context/authContext', () => ({
-  useAuth: () => ({ pubkey: 'pk', privkey: 'priv', method: 'manual' }),
-}));
-
-vi.mock('../utils/signWithAuth', () => ({
-  signWithAuth: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig' })),
+vi.mock('./useAuth', () => ({
+  useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: { signEvent: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })) } } }),
 }));
 
 vi.mock('nostr-tools', () => ({

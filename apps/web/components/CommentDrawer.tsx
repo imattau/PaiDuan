@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { trackEvent } from '../utils/analytics';
 import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CommentDrawerProps {
   videoId: string;
@@ -23,6 +24,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   onCountChange,
 }) => {
   const poolRef = useRef(new SimplePool());
+  const { state } = useAuth();
   const [events, setEvents] = useState<NostrEvent[]>([]);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState<NostrEvent | null>(null);
@@ -121,9 +123,8 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
 
   const send = async () => {
     if (!input.trim()) return;
-    const nostr = (typeof window !== 'undefined' && (window as any).nostr) || null;
-    if (!nostr) {
-      toast.error('nostr extension required');
+    if (state.status !== 'ready') {
+      toast.error('signer required');
       return;
     }
     try {
@@ -137,8 +138,9 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
         created_at: Math.floor(Date.now() / 1000),
         tags,
         content: input,
+        pubkey: state.pubkey,
       };
-      const signed = await nostr.signEvent(event);
+      const signed = await state.signer.signEvent(event);
       setEvents((prev) => [...prev, signed].sort((a, b) => a.created_at - b.created_at));
       setInput('');
       setReplyTo(null);

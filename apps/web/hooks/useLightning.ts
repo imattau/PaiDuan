@@ -1,6 +1,5 @@
 import { SimplePool, Filter } from 'nostr-tools';
-import { useAuth } from '../context/authContext';
-import { signWithAuth } from '../utils/signWithAuth';
+import { useAuth } from './useAuth';
 
 interface ZapArgs {
   lightningAddress: string;
@@ -32,7 +31,7 @@ function relayList(): string[] {
 
 export default function useLightning() {
   const pool = new SimplePool();
-  const auth = useAuth();
+  const { state } = useAuth();
 
   const payLn = async (lnaddr: string, sats: number, comment?: string) => {
     const [name, domain] = lnaddr.split('@');
@@ -89,7 +88,7 @@ export default function useLightning() {
       results.push({ ...p, invoice: res.invoice });
     }
 
-    if (pubkey && auth?.pubkey) {
+    if (pubkey && state.status === 'ready') {
       try {
         const event: any = {
           kind: 9736,
@@ -99,9 +98,9 @@ export default function useLightning() {
             noteId: eventId,
             splits: results.map((p) => ({ lnaddr: p.lnaddr, pct: p.pct, sats: p.sats })),
           }),
-          pubkey: auth.pubkey,
+          pubkey: state.pubkey,
         };
-        const signed = await signWithAuth(event, auth);
+        const signed = await state.signer.signEvent(event);
         pool.publish(relayList(), signed);
       } catch (err: any) {
         alert(err.message || 'Sign-in required');
