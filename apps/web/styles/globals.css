@@ -48,3 +48,30 @@ body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
   }
 }
 
+@layer base {
+  :root {
+    --bg: 255 255 255;
+    --foreground: 17 24 39;         /* slate-900-ish */
+    --muted-foreground: 107 114 128; /* slate-500 */
+    --card: 255 255 255;
+    --border: 229 231 235;           /* gray-200 */
+  }
+  .dark {
+    --bg: 17 17 17;
+    --foreground: 243 244 246;       /* gray-100 */
+    --muted-foreground: 156 163 175; /* gray-400 */
+    --card: 24 24 27;                /* zinc-900 */
+    --border: 39 39 42;              /* zinc-800 */
+  }
+
+  html, body { background-color: rgb(var(--bg)); color: rgb(var(--foreground)); }
+}
+
+@layer utilities {
+  .text-foreground { color: rgb(var(--foreground)); }
+  .text-muted-foreground { color: rgb(var(--muted-foreground)); }
+  .bg-app { background-color: rgb(var(--bg)); }
+  .bg-card { background-color: rgb(var(--card)); }
+  .border-token { border-color: rgb(var(--border)); }
+}
+

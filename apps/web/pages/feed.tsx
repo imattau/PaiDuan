@@ -1,128 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import UploadButton from '../components/UploadButton';
-import CreatorWizard from '../components/CreatorWizard';
-import useFeed, { FeedMode } from '../hooks/useFeed';
-import useFollowing from '../hooks/useFollowing';
-import { VideoCard, VideoCardProps } from '../components/VideoCard';
-import { FeedGrid } from '@/components/feed/FeedGrid';
-import SearchBar from '../components/SearchBar';
-import SideNav from '../components/SideNav';
-import VideoInfoPane from '../components/VideoInfoPane';
-import { CurrentVideoProvider } from '../hooks/useCurrentVideo';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import useT from '../hooks/useT';
-
-const TAB_KEY = 'feed-tab';
-const TAG_KEY = 'feed-tag';
-
-type Tab = 'all' | 'following' | 'tags';
+import AppShell from '@/components/layout/AppShell';
+import LeftNav from '@/components/layout/LeftNav';
+import RightPanel from '@/components/feed/RightPanel';
+import Thread from '@/components/comments/Thread';
+import { useFeedSelection } from '@/store/feedSelection';
 
 export default function FeedPage() {
-  const router = useRouter();
-  const { following } = useFollowing();
-  const [tab, setTab] = useState<Tab>('all');
-  const [selectedTag, setSelectedTag] = useState<string | undefined>();
-  const [showWizard, setShowWizard] = useState(false);
-  const t = useT();
-  const locale = (router.query.locale as string) || 'en';
+  const { setFilterAuthor } = useFeedSelection();
+  // TODO: wire to your hooks/state
+  const me = { avatar: '/api/avatar/me', name: 'You', username: 'me', stats: { followers: 1234, following: 321 } };
+  const author = undefined; // or the author of the currently focused video
+  const videos: any[] = []; // your feed items
 
-  useEffect(() => {
-    if (!router.isReady) return;
-    const tagParam = router.query.tag as string | undefined;
-    if (tagParam) {
-      setTab('tags');
-      setSelectedTag(tagParam);
-      return;
-    }
-    if (typeof window === 'undefined') return;
-    const savedTab = window.localStorage.getItem(TAB_KEY) as Tab | null;
-    const savedTag = window.localStorage.getItem(TAG_KEY) || undefined;
-    if (savedTab) setTab(savedTab);
-    if (savedTag) setSelectedTag(savedTag);
-  }, [router.isReady, router.query.tag]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(TAB_KEY, tab);
-    if (selectedTag) window.localStorage.setItem(TAG_KEY, selectedTag);
-    else window.localStorage.removeItem(TAG_KEY);
-  }, [tab, selectedTag]);
-
-  const mode: FeedMode =
-    tab === 'following'
-      ? { type: 'following', authors: following }
-      : tab === 'tags' && selectedTag
-      ? { type: 'tag', tag: selectedTag }
-      : { type: 'all' };
-
-  const effectiveMode = tab === 'tags' && !selectedTag ? { type: 'all' } : mode;
-  const { items, tags, prepend } = useFeed(effectiveMode);
-
-  const handlePublished = (item: VideoCardProps) => {
-    prepend(item);
-  };
-
-  const renderTabs = () => (
-    <div className="fixed top-12 left-0 right-0 z-10 flex justify-around bg-background/80 text-foreground">
-      {(['all', 'following', 'tags'] as Tab[]).map((tabKey) => (
-        <button
-          key={tabKey}
-          onClick={() => {
-            setTab(tabKey);
-            if (tabKey !== 'tags') setSelectedTag(undefined);
-          }}
-          className={`flex-1 py-2 ${tab === tabKey ? 'border-b-2 border-foreground' : ''}`}
-        >
-          {tabKey === 'all' ? t('for_you') : tabKey === 'following' ? t('following') : t('tags')}
-        </button>
-      ))}
-    </div>
-  );
-
-  const renderTagList = () => (
-    <div className="pt-20 h-screen overflow-y-auto pb-14 bg-background text-foreground lg:ml-48 lg:mr-72">
-      {tags.map((t) => (
-        <div key={t} className="p-4 border-b border-foreground/20">
-          <Link href={`/${locale}/feed?tag=${t}`} className="block w-full text-left hover:text-accent">
-            #{t}
-          </Link>
-        </div>
-      ))}
-    </div>
-  );
+  function filterByAuthor(pubkey: string) {
+    // switch your feed mode to that author (update useFeed or router query)
+    setFilterAuthor(pubkey);
+  }
 
   return (
-    <CurrentVideoProvider>
-      <SideNav />
-      <VideoInfoPane />
-      <SearchBar />
-      {renderTabs()}
-      {tab === 'tags' && !selectedTag ? (
-        renderTagList()
-      ) : (
-        <div className="h-[calc(100vh-104px)] overflow-y-auto lg:ml-48 lg:mr-72">
-          <FeedGrid items={items.map((v) => <VideoCard key={v.eventId} {...v} />)} />
+    <AppShell
+      left={<LeftNav me={me} />}
+      center={
+        <div className="space-y-6">
+          {/* tabs bar you already have can stay on top */}
+          {videos.length === 0 ? (
+            <div className="text-center text-muted-foreground py-20">No videos yet.</div>
+          ) : (
+            videos.map((v) => <div key={v.id}>{/* <VideoCard {...v} /> */}</div>)
+          )}
         </div>
-      )}
-      {tab === 'tags' && selectedTag && (
-        <button
-          className="fixed left-4 top-14 z-20 text-foreground hover:text-accent"
-          onClick={() => {
-            setSelectedTag(undefined);
-            router.push(`/${locale}/feed`);
-          }}
-        >
-          {t('back')}
-        </button>
-      )}
-      <UploadButton onClick={() => setShowWizard(true)} isOpen={showWizard} />
-      {showWizard && (
-        <CreatorWizard
-          onClose={() => setShowWizard(false)}
-          onPublished={handlePublished}
-        />
-      )}
-    </CurrentVideoProvider>
+      }
+      right={<RightPanel author={author} onFilterByAuthor={filterByAuthor} thread={<Thread />} />}
+    />
   );
 }
