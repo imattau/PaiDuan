@@ -6,8 +6,10 @@ import KeySetupStep from '@/components/onboarding/KeySetupStep';
 export default function KeyOnboardingPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <KeySetupStep onComplete={() => router.push('/onboarding/profile')} />
-    </div>
+    <section className="min-h-screen py-16 px-4 flex flex-col items-center justify-center text-center bg-background">
+      <div className="w-full max-w-md mx-auto flex justify-center">
+        <KeySetupStep onComplete={() => router.push('/onboarding/profile')} />
+      </div>
+    </section>
   );
 }
