@@ -43,24 +43,21 @@ export function useThread(rootEventId?: string) {
     setNotes([]);
 
     // Filters: all kind-1 notes that reference rootEventId in 'e' tag
+    const evs: Event[] = [];
     const filters: Filter[] = [{ kinds: [nostrKinds.ShortTextNote], '#e': [rootEventId], limit: 200 }];
 
     const sub = pool.subscribeMany(RELAYS, filters, {
-      onevent: () => {},
+      onevent: (ev: Event) => {
+        evs.push(ev);
+        setNotes(parseThread(evs));
+      },
       oneventOK: () => {},
       onerror: (e) => {
         console.error(e);
         setErr('Subscription error');
       },
-      oneose: () => {},
+      oneose: () => setLoading(false),
     });
-
-    const evs: Event[] = [];
-    sub.on('event', (ev: Event) => {
-      evs.push(ev);
-      setNotes(parseThread(evs));
-    });
-    sub.on('eose', () => setLoading(false));
 
     subRef.current = () => sub.close();
     return () => sub.close();
