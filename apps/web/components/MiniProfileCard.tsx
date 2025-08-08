@@ -10,16 +10,11 @@ export default function MiniProfileCard() {
 
   return (
     <div className={`${cardStyle} p-3 text-center`}>
-      <div
-        className="mx-auto mb-2 rounded-lg p-[2px]"
-        style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
-      >
-        <img
-          src={profile?.picture || '/avatar.svg'}
-          alt="Profile avatar"
-          className="h-20 w-20 rounded-lg"
-        />
-      </div>
+      <img
+        src={profile?.picture || '/avatar.svg'}
+        alt="Profile avatar"
+        className="mx-auto mb-2 h-20 w-20 rounded-full"
+      />
       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">@{name}</div>
       <Link href="/en/settings#profile" className="text-xs text-[var(--accent)]">
         Manage profile
