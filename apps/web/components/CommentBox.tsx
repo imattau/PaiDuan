@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { SimplePool } from 'nostr-tools/pool';
 import type { Event } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
-
-const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
+import { getRelays } from '@/lib/nostr';
 
 interface CommentBoxProps {
   videoId: string;
@@ -26,7 +25,7 @@ export default function CommentBox({ videoId, onSend }: CommentBoxProps) {
         pubkey: state.pubkey,
       };
       const signed = await state.signer.signEvent(event);
-      await new SimplePool().publish(relays, signed);
+      await new SimplePool().publish(getRelays(), signed);
       setInput('');
       onSend?.(signed);
     } catch {

@@ -8,6 +8,7 @@ import { trackEvent } from '../utils/analytics';
 import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { useAuth } from '@/hooks/useAuth';
+import { getRelays } from '@/lib/nostr';
 
 interface CommentDrawerProps {
   videoId: string;
@@ -15,8 +16,6 @@ interface CommentDrawerProps {
   onClose: () => void;
   onCountChange?: (count: number) => void;
 }
-
-const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
 
 export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   videoId,
@@ -62,7 +61,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   // Subscribe to comments
   useEffect(() => {
     const pool = poolRef.current;
-    const sub = (pool as any).subscribeMany(relays, [{ kinds: [1], '#e': [videoId] }], {
+    const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [1], '#e': [videoId] }], {
       onevent: (ev: any) => {
         setEvents((prev) => {
           if (prev.find((p) => p.id === ev.id)) return prev;
@@ -103,7 +102,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
     const listener = () => loadReports();
     window.addEventListener('modqueue', listener);
     const pool = poolRef.current as any;
-    const sub = pool.subscribeMany(relays, [{ kinds: [9001] }], {
+    const sub = pool.subscribeMany(getRelays(), [{ kinds: [9001] }], {
       onevent: (ev: any) => {
         const tag = ev.tags.find((t: string[]) => t[0] === 'e');
         if (tag) setHiddenIds((prev) => new Set(prev).add(tag[1]));
@@ -145,7 +144,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       setEvents((prev) => [...prev, signed].sort((a, b) => a.created_at - b.created_at));
       setInput('');
       setReplyTo(null);
-      await poolRef.current.publish(relays, signed);
+      await poolRef.current.publish(getRelays(), signed);
       toast.success('Comment sent');
       trackEvent('comment_send');
     } catch (err) {

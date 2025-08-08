@@ -2,21 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SimplePool } from 'nostr-tools/pool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
-
-function relayList(): string[] {
-  if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
-  const nostr = (window as any).nostr;
-  if (nostr?.getRelays) {
-    try {
-      const relays = nostr.getRelays();
-      if (Array.isArray(relays)) return relays;
-      if (relays && typeof relays === 'object') return Object.keys(relays);
-    } catch {
-      /* ignore */
-    }
-  }
-  return ['wss://relay.damus.io', 'wss://nos.lol'];
-}
+import { getRelays } from '@/lib/nostr';
 
 export default function TreasuryPage() {
   const [authorised, setAuthorised] = useState(false);
@@ -36,7 +22,7 @@ export default function TreasuryPage() {
       setAuthorised(true);
       const pool = (poolRef.current ||= new SimplePool());
       const since = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
-      sub = pool.subscribeMany(relayList(), [{ kinds: [9736], since } as Filter], {
+      sub = pool.subscribeMany(getRelays(), [{ kinds: [9736], since } as Filter], {
         onevent: (ev: NostrEvent) => {
           try {
             const content = JSON.parse(ev.content);

@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFeedSelection } from '@/store/feedSelection';
+import { getRelays } from '@/lib/nostr';
 
 const MoreVertical = dynamic(
   () => import('lucide-react').then((mod) => mod.MoreVertical),
@@ -77,7 +78,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   useEffect(() => {
     const pool: any = new SimplePool();
-    const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
+    const relays = getRelays();
     const sub = pool.subscribeMany(relays, [{ kinds: [0], authors: [pubkey], limit: 1 }], {
       onevent: (ev: any) => {
         try {

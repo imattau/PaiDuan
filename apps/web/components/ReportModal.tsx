@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { SimplePool } from 'nostr-tools/pool';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
-
-const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
+import { getRelays } from '@/lib/nostr';
 
 interface Props {
   targetId: string;
@@ -29,7 +28,7 @@ const ReportModal: React.FC<Props> = ({ targetId, targetKind, open, onClose }) =
       const event = { kind: 30041, created_at: ts, content: JSON.stringify(report), pubkey: reporterPubKey };
       const signed = await state.signer.signEvent(event);
       const pool: any = new SimplePool();
-      await pool.publish(relays, signed);
+      await pool.publish(getRelays(), signed);
       await fetch('/api/modqueue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

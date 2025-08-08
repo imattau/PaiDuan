@@ -6,7 +6,7 @@ import type { Area } from 'react-easy-crop';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { getPool, RELAYS } from '@/lib/nostr';
+import { getPool, getRelays } from '@/lib/nostr';
 import { Button } from '@paiduan/ui';
 
 export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
@@ -86,7 +86,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     };
     const signed = await state.signer.signEvent({ ...tmpl });
     const pool = getPool();
-    await pool.publish(RELAYS, signed as any);
+    await pool.publish(getRelays(), signed as any);
   }
 
   async function saveProfile() {

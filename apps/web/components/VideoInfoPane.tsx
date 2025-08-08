@@ -4,8 +4,7 @@ import type { Event } from 'nostr-tools/pure';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFollowing } from '../hooks/useFollowing';
 import ZapButton from './ZapButton';
-
-const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
+import { getRelays } from '@/lib/nostr';
 
 export default function VideoInfoPane() {
   const { current } = useCurrentVideo();
@@ -17,6 +16,7 @@ export default function VideoInfoPane() {
     if (!current) return;
     (async () => {
       const pool = new SimplePool();
+      const relays = getRelays();
       try {
         const [m] = await pool.list(relays, [{ kinds: [0], authors: [current.pubkey], limit: 1 }]);
         setMeta(m ? JSON.parse(m.content) : null);

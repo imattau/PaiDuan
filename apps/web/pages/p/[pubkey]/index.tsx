@@ -9,21 +9,7 @@ import VideoCard, { VideoCardProps } from '../../../components/VideoCard';
 import useFollowing, { getFollowers } from '../../../hooks/useFollowing';
 import SearchBar from '../../../components/SearchBar';
 import { useAuth } from '@/hooks/useAuth';
-
-function relayList(): string[] {
-  if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
-  const nostr = (window as any).nostr;
-  if (nostr?.getRelays) {
-    try {
-      const relays = nostr.getRelays();
-      if (Array.isArray(relays)) return relays;
-      if (relays && typeof relays === 'object') return Object.keys(relays);
-    } catch {
-      /* ignore */
-    }
-  }
-  return ['wss://relay.damus.io', 'wss://nos.lol'];
-}
+import { getRelays } from '@/lib/nostr';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -56,7 +42,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!pubkey) return;
     const pool = (poolRef.current ||= new SimplePool());
-    const relays = relayList();
+    const relays = getRelays();
 
     const metaSub = pool.subscribeMany(
       relays,
@@ -164,7 +150,7 @@ export default function ProfilePage() {
       };
       const signed = await state.signer.signEvent(event);
       const pool = (poolRef.current ||= new SimplePool());
-      await pool.publish(relayList(), signed);
+      await pool.publish(getRelays(), signed);
       toast.success('Revenue share updated');
     } catch (err) {
       console.error(err);

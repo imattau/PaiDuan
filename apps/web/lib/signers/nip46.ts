@@ -3,6 +3,7 @@ import { generateSecretKey, getPublicKey, type EventTemplate } from 'nostr-tools
 import * as nip04 from 'nostr-tools/nip04';
 import { Relay } from 'nostr-tools/relay';
 import type { Signer } from './types';
+import { getRelays } from '@/lib/nostr';
 
 type Nip46Session = {
   remotePubkey: string;
@@ -32,9 +33,7 @@ export class Nip46Signer implements Signer {
     const secret = params.get('secret') || undefined;
     return {
       remotePubkey,
-      relays: relays.length
-        ? relays
-        : ['wss://relay.damus.io', 'wss://relay.primal.net'],
+      relays: relays.length ? relays : getRelays(),
       secret,
     };
   }

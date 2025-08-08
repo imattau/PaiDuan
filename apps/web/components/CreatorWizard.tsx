@@ -6,6 +6,7 @@ import { VideoCardProps } from './VideoCard';
 import { trimVideoWebCodecs } from '../utils/trimVideoWebCodecs';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { getRelays } from '@/lib/nostr';
 
 interface CreatorWizardProps {
   onClose: () => void;
@@ -167,7 +168,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
       }
       if (state.status !== 'ready') throw new Error('signer required');
       const signed = await state.signer.signEvent(event);
-      await pool.publish(['wss://relay.damus.io', 'wss://nos.lol'], signed);
+      await pool.publish(getRelays(), signed);
       const newItem: VideoCardProps = {
         videoUrl: uploadRes.video,
         posterUrl: uploadRes.poster,

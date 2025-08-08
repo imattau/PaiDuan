@@ -1,6 +1,7 @@
 import { SimplePool } from 'nostr-tools/pool';
 import type { Filter } from 'nostr-tools/filter';
 import { useAuth } from './useAuth';
+import { getRelays } from '../lib/nostr';
 
 interface ZapArgs {
   lightningAddress: string;
@@ -13,21 +14,6 @@ interface ZapArgs {
 interface Split {
   lnaddr: string;
   pct: number;
-}
-
-function relayList(): string[] {
-  if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
-  const nostr = (window as any).nostr;
-  if (nostr?.getRelays) {
-    try {
-      const relays = nostr.getRelays();
-      if (Array.isArray(relays)) return relays;
-      if (relays && typeof relays === 'object') return Object.keys(relays);
-    } catch {
-      /* ignore */
-    }
-  }
-  return ['wss://relay.damus.io', 'wss://nos.lol'];
 }
 
 export default function useLightning() {
@@ -52,7 +38,7 @@ export default function useLightning() {
     let splits: Split[] = [];
     if (pubkey) {
       try {
-        const ev = await pool.get(relayList(), {
+        const ev = await pool.get(getRelays(), {
           kinds: [0],
           authors: [pubkey],
           limit: 1,
@@ -102,7 +88,7 @@ export default function useLightning() {
           pubkey: state.pubkey,
         };
         const signed = await state.signer.signEvent(event);
-        pool.publish(relayList(), signed);
+        pool.publish(getRelays(), signed);
       } catch (err: any) {
         alert(err.message || 'Sign-in required');
       }

@@ -3,21 +3,7 @@ import { useEffect, useState } from 'react';
 import { SimplePool } from 'nostr-tools/pool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import VideoCard, { VideoCardProps } from '../../components/VideoCard';
-
-function relayList(): string[] {
-  if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
-  const nostr = (window as any).nostr;
-  if (nostr?.getRelays) {
-    try {
-      const relays = nostr.getRelays();
-      if (Array.isArray(relays)) return relays;
-      if (relays && typeof relays === 'object') return Object.keys(relays);
-    } catch {
-      /* ignore */
-    }
-  }
-  return ['wss://relay.damus.io', 'wss://nos.lol'];
-}
+import { getRelays } from '@/lib/nostr';
 
 export default function VideoPage() {
   const router = useRouter();
@@ -28,7 +14,7 @@ export default function VideoPage() {
     if (!eventId) return;
     document.body.style.overflow = 'hidden';
     const pool = new SimplePool();
-    const relays = relayList();
+    const relays = getRelays();
     pool.get(relays, { ids: [eventId] }).then((ev: NostrEvent | null) => {
       if (!ev) return;
       const videoTag = ev.tags.find((t) => t[0] === 'v');

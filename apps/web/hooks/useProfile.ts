@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import * as nostrKinds from 'nostr-tools/kinds';
 import type { Filter } from 'nostr-tools/filter';
-import { getPool, RELAYS } from '@/lib/nostr';
+import { getPool, getRelays } from '@/lib/nostr';
 
 export function useProfile(pubkey?: string) {
   const [meta, setMeta] = useState<any>(null);
@@ -10,7 +10,7 @@ export function useProfile(pubkey?: string) {
     if (!pubkey) return;
     const pool = getPool();
     const sub = pool.subscribeMany(
-      RELAYS,
+      getRelays(),
       [{ kinds: [nostrKinds.Metadata], authors: [pubkey], limit: 1 } as Filter],
       {
         onevent: (ev) => {
