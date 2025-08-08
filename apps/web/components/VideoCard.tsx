@@ -8,6 +8,7 @@ import CommentDrawer from './CommentDrawer';
 import ReportModal from './ReportModal';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Skeleton } from './ui/Skeleton';
 import { SimplePool } from 'nostr-tools/pool';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
@@ -19,10 +20,9 @@ import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFeedSelection } from '@/store/feedSelection';
 import { getRelays } from '@/lib/nostr';
 
-const MoreVertical = dynamic(
-  () => import('lucide-react').then((mod) => mod.MoreVertical),
-  { ssr: false },
-);
+const MoreVertical = dynamic(() => import('lucide-react').then((mod) => mod.MoreVertical), {
+  ssr: false,
+});
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -101,7 +101,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       setSelectedVideo(eventId, pubkey);
     }
   }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
-
 
   const bind = useGesture(
     {
@@ -226,7 +225,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         />
-        <button onClick={handleShare} className="hover:text-accent disabled:opacity-50" disabled={!online} title={!online ? 'Offline – reconnect to interact.' : undefined}>
+        <button
+          onClick={handleShare}
+          className="hover:text-accent disabled:opacity-50"
+          disabled={!online}
+          title={!online ? 'Offline – reconnect to interact.' : undefined}
+        >
           <Share2 />
         </button>
       </div>
@@ -243,7 +247,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               unoptimized
             />
           ) : (
-            <div className="h-10 w-10 rounded-full bg-foreground/20" />
+            <Skeleton className="h-10 w-10 rounded-full" />
           )}
           <div className="font-semibold">@{displayName}</div>
         </Link>

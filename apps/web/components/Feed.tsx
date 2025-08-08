@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useSpring, animated, useGesture } from '@paiduan/ui';
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
+import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
 
 interface FeedProps {
   items: VideoCardProps[];
+  loading?: boolean;
 }
 
-export const Feed: React.FC<FeedProps> = ({ items }) => {
+export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
   const [index, setIndex] = useState(0);
   const [{ y }, api] = useSpring(() => ({ y: 0 }));
 
@@ -31,6 +33,14 @@ export const Feed: React.FC<FeedProps> = ({ items }) => {
   useEffect(() => {
     api.start({ y: -index * 100 });
   }, [index]);
+
+  if (loading) {
+    return (
+      <div className="h-full w-full">
+        <SkeletonVideoCard />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
