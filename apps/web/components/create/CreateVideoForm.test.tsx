@@ -3,31 +3,34 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
-import { UploadStep } from './UploadStep';
+import { CreateVideoForm } from './CreateVideoForm';
 
 (globalThis as any).React = React;
 
-vi.mock('@/utils/trimVideoWebCodecs', () => ({
+vi.mock('../../utils/trimVideoWebCodecs', () => ({
   trimVideoWebCodecs: vi.fn(() => Promise.resolve(new Blob()))
 }));
 
-vi.mock('@/hooks/useAuth', () => ({
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({ state: { status: 'ready', pubkey: 'pub', signer: { signEvent: vi.fn() } } })
 }));
 
-vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({}) }));
+vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
 
-vi.mock('@/lib/nostr', () => ({ getRelays: () => [] }));
+vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
 
-describe('UploadStep', () => {
-  it('shows metadata inline on large screens after processing', async () => {
+describe('CreateVideoForm', () => {
+  it('enables posting after processing', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
 
     const container = document.createElement('div');
     const root = createRoot(container);
     await act(async () => {
-      root.render(<UploadStep onBack={() => {}} onCancel={() => {}} forceIsLarge />);
+      root.render(<CreateVideoForm onCancel={() => {}} />);
     });
+
+    const postButton = container.querySelector('[data-testid="post-button"]') as HTMLButtonElement;
+    expect(postButton.disabled).toBe(true);
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(['dummy'], 'video.mp4', { type: 'video/mp4' });
@@ -36,11 +39,11 @@ describe('UploadStep', () => {
       input.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    const button = container.querySelector('button.btn-primary') as HTMLButtonElement;
+    const processButton = container.querySelector('button.btn-primary') as HTMLButtonElement;
     await act(async () => {
-      button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      processButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
-    expect(container.textContent).toContain('Post Video');
+    expect(postButton.disabled).toBe(false);
   });
 });
