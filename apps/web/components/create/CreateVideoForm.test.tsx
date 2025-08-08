@@ -3,7 +3,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
-import { CreateVideoForm } from './CreateVideoForm';
+import CreateVideoForm from './CreateVideoForm';
 
 (globalThis as any).React = React;
 
@@ -18,6 +18,7 @@ vi.mock('../../hooks/useAuth', () => ({
 vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
 
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn() }) }));
 
 describe('CreateVideoForm', () => {
   it('keeps publish disabled until metadata is provided', async () => {
@@ -26,7 +27,7 @@ describe('CreateVideoForm', () => {
     const container = document.createElement('div');
     const root = createRoot(container);
     await act(async () => {
-      root.render(<CreateVideoForm onCancel={() => {}} />);
+      root.render(<CreateVideoForm />);
     });
 
     const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
