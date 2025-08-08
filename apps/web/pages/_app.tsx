@@ -6,7 +6,6 @@ import { Toaster } from 'react-hot-toast';
 import { NotificationsProvider } from '../hooks/useNotifications';
 import NotificationDrawer from '../components/NotificationDrawer';
 import NavBar from '../components/NavBar';
-import FabUpload from '../components/FabUpload';
 import { ThemeProvider } from '@/context/themeContext';
 import InstallBanner from '../components/InstallBanner';
 import useOffline from '../utils/useOffline';
@@ -76,7 +75,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
               >
                 <Component {...pageProps} />
               </Sentry.ErrorBoundary>
-              {!pageProps?.config?.hideFab && <FabUpload />}
               <NotificationDrawer />
               {router.pathname.startsWith('/en/feed') || router.pathname.startsWith('/en/create') || router.pathname.startsWith('/en/profile') || router.pathname.startsWith('/en/settings') ? <NavBar /> : null}
               <InstallBanner />
