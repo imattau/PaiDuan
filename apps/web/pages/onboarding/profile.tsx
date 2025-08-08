@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useAuth } from '../../context/authContext'
-import { promptPassphrase } from '../../utils/promptPassphrase'
-import { SimplePool, EventTemplate, finalizeEvent } from 'nostr-tools'
-import { hexToBytes } from '@noble/hashes/utils'
+import { useAuth } from '@/hooks/useAuth'
+import { SimplePool, EventTemplate } from 'nostr-tools'
 
 export default function ProfileOnboarding() {
-  const { pubkey, auth, privkeyHex, unlock } = useAuth()
+  const { state } = useAuth()
   const [name, setName] = useState('')
   const [about, setAbout] = useState('')
   const [picture, setPicture] = useState('')
@@ -13,10 +11,10 @@ export default function ProfileOnboarding() {
   const poolRef = useRef<SimplePool>()
 
   useEffect(() => {
-    if (!pubkey) return
+    if (state.status !== 'ready') return
     const pool = (poolRef.current ||= new SimplePool())
     const relays = ['wss://relay.damus.io', 'wss://nos.lol']
-    const sub = pool.subscribeMany(relays, [{ kinds: [0], authors: [pubkey], limit: 1 }], {
+    const sub = pool.subscribeMany(relays, [{ kinds: [0], authors: [state.pubkey], limit: 1 }], {
       onevent(ev) {
         try {
           const c = JSON.parse(ev.content)
@@ -27,7 +25,7 @@ export default function ProfileOnboarding() {
       }
     })
     return () => sub.close()
-  }, [pubkey])
+  }, [state])
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -38,7 +36,7 @@ export default function ProfileOnboarding() {
   }
 
   async function saveProfile() {
-    if (!pubkey) return
+    if (state.status !== 'ready') return
     const content = JSON.stringify({ name, about, picture })
     const tmpl: EventTemplate = {
       kind: 0,
@@ -47,34 +45,15 @@ export default function ProfileOnboarding() {
       content
     }
     let signed
-    if (auth?.method === 'nip07') {
-      const nostr = (window as any).nostr
-      if (!nostr?.signEvent) {
-        alert('No signer available')
-        return
-      }
-      signed = await nostr.signEvent({ ...tmpl, pubkey })
-    } else {
-      let key = privkeyHex
-      if (!key) {
-        const pass = await promptPassphrase('Enter passphrase to unlock key')
-        if (!pass) return
-        try {
-          key = await unlock(pass)
-        } catch {
-          alert('Incorrect passphrase')
-          return
-        }
-      }
-      if (!key) {
-        alert('Key is locked')
-        return
-      }
-      signed = finalizeEvent({ ...tmpl, pubkey }, hexToBytes(key))
+    try {
+      signed = await state.signer.signEvent({ ...tmpl })
+    } catch (e: any) {
+      alert(e.message || 'No signer available')
+      return
     }
     const pool = (poolRef.current ||= new SimplePool())
     setLoading(true)
-    await pool.publish(['wss://relay.damus.io', 'wss://nos.lol'], signed)
+    await pool.publish(['wss://relay.damus.io', 'wss://nos.lol'], signed as any)
     setLoading(false)
     window.location.href = `/feed`
   }

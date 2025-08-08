@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SimplePool, Event } from 'nostr-tools';
+import { useAuth } from '@/hooks/useAuth';
 
 const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
 
@@ -10,20 +11,20 @@ interface CommentBoxProps {
 
 export default function CommentBox({ videoId, onSend }: CommentBoxProps) {
   const [input, setInput] = useState('');
+  const { state } = useAuth();
 
   const send = async () => {
     if (!input.trim()) return;
-    const nostr =
-      (typeof window !== 'undefined' && (window as any).nostr) || null;
-    if (!nostr) return;
+    if (state.status !== 'ready') return;
     try {
       const event: any = {
         kind: 1,
         created_at: Math.floor(Date.now() / 1000),
         tags: [['e', videoId]],
         content: input,
+        pubkey: state.pubkey,
       };
-      const signed = await nostr.signEvent(event);
+      const signed = await state.signer.signEvent(event);
       await new SimplePool().publish(relays, signed);
       setInput('');
       onSend?.(signed);

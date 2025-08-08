@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import VideoCard, { VideoCardProps } from '../../../components/VideoCard';
 import useFollowing, { getFollowers } from '../../../hooks/useFollowing';
 import SearchBar from '../../../components/SearchBar';
+import { useAuth } from '@/hooks/useAuth';
 
 function relayList(): string[] {
   if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
@@ -26,6 +27,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const { pubkey } = router.query as { pubkey?: string };
   const poolRef = useRef<SimplePool>();
+  const { state } = useAuth();
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
   const [bio, setBio] = useState('');
@@ -46,12 +48,8 @@ export default function ProfilePage() {
   }, [pubkey]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const nostr = (window as any).nostr;
-    if (nostr?.getPublicKey) {
-      nostr.getPublicKey().then((pk: string) => setMyPubkey(pk)).catch(() => {});
-    }
-  }, []);
+    if (state.status === 'ready') setMyPubkey(state.pubkey);
+  }, [state]);
 
   useEffect(() => {
     if (!pubkey) return;
@@ -152,8 +150,7 @@ export default function ProfilePage() {
 
   const saveSplits = async () => {
     try {
-      const nostr = (window as any).nostr;
-      if (!nostr) throw new Error('nostr extension required');
+      if (state.status !== 'ready') throw new Error('signer required');
       const content: any = { name, picture, about: bio };
       if (zapSplits.length) content.zapSplits = zapSplits;
       const event: any = {
@@ -161,8 +158,9 @@ export default function ProfilePage() {
         created_at: Math.floor(Date.now() / 1000),
         tags: [],
         content: JSON.stringify(content),
+        pubkey: state.pubkey,
       };
-      const signed = await nostr.signEvent(event);
+      const signed = await state.signer.signEvent(event);
       const pool = (poolRef.current ||= new SimplePool());
       await pool.publish(relayList(), signed);
       toast.success('Revenue share updated');

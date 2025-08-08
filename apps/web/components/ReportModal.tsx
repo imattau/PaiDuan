@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SimplePool } from 'nostr-tools';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
 
@@ -14,19 +15,19 @@ interface Props {
 const ReportModal: React.FC<Props> = ({ targetId, targetKind, open, onClose }) => {
   const [reason, setReason] = useState('spam');
   const [details, setDetails] = useState('');
+  const { state } = useAuth();
 
   const submit = async () => {
-    const nostr = (window as any).nostr;
-    if (!nostr) {
-      toast.error('nostr extension required');
+    if (state.status !== 'ready') {
+      toast.error('signer required');
       return;
     }
     try {
-      const reporterPubKey = await nostr.getPublicKey();
+      const reporterPubKey = state.pubkey;
       const ts = Math.floor(Date.now() / 1000);
       const report = { targetId, targetKind, reason, reporterPubKey, ts, details };
-      const event = { kind: 30041, created_at: ts, content: JSON.stringify(report) };
-      const signed = await nostr.signEvent(event);
+      const event = { kind: 30041, created_at: ts, content: JSON.stringify(report), pubkey: reporterPubKey };
+      const signed = await state.signer.signEvent(event);
       const pool: any = new SimplePool();
       await pool.publish(relays, signed);
       await fetch('/api/modqueue', {

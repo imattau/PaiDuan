@@ -3,13 +3,14 @@ import { useTheme } from '@/context/themeContext';
 import useT from '../hooks/useT';
 import { useRouter } from 'next/router';
 import useAlwaysSD from '../hooks/useAlwaysSD';
-import { clearKey } from '../utils/keyStorage';
+import { useAuth } from '@/hooks/useAuth';
 import { KeysCard } from '../components/settings/KeysCard';
 import SideNav from '../components/SideNav';
 import { Card } from '../components/ui/Card';
 
 export default function Settings() {
   const { setMode, accent, setAccent } = useTheme();
+  const { signOut } = useAuth();
   const [analytics, setAnalytics] = useState(false);
   const { alwaysSD, setAlwaysSD } = useAlwaysSD();
   const t = useT();
@@ -124,7 +125,7 @@ export default function Settings() {
         <Card title="Account">
           <button
             onClick={() => {
-              clearKey();
+              signOut();
               window.location.href = '/';
             }}
             className="btn btn-secondary"

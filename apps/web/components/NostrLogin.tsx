@@ -1,30 +1,88 @@
-import { useNostrAuth } from '../hooks/useNostrAuth'
+import { useState } from 'react';
+import { nip19, generateSecretKey } from 'nostr-tools';
+import { bytesToHex } from '@noble/hashes/utils';
+import { useAuth } from '@/hooks/useAuth';
+
+function privHexFrom(input: string): string {
+  const s = input.trim();
+  if (/^nsec1/i.test(s)) {
+    const { type, data } = nip19.decode(s);
+    if (type !== 'nsec') throw new Error('Invalid nsec');
+    return typeof data === 'string' ? data.toLowerCase() : bytesToHex(data);
+  }
+  if (/^[0-9a-f]{64}$/i.test(s)) return s.toLowerCase();
+  throw new Error('Unsupported private key format');
+}
 
 export function NostrLogin() {
-  const { remoteSignerLogin, importKey, generateKey } = useNostrAuth()
+  const { signInWithLocal, signInWithNip07, signInWithNip46 } = useAuth();
+  const [uri, setUri] = useState('');
+
+  const importKey = () => {
+    const input = prompt('Paste nsec or hex private key');
+    if (!input) return;
+    try {
+      const priv = privHexFrom(input);
+      signInWithLocal(priv);
+      window.location.href = '/onboarding/profile';
+    } catch (e: any) {
+      alert(e.message || 'Invalid key');
+    }
+  };
+
+  const generateKey = () => {
+    const priv = bytesToHex(generateSecretKey());
+    signInWithLocal(priv);
+    window.location.href = '/onboarding/profile';
+  };
+
+  const connectRemote = async () => {
+    try {
+      await signInWithNip46(uri);
+      window.location.href = '/onboarding/profile';
+    } catch (e: any) {
+      alert(e.message || 'Failed to connect');
+    }
+  };
+
+  const connectExtension = () => {
+    try {
+      signInWithNip07();
+      window.location.href = '/onboarding/profile';
+    } catch (e: any) {
+      alert(e.message || 'No NIP-07 extension found');
+    }
+  };
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs">
       <button
-        className="px-4 py-2 rounded-xl border bg-white/80 text-gray-900 dark:bg-neutral-900/80 dark:text-gray-100"
-        onClick={remoteSignerLogin}
+        className="btn-primary w-full"
+        onClick={connectExtension}
+        disabled={!(globalThis as any).nostr}
       >
-        🔗 Remote Sign-In (NIP-46/NIP-07)
+        Continue with Nostr Extension
       </button>
 
-      <button
-        className="px-4 py-2 rounded-xl border bg-white/80 text-gray-900 dark:bg-neutral-900/80 dark:text-gray-100"
-        onClick={importKey}
-      >
-        📥 Import Nostr Key
-      </button>
+      <div className="space-y-2 rounded-xl border p-4">
+        <label className="text-sm font-medium">Remote signer (NIP‑46)</label>
+        <input
+          value={uri}
+          onChange={(e) => setUri(e.target.value)}
+          placeholder="nostrconnect:..."
+          className="input w-full"
+        />
+        <button className="btn-secondary w-full" onClick={connectRemote}>
+          Connect remote signer
+        </button>
+      </div>
 
-      <button
-        className="px-4 py-2 rounded-xl border bg-yellow-100/70 hover:bg-yellow-100 text-gray-900"
-        onClick={generateKey}
-      >
-        ✨ Generate New Key
+      <button className="btn-secondary w-full" onClick={importKey}>
+        Import nsec / hex
+      </button>
+      <button className="btn-secondary w-full" onClick={generateKey}>
+        Generate new key
       </button>
     </div>
-  )
+  );
 }
