@@ -2,13 +2,16 @@ import { create } from 'zustand';
 
 type S = {
   selectedVideoId?: string;
-  setSelectedVideoId: (id?: string) => void;
+  selectedVideoAuthor?: string;
+  setSelectedVideo: (id?: string, authorPubkey?: string) => void;
   filterAuthor?: string;
   setFilterAuthor: (pubkey?: string) => void;
 };
 export const useFeedSelection = create<S>((set) => ({
   selectedVideoId: undefined,
-  setSelectedVideoId: (id) => set({ selectedVideoId: id }),
+  selectedVideoAuthor: undefined,
+  setSelectedVideo: (id, authorPubkey) =>
+    set({ selectedVideoId: id, selectedVideoAuthor: authorPubkey }),
   filterAuthor: undefined,
   setFilterAuthor: (pubkey) => set({ filterAuthor: pubkey }),
 }));
