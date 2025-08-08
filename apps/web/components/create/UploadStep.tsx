@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { getFFmpeg, writeInputFile } from '@/lib/ffmpegClient'
 
 export function UploadStep({ onBack }: { onBack: () => void }) {
@@ -13,24 +14,32 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  async function loadFFmpeg(signal?: { cancelled: boolean }) {
+    setErr(null)
+    setReady(false)
+    try {
+      const ff = await getFFmpeg()
+      if (signal?.cancelled) return
+      ff.setProgress(({ ratio }: any) =>
+        setProgress(Math.max(0, Math.min(1, ratio || 0))),
+      )
+      if (signal?.cancelled) return
+      ffRef.current = ff
+      setReady(true)
+    } catch (e) {
+      console.error(e)
+      Sentry.captureException(e)
+      if (signal?.cancelled) return
+      const message = e instanceof Error ? e.message : String(e)
+      setErr(`Failed to load video tools: ${message}`)
+    }
+  }
+
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const ff = await getFFmpeg()
-        ff.setProgress(({ ratio }: any) =>
-          setProgress(Math.max(0, Math.min(1, ratio || 0))),
-        )
-        if (cancelled) return
-        ffRef.current = ff
-        setReady(true)
-      } catch (e) {
-        console.error(e)
-        setErr('Failed to load video tools. Try refresh or check network.')
-      }
-    })()
+    const signal = { cancelled: false }
+    loadFFmpeg(signal)
     return () => {
-      cancelled = true
+      signal.cancelled = true
     }
   }, [])
 
@@ -147,7 +156,14 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
       {!ready && !err && (
         <p className="text-sm text-muted-foreground">Loading video tools…</p>
       )}
-      {err && <p className="text-sm text-red-500">{err}</p>}
+      {err && (
+        <div className="space-y-2">
+          <p className="text-sm text-red-500">{err}</p>
+          <button className="btn btn-secondary" onClick={loadFFmpeg}>
+            Retry
+          </button>
+        </div>
+      )}
     </section>
   )
 }
