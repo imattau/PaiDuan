@@ -27,8 +27,10 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
       ffRef.current = ff
       setReady(true)
     } catch (e) {
-      console.error(e)
-      Sentry.captureException(e)
+      console.error('Failed to initialize FFmpeg', e)
+      Sentry.captureException(e, {
+        tags: { component: 'UploadStep', action: 'loadFFmpeg' },
+      })
       if (signal?.cancelled) return
       const message = e instanceof Error ? e.message : String(e)
       setErr(`Failed to load video tools: ${message}`)
@@ -159,7 +161,7 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
       {err && (
         <div className="space-y-2">
           <p className="text-sm text-red-500">{err}</p>
-          <button className="btn btn-secondary" onClick={loadFFmpeg}>
+          <button className="btn btn-secondary" onClick={() => loadFFmpeg()}>
             Retry
           </button>
         </div>
