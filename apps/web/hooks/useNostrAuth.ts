@@ -27,14 +27,18 @@ function pubHexFrom(input: string): string {
 }
 
 export function useNostrAuth() {
-  async function signInWithExtension() {
-    if ((window as any).nostr?.getPublicKey) {
-      const pubkey = await (window as any).nostr.getPublicKey();
+  async function remoteSignerLogin() {
+    const nostr = (window as any).nostr;
+    if (nostr?.getPublicKey) {
+      const pubkey = await nostr.getPublicKey();
       saveKey({ method: 'nip07', pubkey });
-      window.location.href = '/feed';
     } else {
-      alert('No Nostr extension found.');
+      const relay = prompt('Enter remote signer relay URL');
+      const pubkey = prompt('Enter your public key');
+      if (!relay || !pubkey) return;
+      saveKey({ method: 'remote', pubkey, relay });
     }
+    window.location.href = '/onboarding/profile';
   }
 
   async function importKey() {
@@ -46,7 +50,7 @@ export function useNostrAuth() {
       alert(
         'Imported public key only. To post, unlock with an nsec or connect a NIP-07 signer.'
       );
-      window.location.href = '/feed';
+      window.location.href = '/onboarding/profile';
       return;
     }
     const privHex = privHexFrom(input);
@@ -64,7 +68,7 @@ export function useNostrAuth() {
     }
     const encPriv = await encryptPrivkeyHex(privHex, pass);
     saveKey({ method: 'manual', pubkey, encPriv });
-    window.location.href = '/feed';
+    window.location.href = '/onboarding/profile';
   }
 
   async function generateKey() {
@@ -83,9 +87,9 @@ export function useNostrAuth() {
     const pubkey = getPublicKey(privHex);
     const encPriv = await encryptPrivkeyHex(privHex, pass);
     saveKey({ method: 'generated', pubkey, encPriv });
-    window.location.href = '/feed';
+    window.location.href = '/onboarding/profile';
   }
 
-  return { signInWithExtension, importKey, generateKey };
+  return { remoteSignerLogin, importKey, generateKey };
 }
 
