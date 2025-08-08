@@ -7,8 +7,19 @@ export interface AccordionItem {
   content: React.ReactNode;
 }
 
-export function Accordion({ items }: { items: AccordionItem[] }) {
-  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+interface AccordionProps {
+  items: AccordionItem[];
+  initialOpenIndex?: number | null;
+}
+
+export function Accordion({ items, initialOpenIndex = null }: AccordionProps) {
+  const [openIndex, setOpenIndex] = React.useState<number | null>(
+    initialOpenIndex,
+  );
+
+  React.useEffect(() => {
+    setOpenIndex(initialOpenIndex);
+  }, [initialOpenIndex]);
 
   return (
     <div className="space-y-2">
