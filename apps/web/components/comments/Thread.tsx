@@ -47,11 +47,12 @@ export default function Thread({
         )}
         {err && <div className="text-sm text-red-600">{err}</div>}
       </div>
+      <hr className="border-token my-4" />
 
       <div className="mt-4 flex gap-2">
         <input
-          className="flex-1 bg-card border border-token rounded-xl px-3 py-2 text-sm"
-          placeholder="Write a comment…"
+          className="flex-1 rounded-lg bg-foreground/20 px-3 py-2 text-sm"
+          placeholder="Share your thoughts…"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />

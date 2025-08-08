@@ -45,8 +45,8 @@ export default function CommentBox({ videoId, onSend }: CommentBoxProps) {
       value={input}
       onChange={(e) => setInput(e.target.value)}
       onKeyDown={handleKeyDown}
-      placeholder="Add a comment"
-      className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
+      placeholder="Share your thoughts…"
+      className="w-full rounded-lg bg-foreground/20 px-3 py-2 text-sm outline-none"
     />
   );
 }
