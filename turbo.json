@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV", "ADMIN_PUBKEYS", "ANALYTICS_URLS", "SAT_TO_AUD"],
+  "globalEnv": ["NODE_ENV", "ADMIN_PUBKEYS", "ANALYTICS_URLS", "SAT_TO_AUD", "VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

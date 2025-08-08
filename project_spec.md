@@ -14,11 +14,12 @@ Replace “Enter Feed” with standard Nostr login flow, support new/imported ke
 | 4   | Security             | Encrypt privkey at rest via WebCrypto + passphrase; prompt passphrase on app start.                                                                           |
 | 5   | Remote signer        | Implement NIP-46 connect flow; persist pubkey, no privkey stored.                                                                                             |
 | 6   | Post-auth onboarding | After successful import/generate/login, route to `/onboarding/profile`.                                                                                       |
-| 7   | Profile onboarding   | If imported key has existing kind 0 profile, prefill name, picture, about; else show empty form.                                                              |
-| 8   | Profile UI           | Avatar upload (browser file → Blob URL or upload to media API), name, bio; publish kind 0 metadata to relays.                                                 |
-| 9   | Profile page         | `/p/[pubkey]` shows banner, avatar, name, bio, zaps, follow; edit button if own profile.                                                                      |
-| 10  | Export keys          | Settings → “Keys” section to copy/export `nsec` or pubkey; warn about privkey handling.                                                                       |
-| 11  | Testing              | Validate that login state persists, keys work for publishing/zaps, and onboarding flows correctly.                                                            |
+| 7   | Enable notifications | Prompt user to grant browser notification permission and register push subscription.            |
+| 8   | Profile onboarding   | If imported key has existing kind 0 profile, prefill name, picture, about; else show empty form.                                                              |
+| 9   | Profile UI           | Avatar upload (browser file → Blob URL or upload to media API), name, bio; publish kind 0 metadata to relays.                                                 |
+| 10  | Profile page         | `/p/[pubkey]` shows banner, avatar, name, bio, zaps, follow; edit button if own profile.                                                                      |
+| 11  | Export keys          | Settings → “Keys” section to copy/export `nsec` or pubkey; warn about privkey handling.                                                                       |
+| 12  | Testing              | Validate that login state persists, keys work for publishing/zaps, and onboarding flows correctly.                                                            |
 
 ### Acceptance Criteria
 
