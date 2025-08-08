@@ -10,7 +10,7 @@ export default function NavBar() {
     { href: `/${locale}/feed`, icon: <Home />, label: 'Home' },
     { href: `/${locale}/feed?tab=following`, icon: <Users />, label: 'Following' },
     { href: `/${locale}/create`, icon: <Plus />, label: 'Create' },
-    { href: `/${locale}/settings`, icon: <User />, label: 'Profile' },
+    { href: `/${locale}/profile`, icon: <User />, label: 'Profile' },
   ];
   return (
     <nav className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-brand-surface/95 backdrop-blur shadow-card">
