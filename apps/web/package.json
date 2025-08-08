@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0",
-    "dev:lan": "next dev --hostname 0.0.0.0 --port 3000",
+    "dev": "node dev.js",
+    "dev:lan": "PORT=3000 node dev.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
