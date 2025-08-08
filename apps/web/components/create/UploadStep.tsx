@@ -70,7 +70,7 @@ export function UploadStep({ onBack, onCancel }: { onBack: () => void; onCancel:
       : 'Process Video'
     : file
     ? 'Next'
-    : 'Convert to .webm';
+    : 'Select a file';
 
   return (
     <section className="rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
