@@ -13,7 +13,7 @@ export default function RightPanel({
 }) {
   const { selectedVideoId, selectedVideoAuthor } = useFeedSelection();
   return (
-    <div className="space-y-6">
+    <div className="p-[1.2rem] space-y-4">
       {author && (
         <div className="bg-card border border-token rounded-2xl p-4">
           <div className="flex gap-3">

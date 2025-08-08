@@ -21,7 +21,7 @@ export default function LeftNav({
   const { asPath } = useRouter();
 
   return (
-    <div className="space-y-6">
+    <div className="p-[1.2rem] space-y-4">
       {/* Search */}
       <SearchBar showActions={false} />
 
