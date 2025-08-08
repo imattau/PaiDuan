@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
 import { useRouter } from 'next/router';
+import useFocusTrap from '../hooks/useFocusTrap';
 
 const NotificationDrawer: React.FC = () => {
   const { notifications, open, setOpen, markAsRead, markAllAsRead } = useNotifications();
   const router = useRouter();
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(open, drawerRef);
 
   const handleClick = (id: string, noteId: string) => {
     markAsRead(id);
@@ -16,6 +20,10 @@ const NotificationDrawer: React.FC = () => {
 
   return (
     <div
+      ref={drawerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Notifications"
       className={`fixed top-12 left-0 right-0 z-30 max-h-1/2 transform overflow-y-auto bg-background text-foreground transition-transform duration-300 ${
         open ? 'translate-y-0' : '-translate-y-full'
       }`}

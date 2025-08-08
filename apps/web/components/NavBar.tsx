@@ -13,11 +13,19 @@ export default function NavBar() {
     { href: `/${locale}/profile`, icon: <User />, label: 'Profile' },
   ];
   return (
-    <nav className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-brand-surface/95 backdrop-blur shadow-card">
+    <nav
+      aria-label="Main navigation"
+      className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-brand-surface/95 backdrop-blur shadow-card"
+    >
       {links.map(({ href, icon, label }) => {
         const active = asPath.startsWith(href);
         return (
-          <Link key={href} href={href} className="flex flex-col items-center py-2 text-sm text-white/80">
+          <Link
+            key={href}
+            href={href}
+            className="flex flex-col items-center py-2 text-sm text-white/80"
+            aria-current={active ? 'page' : undefined}
+          >
             <motion.div
               animate={{ scale: active ? 1.2 : 1 }}
               transition={{ type: 'spring', stiffness: 300 }}
