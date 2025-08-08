@@ -130,7 +130,9 @@ time.
 The web client listens for zap receipts (kind 9735) and new comments on your
 videos in real time. A bell icon in the app bar shows the count of unseen
 alerts and opens a slide‑down drawer listing the newest notifications. Unread
-items persist in `localStorage` so the badge survives a reload.
+items persist in `localStorage` so the badge survives a reload. During
+onboarding the app requests permission for browser notifications and
+subscribes the device to push messages via a service worker.
 
 ## Settings & theming
 

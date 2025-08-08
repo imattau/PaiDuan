@@ -25,6 +25,17 @@ interface NotificationContextValue {
 
 const NotificationsContext = createContext<NotificationContextValue | null>(null);
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 function readStorage(): Notification[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -76,6 +87,24 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
           </div>
         ));
       }
+      if (typeof window !== 'undefined') {
+        fetch('/api/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            notification: {
+              title: n.type === 'zap' ? 'New zap' : 'New comment',
+              body:
+                n.type === 'zap'
+                  ? `${n.from.slice(0, 8)} zapped you ${n.amount ?? 0} sats`
+                  : `${n.from.slice(0, 8)} replied: ${n.text ?? ''}`,
+              data: { url: `/v/${n.noteId}` },
+            },
+          }),
+        }).catch(() => {
+          /* ignore */
+        });
+      }
       return next;
     });
   };
@@ -83,6 +112,34 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     writeStorage(notifications);
   }, [notifications]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!('serviceWorker' in navigator)) return;
+    (async () => {
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+          if (!key) return;
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(key),
+          });
+          await fetch('/api/push', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription: sub }),
+          });
+        }
+      } catch (err) {
+        console.error('push setup failed', err);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
