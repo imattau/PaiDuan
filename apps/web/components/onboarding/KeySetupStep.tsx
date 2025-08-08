@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { nip19, generateSecretKey } from 'nostr-tools';
+import {
+  nip19,
+  generateSecretKey as generatePrivateKey,
+  getPublicKey
+} from 'nostr-tools';
 import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { encryptPrivkeyHex } from '@/utils/cryptoVault';
+import { saveKey } from '@/utils/keyStorage';
 
 function privHexFrom(input: string): string {
   const s = input.trim();
@@ -15,30 +21,51 @@ function privHexFrom(input: string): string {
 }
 
 export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
-  const { signInWithLocal, signInWithNip07, signInWithNip46 } = useAuth();
+  const { state, signInWithLocal, signInWithNip07, signInWithNip46 } = useAuth();
   const [uri, setUri] = useState('');
 
-  const importKey = () => {
+  async function saveLocalKey(priv: string, method: 'manual' | 'generated') {
+    const pass = prompt('Set a passphrase to encrypt your key');
+    if (!pass) return;
+    try {
+      const encPriv = await encryptPrivkeyHex(priv, pass);
+      const pubkey = getPublicKey(priv);
+      saveKey({ method, pubkey, encPriv });
+      signInWithLocal(priv);
+      // remove plaintext storage from auth hook
+      try {
+        localStorage.removeItem('pd.auth.v1');
+      } catch {}
+      onComplete();
+    } catch (e: any) {
+      alert(e.message || 'Failed to save key');
+    }
+  }
+
+  const importKey = async () => {
     const input = prompt('Paste nsec or hex private key');
     if (!input) return;
     try {
       const priv = privHexFrom(input);
-      signInWithLocal(priv);
-      onComplete();
+      await saveLocalKey(priv, 'manual');
     } catch (e: any) {
       alert(e.message || 'Invalid key');
     }
   };
 
-  const generateKey = () => {
-    const priv = bytesToHex(generateSecretKey());
-    signInWithLocal(priv);
-    onComplete();
+  const generateKey = async () => {
+    const priv = bytesToHex(generatePrivateKey());
+    await saveLocalKey(priv, 'generated');
   };
 
   const connectRemote = async () => {
     try {
       await signInWithNip46(uri);
+      if (state.status === 'ready') {
+        try {
+          saveKey({ method: 'remote', pubkey: state.pubkey, relay: uri });
+        } catch {}
+      }
       onComplete();
     } catch (e: any) {
       alert(e.message || 'Failed to connect');
