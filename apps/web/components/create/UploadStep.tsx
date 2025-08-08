@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as Sentry from '@sentry/nextjs'
 import { getFFmpeg, writeInputFile } from '@/lib/ffmpegClient'
 
-export function UploadStep({ onBack }: { onBack?: () => void }) {
+export default function UploadStep({ onBack }: { onBack?: () => void }) {
   const ffRef = useRef<any>(null)
   const trimRef = useRef<{ start: number; end: number } | null>(null)
   const [ready, setReady] = useState(false)
@@ -171,6 +171,4 @@ export function UploadStep({ onBack }: { onBack?: () => void }) {
     </section>
   )
 }
-
-export default UploadStep
 

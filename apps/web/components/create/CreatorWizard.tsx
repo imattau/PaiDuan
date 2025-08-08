@@ -1,5 +1,5 @@
 'use client'
-import { UploadStep } from './UploadStep'
+import UploadStep from './UploadStep'
 
 export default function CreatorWizard() {
   return (
