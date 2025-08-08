@@ -78,7 +78,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
               </Sentry.ErrorBoundary>
               {!pageProps?.config?.hideFab && <FabUpload />}
               <NotificationDrawer />
-              {router.pathname.startsWith('/en/feed') || router.pathname.startsWith('/en/create') || router.pathname.startsWith('/en/settings') ? <NavBar /> : null}
+              {router.pathname.startsWith('/en/feed') || router.pathname.startsWith('/en/create') || router.pathname.startsWith('/en/profile') || router.pathname.startsWith('/en/settings') ? <NavBar /> : null}
               <InstallBanner />
               <Toaster />
             </NotificationsProvider>
