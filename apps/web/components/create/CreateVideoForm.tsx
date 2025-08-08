@@ -220,11 +220,11 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
             className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
           />
           {preview ? (
-            <div className="relative">
+            <div className="relative flex justify-center max-h-screen">
               <video
                 controls
                 src={preview}
-                className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
+                className="rounded-xl w-full max-h-screen object-contain bg-black"
               />
               {progress > 0 && progress < 100 && (
                 <div
@@ -234,7 +234,7 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
               )}
             </div>
           ) : (
-            <PlaceholderVideo className="rounded-xl w-full aspect-[9/16] object-cover bg-black" />
+            <PlaceholderVideo className="rounded-xl w-full max-h-screen object-contain bg-black" />
           )}
           {err && <p className="text-sm text-red-500">{err}</p>}
         </div>
