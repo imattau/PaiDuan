@@ -104,7 +104,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <h1 className="text-2xl mb-4">Set up your profile</h1>
-      <div className="w-full max-w-md space-y-3">
+      <div className="w-full max-w-md space-y-3 flex flex-col items-center text-center">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -134,7 +134,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
           </div>
         )}
         {rawImage && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center">
             <input
               type="range"
               min={1}
@@ -149,7 +149,12 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
           </div>
         )}
         {!rawImage && picture && (
-          <img src={picture} alt="avatar" className="h-24 w-24 rounded-full object-cover" />
+          <div
+            className="rounded-lg p-[2px]"
+            style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
+          >
+            <img src={picture} alt="avatar" className="h-20 w-20 rounded-lg object-cover" />
+          </div>
         )}
         <Button
           onClick={saveProfile}
