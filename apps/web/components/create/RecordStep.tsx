@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { MetadataStep } from './MetadataStep';
 
 export function RecordStep({ onBack }: { onBack: () => void }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -9,6 +10,7 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
   const [blob, setBlob] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [rec, setRec] = useState(false);
+  const [step, setStep] = useState<'record' | 'metadata'>('record');
 
   useEffect(() => {
     (async () => {
@@ -45,6 +47,7 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
       const b = new Blob(chunks.current, { type: 'video/webm' });
       setBlob(b);
       setPreview(URL.createObjectURL(b));
+      setStep('metadata');
     };
     mr.start();
     setRec(true);
@@ -61,9 +64,8 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
     setRec(false);
   }
 
-  async function upload() {
-    if (!blob) return;
-    alert('Ready to upload recorded .webm (stub).');
+  if (step === 'metadata' && blob) {
+    return <MetadataStep blob={blob} preview={preview ?? undefined} onBack={() => setStep('record')} />;
   }
 
   return (
@@ -93,9 +95,6 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
             ■ Stop
           </button>
         )}
-        <button className="btn btn-secondary" onClick={upload} disabled={!blob}>
-          Upload
-        </button>
       </div>
 
       {preview && (

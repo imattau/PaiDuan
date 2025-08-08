@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { trimVideoWebCodecs } from '@/utils/trimVideoWebCodecs'
+import { MetadataStep } from './MetadataStep'
 
 export function UploadStep({ onBack }: { onBack: () => void }) {
   const [file, setFile] = useState<File | null>(null)
@@ -8,12 +9,14 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
   const [preview, setPreview] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [step, setStep] = useState<'process' | 'metadata'>('process')
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null
     setFile(f)
     setOutBlob(null)
     setPreview(f ? URL.createObjectURL(f) : null)
+    setStep('process')
   }
 
   async function convert() {
@@ -24,6 +27,7 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
       const blob = await trimVideoWebCodecs(file, 0)
       setOutBlob(blob)
       setPreview(URL.createObjectURL(blob))
+      setStep('metadata')
     } catch (e) {
       console.error(e)
       setErr('Conversion failed.')
@@ -32,9 +36,8 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
     }
   }
 
-  async function upload() {
-    if (!outBlob) return
-    alert('Ready to upload .webm (stub).')
+  if (step === 'metadata' && outBlob) {
+    return <MetadataStep blob={outBlob} preview={preview ?? undefined} onBack={() => setStep('process')} />
   }
 
   return (
@@ -68,13 +71,6 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
           onClick={convert}
         >
           {busy ? 'Processing…' : 'Convert to .webm'}
-        </button>
-        <button
-          className="btn btn-secondary disabled:opacity-60"
-          disabled={!outBlob || busy}
-          onClick={upload}
-        >
-          Upload
         </button>
       </div>
 
