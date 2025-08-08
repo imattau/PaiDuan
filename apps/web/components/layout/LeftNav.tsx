@@ -36,7 +36,7 @@ export default function LeftNav({
             { href: '/feed', label: 'Home' },
             { href: '/following', label: 'Following' },
             { href: '/create', label: 'Create' },
-            { href: '/settings', label: 'Settings' },
+            { href: '/settings#profile', label: 'Profile settings' },
           ].map(({ href, label }) => {
             const active = asPath.startsWith(href);
             return (
