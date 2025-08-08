@@ -16,12 +16,26 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
   const [topics, setTopics] = useState('');
   const [copyright, setCopyright] = useState('');
   const [nsfw, setNsfw] = useState(false);
-  const [zap, setZap] = useState('');
+  const [lightningAddress, setLightningAddress] = useState('');
   const [busy, setBusy] = useState(false);
 
   const { state } = useAuth();
 
   async function postVideo() {
+    const topicList = topics
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    if (!lightningAddress.trim()) {
+      alert('Lightning address is required');
+      return;
+    }
+    if (topicList.length === 0) {
+      alert('At least one topic is required');
+      return;
+    }
+
     try {
       setBusy(true);
       const form = new FormData();
@@ -30,7 +44,7 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
       form.append('topics', topics);
       form.append('copyright', copyright);
       form.append('nsfw', nsfw ? 'true' : 'false');
-      if (zap) form.append('zap', zap);
+      if (lightningAddress) form.append('zap', lightningAddress);
 
       const res = await fetch('https://nostr.media/api/upload', {
         method: 'POST',
@@ -43,13 +57,9 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
         ['v', video],
         ['image', poster],
         ['vman', manifest],
+        ...topicList.map((t) => ['t', t]),
       ];
-      topics
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean)
-        .forEach((t) => tags.push(['t', t]));
-      if (zap) tags.push(['zap', zap]);
+      if (lightningAddress) tags.push(['zap', lightningAddress]);
       if (nsfw) tags.push(['nsfw', 'true']);
       if (copyright) tags.push(['copyright', copyright]);
 
@@ -74,7 +84,10 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
   }
 
   function handleCancel() {
-    if ((caption || topics || copyright || nsfw || zap) && !confirm('Discard your progress?'))
+    if (
+      (caption || topics || copyright || nsfw || lightningAddress) &&
+      !confirm('Discard your progress?')
+    )
       return;
     onCancel();
   }
@@ -115,13 +128,15 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
             placeholder="Topic tags (comma separated)"
             className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
           />
-          <input
-            type="text"
-            value={zap}
-            onChange={(e) => setZap(e.target.value)}
-            placeholder="Lightning address"
-            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
-          />
+          <label className="block text-sm">
+            <span className="mb-1 block">Lightning address</span>
+            <input
+              type="text"
+              value={lightningAddress}
+              onChange={(e) => setLightningAddress(e.target.value)}
+              className="block w-full border rounded px-3 py-2 bg-transparent"
+            />
+          </label>
           <input
             type="text"
             value={copyright}
