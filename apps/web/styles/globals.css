@@ -24,13 +24,14 @@ body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
 
 @layer utilities {
   .text-muted-foreground { color: hsl(var(--foreground) / 0.6); }
+  .break-inside-avoid-column { break-inside: avoid-column; }
 }
 
 /* Button system — works in light & dark */
 @layer components {
   .btn { @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2; }
   .btn-primary {
-    background: hsl(var(--accent)); color: white; border: none;
+    background: hsl(var(--accent)); color: white;
   }
   .btn-secondary {
     @apply border;

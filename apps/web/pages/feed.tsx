@@ -4,6 +4,7 @@ import CreatorWizard from '../components/CreatorWizard';
 import useFeed, { FeedMode } from '../hooks/useFeed';
 import useFollowing from '../hooks/useFollowing';
 import { VideoCard, VideoCardProps } from '../components/VideoCard';
+import { FeedGrid } from '@/components/feed/FeedGrid';
 import SearchBar from '../components/SearchBar';
 import SideNav from '../components/SideNav';
 import VideoInfoPane from '../components/VideoInfoPane';
@@ -100,16 +101,8 @@ export default function FeedPage() {
       {tab === 'tags' && !selectedTag ? (
         renderTagList()
       ) : (
-        <div
-          className="h-[calc(100vh-104px)] overflow-y-auto snap-y snap-mandatory flex flex-col items-center lg:ml-48 lg:mr-72"
-        >
-          {items.map((v) => (
-            <div key={v.eventId} className="snap-center flex justify-center w-full">
-              <div className="w-full max-w-[460px]">
-                <VideoCard {...v} />
-              </div>
-            </div>
-          ))}
+        <div className="h-[calc(100vh-104px)] overflow-y-auto lg:ml-48 lg:mr-72">
+          <FeedGrid items={items.map((v) => <VideoCard key={v.eventId} {...v} />)} />
         </div>
       )}
       {tab === 'tags' && selectedTag && (

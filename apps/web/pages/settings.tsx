@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme } from '../hooks/useTheme';
+import { useTheme } from '@/context/themeContext';
 import useT from '../hooks/useT';
 import { useRouter } from 'next/router';
 import useAlwaysSD from '../hooks/useAlwaysSD';

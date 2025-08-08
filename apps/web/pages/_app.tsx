@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { NotificationsProvider } from '../hooks/useNotifications';
 import NotificationDrawer from '../components/NotificationDrawer';
 import NavBar from '../components/NavBar';
-import { ThemeProvider } from '../hooks/useTheme';
+import { ThemeProvider } from '@/context/themeContext';
 import InstallBanner from '../components/InstallBanner';
 import useOffline from '../utils/useOffline';
 import { useEffect } from 'react';
