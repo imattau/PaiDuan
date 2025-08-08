@@ -9,22 +9,39 @@ export function getPool() {
   return _pool;
 }
 
-/** TODO: replace with your real key vault */
-export function getMyPrivkey(): string | undefined {
-  try {
-    return localStorage.getItem('nostr:privkey') ?? undefined;
-  } catch {
-    return undefined;
+export interface KeyVault {
+  getPrivateKey(): string | undefined;
+  getPublicKey(): string | undefined;
+}
+
+export class LocalStorageKeyVault implements KeyVault {
+  getPrivateKey(): string | undefined {
+    try {
+      return localStorage.getItem('nostr:privkey') ?? undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  getPublicKey(): string | undefined {
+    const sk = this.getPrivateKey();
+    if (!sk) return undefined;
+    try {
+      return getPublicKey(sk);
+    } catch {
+      return undefined;
+    }
   }
 }
+
+/** TODO: replace with your real key vault */
+export let keyVault: KeyVault = new LocalStorageKeyVault();
+
+export function getMyPrivkey(): string | undefined {
+  return keyVault.getPrivateKey();
+}
 export function getMyPubkey(): string | undefined {
-  const sk = getMyPrivkey();
-  if (!sk) return undefined;
-  try {
-    return getPublicKey(sk);
-  } catch {
-    return undefined;
-  }
+  return keyVault.getPublicKey();
 }
 
 /** Relays you want to hit – tweak as needed */
