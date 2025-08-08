@@ -1,5 +1,5 @@
 import React from 'react';
-import SideNav from '../components/SideNav';
+import MainNav from '@/components/layout/MainNav';
 import { Accordion } from '../components/ui/Accordion';
 import { KeysCard } from '../components/settings/KeysCard';
 import { AccountCard } from '@/components/settings/AccountCard';
@@ -25,7 +25,7 @@ export default function Settings() {
 
   return (
     <>
-      <SideNav />
+      <MainNav showSearch={false} showProfile={false} />
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
         <Accordion
           initialOpenIndex={initialOpenIndex}

@@ -1,5 +1,5 @@
 import AppShell from '@/components/layout/AppShell';
-import LeftNav from '@/components/layout/LeftNav';
+import MainNav from '@/components/layout/MainNav';
 import RightPanel from '@/components/feed/RightPanel';
 import PlaceholderVideo from '@/components/PlaceholderVideo';
 import useFeed from '@/hooks/useFeed';
@@ -51,7 +51,7 @@ export default function FeedPage() {
 
   return (
     <AppShell
-      left={<LeftNav me={me} />}
+      left={<MainNav me={me} />}
       center={
         <div className="space-y-6">
           {/* tabs bar you already have can stay on top */}
