@@ -34,11 +34,7 @@ body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
   .btn-primary {
     background: hsl(var(--accent)); color: white;
   }
-  .btn-secondary {
-    @apply border;
-    background: hsl(var(--surface)); color: hsl(var(--foreground));
-    border-color: hsl(var(--border));
-  }
+  .btn-secondary { @apply border border-current text-current bg-transparent; }
   .btn-danger {
     background: #ef4444; color: white;
   }
