@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MetadataStep } from './MetadataStep';
 
-export function RecordStep({ onBack }: { onBack: () => void }) {
+export function RecordStep({ onBack, onCancel }: { onBack: () => void; onCancel: () => void }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<BlobPart[]>([]);
@@ -64,17 +64,34 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
     setRec(false);
   }
 
+  function handleCancel() {
+    if ((blob || preview || rec) && !confirm('Discard your progress?')) return;
+    onCancel();
+  }
+
   if (step === 'metadata' && blob) {
-    return <MetadataStep blob={blob} preview={preview ?? undefined} onBack={() => setStep('record')} />;
+    return (
+      <MetadataStep
+        blob={blob}
+        preview={preview ?? undefined}
+        onBack={() => setStep('record')}
+        onCancel={onCancel}
+      />
+    );
   }
 
   return (
     <section className="rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
-      <div className="flex items-center gap-2">
-        <button className="btn btn-secondary" onClick={onBack}>
-          ← Back
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button className="btn btn-secondary" onClick={onBack}>
+            ← Back
+          </button>
+          <h2 className="text-lg font-semibold">Record</h2>
+        </div>
+        <button className="text-sm text-muted-foreground" onClick={handleCancel}>
+          Cancel
         </button>
-        <h2 className="text-lg font-semibold">Record</h2>
       </div>
 
       <video
