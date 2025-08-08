@@ -13,7 +13,7 @@ The development server starts the Next.js web app at <http://localhost:3000>.
 The moderation dashboard runs on <http://localhost:3001>.
 Visit <http://localhost:3000/feed> for the swipeable video feed demo.
 
-Client-side video trimming uses the [WebCodecs API](https://developer.mozilla.org/docs/Web/API/WebCodecs_API) with a lightweight polyfill for browsers lacking native support. Toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
+Client-side video trimming now relies on the [WebCodecs API](https://developer.mozilla.org/docs/Web/API/WebCodecs_API) with a lightweight polyfill for browsers lacking native support, eliminating the previous `ffmpeg.wasm` dependency. Toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
 
 ## PWA features
 
@@ -96,6 +96,8 @@ A worker in `packages/transcoder` downloads the source, runs FFmpeg to produce
 240p, 480p and 720p variants and uploads them to `/variants/<id>/`. A JSON
 manifest is written alongside the files and returned with the custom MIME type
 `application/paiduan+json`:
+
+This server-side process replaces the earlier client-side FFmpeg setup, so the web app no longer ships `ffmpeg.wasm` assets.
 
 ```json
 { "240": "https://.../240.webm", "480": "https://.../480.webm", "720": "https://.../720.webm" }
