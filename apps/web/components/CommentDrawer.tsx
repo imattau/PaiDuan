@@ -193,7 +193,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       className="fixed inset-x-0 bottom-0 z-50 h-1/2 bg-background text-foreground"
       {...bind()}
     >
-      <div className="flex items-center justify-between border-b border-foreground/10 p-2">
+      <div className="flex items-center justify-between border-b divider p-2">
         <span className="font-semibold">Comments</span>
         <button onClick={onClose} className="p-1 hover:text-accent" aria-label="Close comments">
           <X />
@@ -279,7 +279,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
           </div>
         ))}
       </div>
-      <div className="absolute bottom-0 left-0 right-0 border-t border-foreground/10 p-2">
+      <div className="absolute bottom-0 left-0 right-0 border-t divider p-2">
         {replyTo && (
           <div className="mb-1 text-xs text-foreground/50">
             Replying to @{replyTo.pubkey.slice(0, 8)}{' '}

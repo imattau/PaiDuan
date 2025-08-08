@@ -47,7 +47,7 @@ export default function Thread({
         )}
         {err && <div className="text-sm text-red-600">{err}</div>}
       </div>
-      <hr className="border-token my-4" />
+      <hr className="divider my-4" />
 
       <div className="mt-4 flex gap-2">
         <input
