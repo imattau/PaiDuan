@@ -44,6 +44,12 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
     if (!lightningAddress && profile?.lud16) setLightningAddress(profile.lud16);
   }, [profile, lightningAddress]);
 
+  const topicList = topics
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const formValid = !!outBlob && !!lightningAddress.trim() && topicList.length > 0;
+
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
     setFile(f);
@@ -67,10 +73,6 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
   }
 
   async function postVideo() {
-    const topicList = topics
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
 
     if (!outBlob) {
       alert('Please process a video first');
@@ -193,11 +195,11 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
       </label>
       <button
         className="btn btn-primary disabled:opacity-60"
-        data-testid="post-button"
-        disabled={!outBlob || posting}
+        data-testid="publish-button"
+        disabled={!formValid || posting}
         onClick={postVideo}
       >
-        {posting ? 'Posting…' : 'Post Video'}
+        {posting ? 'Publishing…' : 'Publish'}
       </button>
     </>
   );

@@ -20,7 +20,7 @@ vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
 
 describe('CreateVideoForm', () => {
-  it('enables posting after selecting a file', async () => {
+  it('keeps publish disabled until metadata is provided', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
 
     const container = document.createElement('div');
@@ -29,17 +29,19 @@ describe('CreateVideoForm', () => {
       root.render(<CreateVideoForm onCancel={() => {}} />);
     });
 
-    const postButton = container.querySelector('[data-testid="post-button"]') as HTMLButtonElement;
-    expect(postButton.disabled).toBe(true);
+    const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    expect(publishButton.disabled).toBe(true);
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(['dummy'], 'video.mp4', { type: 'video/mp4' });
     await act(async () => {
       Object.defineProperty(input, 'files', { value: [file] });
       input.dispatchEvent(new Event('change', { bubbles: true }));
-      await Promise.resolve();
     });
 
-    expect(postButton.disabled).toBe(false);
+    // Still disabled because required fields are empty
+    expect(
+      (container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
   });
 });
