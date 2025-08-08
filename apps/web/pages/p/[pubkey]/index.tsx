@@ -6,7 +6,8 @@ import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { toast } from 'react-hot-toast';
 import VideoCard, { VideoCardProps } from '../../../components/VideoCard';
-import useFollowing, { getFollowers } from '../../../hooks/useFollowing';
+import useFollowing from '../../../hooks/useFollowing';
+import useFollowers from '@/hooks/useFollowers';
 import SearchBar from '../../../components/SearchBar';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
@@ -24,16 +25,11 @@ export default function ProfilePage() {
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [selected, setSelected] = useState<VideoCardProps | null>(null);
   const { following, follow, unfollow } = useFollowing();
-  const [followers, setFollowers] = useState(0);
+  const followers = useFollowers(pubkey);
 
   const isFollowing = pubkey ? following.includes(pubkey) : false;
 
   const isOwner = pubkey === myPubkey;
-
-  useEffect(() => {
-    if (!pubkey) return;
-    setFollowers(getFollowers(pubkey));
-  }, [pubkey]);
 
   useEffect(() => {
     if (state.status === 'ready') setMyPubkey(state.pubkey);
@@ -110,7 +106,6 @@ export default function ProfilePage() {
     } else {
       follow(pubkey);
     }
-    setFollowers(getFollowers(pubkey));
   };
 
   const totalPct = zapSplits.reduce((sum, s) => sum + s.pct, 0);
@@ -183,7 +178,7 @@ export default function ProfilePage() {
             >
               {isFollowing ? 'Unfollow' : 'Follow'}
             </button>
-            <div className="text-sm">{followers} followers</div>
+            <div className="text-sm">{followers.length} followers</div>
           </div>
         </div>
       </div>
