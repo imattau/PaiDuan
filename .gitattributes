@@ -1,0 +1,11 @@
+# Treat SVG as text so they diff cleanly
+*.svg text eol=lf
+
+# Block common binaries from normal diffs/merges (we don’t add them in this PR)
+*.wasm -diff -merge binary
+*.webm -diff -merge binary
+*.mp4  -diff -merge binary
+*.png  -diff -merge binary
+*.jpg  -diff -merge binary
+*.jpeg -diff -merge binary
+*.gif  -diff -merge binary
