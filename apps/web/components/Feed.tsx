@@ -3,6 +3,7 @@ import { useSpring, animated, useGesture } from '@paiduan/ui';
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
 import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
+import Link from 'next/link';
 
 interface FeedProps {
   items: VideoCardProps[];
@@ -46,7 +47,9 @@ export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center text-white">
         <EmptyState />
-        <p className="mt-4">Be the first to upload!</p>
+        <Link href="/create" className="btn btn-primary mt-4">
+          Upload your first video
+        </Link>
       </div>
     );
   }
