@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Range, getTrackBackground } from 'react-range';
 import { SimplePool } from 'nostr-tools/pool';
 import { VideoCardProps } from './VideoCard';
-import { trimVideo } from '../utils/trimVideo';
+import { trimVideoWebCodecs } from '../utils/trimVideoWebCodecs';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -195,7 +195,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ onClose, onPublish
     if (!file) return;
     try {
       setTrimming(true);
-      const trimmed = await trimVideo(file, range[0], range[1]);
+      const trimmed = await trimVideoWebCodecs(file, range[0], range[1]);
       setFile(trimmed);
       setVideoUrl(URL.createObjectURL(trimmed));
       setStep(2);

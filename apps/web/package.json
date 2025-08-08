@@ -11,9 +11,6 @@
     "build:pwa": "next build && next-pwa"
   },
   "dependencies": {
-    "@ffmpeg/core": "0.12.6",
-    "@ffmpeg/ffmpeg": "0.12.9",
-    "@ffmpeg/util": "^0.12.1",
     "@noble/hashes": "^1.3.1",
     "@paiduan/ui": "workspace:*",
     "@react-spring/web": "^9.7.2",
@@ -34,7 +31,8 @@
     "react-use-gesture": "^9.1.3",
     "recharts": "^2.8.0",
     "tailwindcss-plugin-rtl": "^1.2.0",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "libavjs-webcodecs-polyfill": "^0.5.5"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
