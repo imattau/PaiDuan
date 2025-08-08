@@ -5,7 +5,7 @@ vi.mock('./useAuth', () => ({
   useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: { signEvent: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })) } } }),
 }));
 
-vi.mock('nostr-tools', () => ({
+vi.mock('nostr-tools/pool', () => ({
   SimplePool: class {
     get() {
       return Promise.resolve({

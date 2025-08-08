@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Range, getTrackBackground } from 'react-range';
-import { SimplePool } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
 import { VideoCardProps } from './VideoCard';
 import { trimVideo } from '../utils/trimVideo';
 import { toast } from 'react-hot-toast';

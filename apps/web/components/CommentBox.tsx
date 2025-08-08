@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { SimplePool, Event } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Event } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 
 const relays = ['wss://relay.damus.io', 'wss://nos.lol'];

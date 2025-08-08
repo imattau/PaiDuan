@@ -1,10 +1,6 @@
-import {
-  SimplePool,
-  generateSecretKey,
-  getPublicKey,
-  nip04,
-  type EventTemplate,
-} from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import { generateSecretKey, getPublicKey, type EventTemplate } from 'nostr-tools/pure';
+import * as nip04 from 'nostr-tools/nip04';
 import { Relay } from 'nostr-tools/relay';
 import type { Signer } from './types';
 

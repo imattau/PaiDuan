@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import { EventTemplate } from 'nostr-tools';
+import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { getPool, RELAYS } from '@/lib/nostr';

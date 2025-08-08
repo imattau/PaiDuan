@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Event as NostrEvent } from 'nostr-tools/pure';
+import type { Filter } from 'nostr-tools/filter';
 import { VideoCardProps } from '../components/VideoCard';
 
 export interface CreatorResult {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Event as NostrEvent } from 'nostr-tools';
+import type { Event as NostrEvent } from 'nostr-tools/pure';
 import pool from './pool';
 import { toast } from 'react-hot-toast';
 

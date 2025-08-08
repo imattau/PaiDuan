@@ -1,4 +1,4 @@
-import { SimplePool } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
 
 // Shared SimplePool instance for the web app
 const pool = new SimplePool();

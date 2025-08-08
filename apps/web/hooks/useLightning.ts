@@ -1,4 +1,5 @@
-import { SimplePool, Filter } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Filter } from 'nostr-tools/filter';
 import { useAuth } from './useAuth';
 
 interface ZapArgs {

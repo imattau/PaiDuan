@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { nip19, generateSecretKey } from 'nostr-tools';
+import * as nip19 from 'nostr-tools/nip19';
+import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
 

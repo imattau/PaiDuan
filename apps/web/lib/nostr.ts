@@ -1,5 +1,6 @@
 'use client';
-import { SimplePool, getPublicKey } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import { getPublicKey } from 'nostr-tools/pure';
 
 let _pool: SimplePool | null = null;
 

@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { SimplePool, Event as NostrEvent } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Event as NostrEvent } from 'nostr-tools/pure';
 import VideoCard, { VideoCardProps } from '../../components/VideoCard';
 
 function relayList(): string[] {

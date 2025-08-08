@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { SimplePool, Event } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Event } from 'nostr-tools/pure';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFollowing } from '../hooks/useFollowing';
 import ZapButton from './ZapButton';
