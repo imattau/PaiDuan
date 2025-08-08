@@ -10,12 +10,14 @@ import { LanguageCard } from '@/components/settings/LanguageCard';
 import { StorageCard } from '../components/settings/StorageCard';
 import { DataCard } from '../components/settings/DataCard';
 import { PrivacyCard } from '../components/settings/PrivacyCard';
+import { ProfileCard } from '../components/settings/ProfileCard';
 
 export default function Settings() {
   return (
     <>
       <SideNav />
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
+        <ProfileCard />
         <Accordion
           items={[
             {
