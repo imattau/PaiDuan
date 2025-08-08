@@ -20,7 +20,7 @@ vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
 
 describe('CreateVideoForm', () => {
-  it('enables posting after processing', async () => {
+  it('enables posting after selecting a file', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
 
     const container = document.createElement('div');
@@ -37,11 +37,7 @@ describe('CreateVideoForm', () => {
     await act(async () => {
       Object.defineProperty(input, 'files', { value: [file] });
       input.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-
-    const processButton = container.querySelector('button.btn-primary') as HTMLButtonElement;
-    await act(async () => {
-      processButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await Promise.resolve();
     });
 
     expect(postButton.disabled).toBe(false);
