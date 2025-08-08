@@ -38,9 +38,11 @@ export default function RightPanel({
         </div>
       )}
 
-      <div className={`${cardStyle} p-0`}>
-        <Thread rootId={selectedVideoId} authorPubkey={selectedVideoAuthor} />
-      </div>
+      {selectedVideoId && (
+        <div className={`${cardStyle} p-0`}>
+          <Thread rootId={selectedVideoId} authorPubkey={selectedVideoAuthor} />
+        </div>
+      )}
     </div>
   );
 }
