@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
-import { Heart, MessageCircle, Share2, MoreVertical } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Heart, MessageCircle, Share2 } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
@@ -15,6 +16,11 @@ import useAdaptiveSource from '../hooks/useAdaptiveSource';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
+
+const MoreVertical = dynamic(
+  () => import('lucide-react').then((mod) => mod.MoreVertical),
+  { ssr: false },
+);
 
 export interface VideoCardProps {
   videoUrl: string;
