@@ -7,6 +7,7 @@ import { useTheme } from '@/context/themeContext';
 import { Sun, Moon, Home, Users, Plus, User } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { cardStyle } from '@/components/ui/Card';
+import Logo from '@/components/branding/Logo';
 
 interface MainNavProps {
   me?: {
@@ -29,6 +30,10 @@ export default function MainNav({
 
   return (
     <div className="p-[1.2rem] space-y-4">
+      <Link href="/" className="block pl-5">
+        <Logo width={160} height={34} />
+      </Link>
+
       {/* Search */}
       {showSearch && <SearchBar showActions={false} />}
 
