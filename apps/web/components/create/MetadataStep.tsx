@@ -48,15 +48,15 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
           Cancel
         </button>
       </div>
-      <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+      <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
         {preview && (
           <video
             controls
             src={preview}
-            className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
+            className="rounded-xl w-full aspect-[9/16] object-cover bg-black lg:col-span-1"
           />
         )}
-        <div className="space-y-4">
+        <div className="space-y-4 col-span-2 lg:col-span-1">
           <input
             type="text"
             value={caption}
