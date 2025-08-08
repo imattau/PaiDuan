@@ -9,7 +9,7 @@ import SideNav from '../components/SideNav';
 import { Card } from '../components/ui/Card';
 
 export default function Settings() {
-  const { mode, toggleMode, accent, setAccent } = useTheme();
+  const { setMode, accent, setAccent } = useTheme();
   const [analytics, setAnalytics] = useState(false);
   const { alwaysSD, setAlwaysSD } = useAlwaysSD();
   const t = useT();
@@ -48,8 +48,19 @@ export default function Settings() {
         <KeysCard />
 
         <Card title="Appearance" desc="Theme and accent colour.">
-          <button onClick={toggleMode} className="btn btn-secondary">
-            {mode === 'dark' ? t('switch_to_light') : t('switch_to_dark')}
+          <button
+            onClick={() =>
+              setMode(
+                typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+                  ? 'light'
+                  : 'dark'
+              )
+            }
+            className="btn btn-secondary"
+          >
+            {typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+              ? t('switch_to_light')
+              : t('switch_to_dark')}
           </button>
           <div className="flex flex-wrap gap-2 pt-2">
             {colors.map((c) => (

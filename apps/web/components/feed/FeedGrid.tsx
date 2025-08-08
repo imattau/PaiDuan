@@ -6,7 +6,7 @@ export function FeedGrid({ items }: { items: React.ReactNode[] }) {
       {items.map((node, i) => (
         <div
           key={i}
-          className="mb-4 break-inside-avoid-column inline-block align-top w-full"
+          className="mb-4 break-inside-avoid inline-block align-top w-full"
         >
           {node}
         </div>
