@@ -1,40 +1,45 @@
-'use client'
-import { useState } from 'react'
-import { trimVideoWebCodecs } from '@/utils/trimVideoWebCodecs'
+"use client";
+import { useState } from 'react';
+import UploadModal from './UploadModal';
 
 export function UploadStep({ onBack }: { onBack: () => void }) {
-  const [file, setFile] = useState<File | null>(null)
-  const [outBlob, setOutBlob] = useState<Blob | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [err, setErr] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [file, setFile] = useState<File | null>(null);
+  const [outBlob, setOutBlob] = useState<Blob | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0] ?? null
-    setFile(f)
-    setOutBlob(null)
-    setPreview(f ? URL.createObjectURL(f) : null)
-  }
-
-  async function convert() {
-    if (!file) return
-    setBusy(true)
-    setErr(null)
-    try {
-      const blob = await trimVideoWebCodecs(file, 0)
-      setOutBlob(blob)
-      setPreview(URL.createObjectURL(blob))
-    } catch (e) {
-      console.error(e)
-      setErr('Conversion failed.')
-    } finally {
-      setBusy(false)
+    const f = e.target.files?.[0] ?? null;
+    setFile(f);
+    setErr(null);
+    if (f) {
+      setPreview(URL.createObjectURL(f));
+      if (f.type === 'video/webm') {
+        setOutBlob(f);
+      } else {
+        setOutBlob(null);
+      }
+    } else {
+      setPreview(null);
+      setOutBlob(null);
     }
   }
 
-  async function upload() {
-    if (!outBlob) return
-    alert('Ready to upload .webm (stub).')
+  function upload() {
+    if (!file) return;
+    setShowModal(true);
+  }
+
+  function handleDone(blob: Blob) {
+    setOutBlob(blob);
+    setPreview(URL.createObjectURL(blob));
+    setShowModal(false);
+    alert('Ready to upload .webm (stub).');
+  }
+
+  function handleCancel() {
+    setShowModal(false);
   }
 
   return (
@@ -63,15 +68,8 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
 
       <div className="flex gap-3">
         <button
-          className="btn btn-primary disabled:opacity-60"
-          disabled={!file || busy}
-          onClick={convert}
-        >
-          {busy ? 'Processing…' : 'Convert to .webm'}
-        </button>
-        <button
           className="btn btn-secondary disabled:opacity-60"
-          disabled={!outBlob || busy}
+          disabled={!file || showModal}
           onClick={upload}
         >
           Upload
@@ -83,8 +81,12 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
           <p className="text-sm text-red-500">{err}</p>
         </div>
       )}
+
+      {showModal && file && (
+        <UploadModal file={file} onCancel={handleCancel} onDone={handleDone} />
+      )}
     </section>
-  )
+  );
 }
 
-export default UploadStep
+export default UploadStep;
