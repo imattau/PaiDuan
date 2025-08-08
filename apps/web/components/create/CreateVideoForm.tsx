@@ -16,6 +16,7 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
   const [outBlob, setOutBlob] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
 
   const [caption, setCaption] = useState('');
   const [topics, setTopics] = useState('');
@@ -48,15 +49,19 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
     setFile(f);
     setOutBlob(null);
     setPreview(f ? URL.createObjectURL(f) : null);
+    setProgress(0);
     if (f) {
       setErr(null);
       try {
-        const blob = await trimVideoWebCodecs(f, 0);
+        const blob = await trimVideoWebCodecs(f, 0, undefined, (p) =>
+          setProgress(Math.round(p * 100)),
+        );
         setOutBlob(blob);
         setPreview(URL.createObjectURL(blob));
       } catch (e) {
         console.error(e);
         setErr('Conversion failed.');
+        setProgress(0);
       }
     }
   }
@@ -213,11 +218,19 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
             className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
           />
           {preview ? (
-            <video
-              controls
-              src={preview}
-              className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
-            />
+            <div className="relative">
+              <video
+                controls
+                src={preview}
+                className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
+              />
+              {progress > 0 && progress < 100 && (
+                <div
+                  className="absolute left-0 bottom-0 h-1 bg-blue-500"
+                  style={{ width: `${progress}%` }}
+                />
+              )}
+            </div>
           ) : (
             <PlaceholderVideo className="rounded-xl w-full aspect-[9/16] object-cover bg-black" />
           )}
