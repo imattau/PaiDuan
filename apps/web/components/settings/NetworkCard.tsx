@@ -36,10 +36,16 @@ export function NetworkCard() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addRelay();
+              }
+            }}
             placeholder="wss://relay.example.com"
             className="flex-1 rounded bg-foreground/10 p-2 text-sm outline-none"
           />
-          <button onClick={addRelay} className="btn btn-secondary">
+          <button type="button" onClick={addRelay} className="btn btn-secondary">
             Add
           </button>
         </div>
