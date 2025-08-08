@@ -1,28 +1,100 @@
 /* @vitest-environment jsdom */
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import CreateVideoForm from './CreateVideoForm';
 
 (globalThis as any).React = React;
 
+const mockTrim = vi.fn();
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
-  trimVideoWebCodecs: vi.fn(() => Promise.resolve(new Blob()))
+  trimVideoWebCodecs: (...args: any[]) => mockTrim(...(args as any)),
 }));
 
+const mockSignEvent = vi.fn(() => Promise.resolve({}));
 vi.mock('../../hooks/useAuth', () => ({
-  useAuth: () => ({ state: { status: 'ready', pubkey: 'pub', signer: { signEvent: vi.fn() } } })
+  useAuth: () => ({ state: { status: 'ready', pubkey: 'pub', signer: { signEvent: mockSignEvent } } }),
 }));
 
 vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
-
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
+
+const mockPublish = vi.fn();
+vi.mock('nostr-tools/pool', () => ({ SimplePool: vi.fn(() => ({ publish: mockPublish })) }));
+
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn() }) }));
 
 describe('CreateVideoForm', () => {
-  it('keeps publish disabled until metadata is provided', async () => {
+  beforeEach(() => {
+    mockTrim.mockReset();
+    mockSignEvent.mockReset();
+    mockPublish.mockReset();
+    (globalThis as any).fetch = undefined;
+  });
+
+  it('auto converts selected file and keeps publish disabled until form complete', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
+      onProgress(0.5);
+      return Promise.resolve(new Blob());
+    });
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    act(() => {
+      root.render(<CreateVideoForm />);
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
+
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    expect(mockTrim).toHaveBeenCalledWith(file, 0, undefined, expect.any(Function));
+    expect(container.querySelector('.bg-blue-500')).not.toBeNull();
+    expect(publishButton.disabled).toBe(true);
+
+    const topicsInput = container.querySelector(
+      'input[placeholder="Topic tags (comma separated)"]',
+    ) as HTMLInputElement;
+    const lightningInput = Array.from(container.querySelectorAll('label'))
+      .find((l) => l.textContent?.includes('Lightning address'))!
+      .querySelector('input') as HTMLInputElement;
+
+    const setValue = (el: HTMLInputElement, value: string) => {
+      const proto = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        'value',
+      );
+      proto?.set?.call(el, value);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    await act(async () => {
+      setValue(topicsInput, 'topic');
+      setValue(lightningInput, 'addr');
+    });
+    await Promise.resolve();
+    const publishButtonAfter = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    expect(publishButtonAfter.disabled).toBe(false);
+  });
+
+  it('posts video when publish is clicked', async () => {
+    (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
+      onProgress(1);
+      return Promise.resolve(new Blob());
+    });
+
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
+    );
+    (globalThis as any).fetch = mockFetch;
+    (globalThis as any).alert = vi.fn();
 
     const container = document.createElement('div');
     const root = createRoot(container);
@@ -30,19 +102,41 @@ describe('CreateVideoForm', () => {
       root.render(<CreateVideoForm />);
     });
 
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const topicsInput = container.querySelector(
+      'input[placeholder="Topic tags (comma separated)"]',
+    ) as HTMLInputElement;
+    const lightningInput = Array.from(container.querySelectorAll('label'))
+      .find((l) => l.textContent?.includes('Lightning address'))!
+      .querySelector('input') as HTMLInputElement;
     const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
-    expect(publishButton.disabled).toBe(true);
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
 
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['dummy'], 'video.mp4', { type: 'video/mp4' });
     await act(async () => {
-      Object.defineProperty(input, 'files', { value: [file] });
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    // Still disabled because required fields are empty
-    expect(
-      (container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement).disabled,
-    ).toBe(true);
+    const setValue = (el: HTMLInputElement, value: string) => {
+      const proto = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        'value',
+      );
+      proto?.set?.call(el, value);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    await act(async () => {
+      setValue(topicsInput, 'topic');
+      setValue(lightningInput, 'addr');
+    });
+    await Promise.resolve();
+    const publishBtn = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+
+    await act(async () => {
+      publishBtn.click();
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith('https://nostr.media/api/upload', expect.any(Object));
   });
 });
+
