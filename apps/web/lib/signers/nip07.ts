@@ -18,3 +18,10 @@ export class Nip07Signer implements Signer {
     return signed;
   }
 }
+
+export async function connectNip07() {
+  const provider = typeof window !== 'undefined' ? (window as any).nostr : undefined;
+  if (!provider) throw new Error('NIP-07 provider not found (is a Nostr extension installed?)');
+  const pubkey = await provider.getPublicKey();
+  return { method: 'nip07' as const, pubkey };
+}
