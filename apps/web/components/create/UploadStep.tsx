@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as Sentry from '@sentry/nextjs'
 import { getFFmpeg, writeInputFile } from '@/lib/ffmpegClient'
 
-export function UploadStep({ onBack }: { onBack: () => void }) {
+export function UploadStep({ onBack }: { onBack?: () => void }) {
   const ffRef = useRef<any>(null)
   const trimRef = useRef<{ start: number; end: number } | null>(null)
   const [ready, setReady] = useState(false)
@@ -117,9 +117,11 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
   return (
     <section className="rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
       <div className="flex items-center gap-2">
-        <button className="btn btn-secondary" onClick={onBack}>
-          ← Back
-        </button>
+        {onBack && (
+          <button className="btn btn-secondary" onClick={onBack}>
+            ← Back
+          </button>
+        )}
         <h2 className="text-lg font-semibold">Upload a file</h2>
       </div>
 
