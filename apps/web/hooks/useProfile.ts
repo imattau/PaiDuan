@@ -12,13 +12,14 @@ export function useProfile(pubkey?: string) {
     const sub = pool.subscribeMany(
       RELAYS,
       [{ kinds: [kinds.Metadata], authors: [pubkey], limit: 1 } as Filter],
-      {},
+      {
+        onevent: (ev) => {
+          try {
+            setMeta(JSON.parse(ev.content));
+          } catch {}
+        },
+      },
     );
-    sub.on('event', (ev) => {
-      try {
-        setMeta(JSON.parse(ev.content));
-      } catch {}
-    });
     return () => sub.close();
   }, [pubkey]);
   return meta as { name?: string; picture?: string; about?: string } | null;
