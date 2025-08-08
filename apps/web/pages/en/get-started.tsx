@@ -10,8 +10,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (hasVault(ctx.req.cookies)) {
     return { redirect: { destination: '/en/feed', permanent: false } };
   }
-  // No server-stored keys → go to Settings Keys section
-  return { redirect: { destination: '/en/settings#keys', permanent: false } };
+  // No server-stored keys → start onboarding
+  return { redirect: { destination: '/onboarding/key', permanent: false } };
 };
 
 export default function GetStarted() { return null; }

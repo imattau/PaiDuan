@@ -18,8 +18,15 @@ export default function LandingPage() {
           Built on Nostr. Own your keys, your audience, your revenue.
         </p>
         <div className="mt-8 flex justify-center gap-3">
-          <Link href="/en/get-started" className="rounded-xl px-4 py-2 font-medium bg-[var(--accent)] text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40">Get Started</Link>
-          <Link href="/en/feed" className="btn btn-secondary">Explore Feed</Link>
+          <Link
+            href="/onboarding/key"
+            className="rounded-xl px-4 py-2 font-medium bg-[var(--accent)] text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
+          >
+            Get Started
+          </Link>
+          <Link href="/en/feed" className="btn btn-secondary">
+            Explore Feed
+          </Link>
         </div>
       </div>
     </section>
