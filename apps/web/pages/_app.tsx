@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 import { NextIntlClientProvider } from 'next-intl';
-import { trackPageview, analyticsEnabled, consentGiven } from '../utils/analytics';
+import { trackPageview, consentGiven } from '../utils/analytics';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -22,11 +22,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const { hasKeys, hasProfile } = useAuth();
   const locale = (router.query.locale as string) || 'en';
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  useEffect(() => {
-    const accent = localStorage.getItem('accent') || 'violet';
-    document.documentElement.setAttribute('data-accent', accent);
-  }, []);
-
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_SENTRY_DSN && consentGiven()) {
       Sentry.init({ dsn: process.env.NEXT_PUBLIC_SENTRY_DSN });
