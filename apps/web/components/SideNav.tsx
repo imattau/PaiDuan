@@ -14,7 +14,7 @@ export default function SideNav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="hidden lg:flex lg:flex-col lg:w-48 lg:fixed lg:left-0 lg:inset-y-0 bg-brand-surface/95 backdrop-blur z-40 pl-4 pt-6"
+      className="hidden lg:flex lg:flex-col lg:w-48 lg:fixed lg:left-0 lg:inset-y-0 bg-card/95 backdrop-blur z-40 pl-4 pt-6"
     >
       <h1 className="mb-8 text-2xl font-bold text-white">PaiDuan</h1>
       <ul className="space-y-2">
