@@ -1,6 +1,6 @@
 import {
   SimplePool,
-  Relay,
+  relayInit,
   generateSecretKey,
   getPublicKey,
   nip04,
@@ -72,7 +72,7 @@ export class Nip46Signer implements Signer {
   private async rpc(method: string, params: any[]): Promise<any> {
     const conns = await Promise.all(
       this.session.relays.map(async (url) => {
-        const r = new Relay(url);
+        const r = relayInit(url);
         try {
           await r.connect();
         } catch {
