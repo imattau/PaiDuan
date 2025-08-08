@@ -45,9 +45,12 @@ export default function Settings() {
                   <KeysCard />
                   <AccountCard />
                   <LightningCard />
-                  <NetworkCard />
                 </div>
               ),
+            },
+            {
+              title: 'Network',
+              content: <NetworkCard />,
             },
             {
               title: 'Appearance & Language',
