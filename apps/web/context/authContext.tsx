@@ -15,7 +15,7 @@ type UnlockCtx = {
   isUnlocked: boolean;
   pubkey: string | null;
   privkeyHex?: string | null;
-  unlock: (pass: string) => Promise<void>;
+  unlock: (pass: string) => Promise<string | null>;
   lock: () => void;
   setAuth: (a: AuthState | null) => void;
   bump: () => void;
@@ -44,11 +44,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!auth) throw new Error('No account');
     if (auth.method === 'nip07' || auth.method === 'public') {
       setPrivkeyHex(null);
-      return;
+      return null;
     }
     const hex = await decryptPrivkeyHex(auth.encPriv, pass);
     setPrivkeyHex(hex);
     startAutoLock();
+    return hex;
   }
 
   function lock() {
