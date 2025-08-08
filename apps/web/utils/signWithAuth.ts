@@ -1,4 +1,5 @@
-import { signEvent as localSign } from 'nostr-tools'
+import { finalizeEvent } from 'nostr-tools'
+import { hexToBytes } from '@noble/hashes/utils'
 import { useRemoteSigner } from '../hooks/useRemoteSigner'
 
 export async function signWithAuth(
@@ -17,7 +18,7 @@ export async function signWithAuth(
     return signed
   }
   if (authCtx?.privkeyHex) {
-    const signed = localSign(event, authCtx.privkeyHex)
+    const signed = finalizeEvent(event, hexToBytes(authCtx.privkeyHex))
     authCtx.bump?.()
     return signed
   }
