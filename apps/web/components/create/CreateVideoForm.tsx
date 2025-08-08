@@ -16,7 +16,6 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
   const [outBlob, setOutBlob] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
 
   const [caption, setCaption] = useState('');
   const [topics, setTopics] = useState('');
@@ -44,26 +43,21 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
     if (!lightningAddress && profile?.lud16) setLightningAddress(profile.lud16);
   }, [profile, lightningAddress]);
 
-  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
     setFile(f);
     setOutBlob(null);
     setPreview(f ? URL.createObjectURL(f) : null);
-  }
-
-  async function convert() {
-    if (!file) return;
-    setProcessing(true);
-    setErr(null);
-    try {
-      const blob = await trimVideoWebCodecs(file, 0);
-      setOutBlob(blob);
-      setPreview(URL.createObjectURL(blob));
-    } catch (e) {
-      console.error(e);
-      setErr('Conversion failed.');
-    } finally {
-      setProcessing(false);
+    if (f) {
+      setErr(null);
+      try {
+        const blob = await trimVideoWebCodecs(f, 0);
+        setOutBlob(blob);
+        setPreview(URL.createObjectURL(blob));
+      } catch (e) {
+        console.error(e);
+        setErr('Conversion failed.');
+      }
     }
   }
 
@@ -227,13 +221,6 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
           ) : (
             <PlaceholderVideo className="rounded-xl w-full aspect-[9/16] object-cover bg-black" />
           )}
-          <button
-            className="btn btn-primary disabled:opacity-60"
-            disabled={!file || processing}
-            onClick={convert}
-          >
-            {processing ? 'Processing…' : 'Process Video'}
-          </button>
           {err && <p className="text-sm text-red-500">{err}</p>}
         </div>
         <div className="space-y-4">{form}</div>
