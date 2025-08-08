@@ -104,7 +104,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <h1 className="text-2xl mb-4">Set up your profile</h1>
       <div className="w-full max-w-md space-y-3 flex flex-col items-center text-center">
         <input
