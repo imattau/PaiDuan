@@ -5,5 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js"
+  },
+  "dependencies": {
+    "gstreamer-superficial": "^1.7.4"
   }
 }

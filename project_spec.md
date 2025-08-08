@@ -47,7 +47,7 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, a
 | 2   | Dynamic components | Load relevant step component depending on option (e.g., `RecordStep.tsx`, `UploadStep.tsx`).                                                                                       |
 | 3   | Recording          | Implement `getUserMedia()` recording via `MediaRecorder` API; ≤3 minutes; store Blob in state.                                                                                     |
 | 4   | Upload             | Existing file input flow; enforce ≤3 minutes; immediately transcode if not WebM.                                                                                                   |
-| 5   | Transcoding        | Use `@ffmpeg/ffmpeg` WASM in browser; default to WebM VP9, 9:16 crop; fix `createFFmpeg` import (`import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'`) and lazy load FFmpeg. |
+| 5   | Transcoding        | Use the WebCodecs API with a polyfill; default to WebM VP9, 9:16 crop. |
 | 6   | Trim tool          | Ensure trim UI loads only after video metadata loaded; fix “pressing Next throws trim error” by validating clip bounds.                                                            |
 | 7   | Poster capture     | Frame capture via `<canvas>`; store as JPEG/WebP; attach to upload payload.                                                                                                        |
 | 8   | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; on success, publish NIP-23 event.                                                                                  |
