@@ -29,7 +29,7 @@ describe('event API', () => {
     const req = createReq({ event: 'test' }, { 'user-agent': 'ua', 'x-forwarded-for': 'ip' });
     const res = createRes();
     await handler(req, res);
-    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(res.statusCode).toBe(204);
   });
 });
