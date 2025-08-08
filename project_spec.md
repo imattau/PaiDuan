@@ -69,3 +69,13 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, a
 - Works offline by caching pages, avatars and the last 20 videos watched.
 - Zap / comment buttons disable while offline.
 - Clear cached videos via **Settings → Storage**.
+
+## UI/UX Improvement Tasks for Codex
+
+- **Typography:** Adopt a consistent font stack with clearly defined heading, body, and caption sizes.
+- **Colour & Accessibility:** Ensure colours meet WCAG AA contrast; provide light and dark palettes.
+- **Layout & Spacing:** Follow an 8px spacing scale and maintain responsive grid layouts.
+- **Component Styling:** Buttons, inputs and cards share consistent radius, shadows and hover/active states.
+- **Comments:** Comments display avatar, name, timestamp, and support nested replies with clear indentation.
+- **Profile Area:** Profile pages show banner, avatar, bio and stats, with edit controls for the owner.
+
