@@ -5,7 +5,7 @@ import * as nip19 from 'nostr-tools/nip19';
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
-import { encryptPrivkeyHex } from '@/utils/cryptoVault';
+import { cryptoVault } from '@/utils/cryptoVault';
 import { saveKey } from '@/utils/keyStorage';
 import { promptPassphrase } from '@/utils/promptPassphrase';
 import { Button } from '@paiduan/ui';
@@ -29,7 +29,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
     const pass = await promptPassphrase('Set a passphrase to encrypt your key');
     if (!pass) return;
     try {
-      const encPriv = await encryptPrivkeyHex(priv, pass);
+      const encPriv = await cryptoVault.encryptPrivkeyHex(priv, pass);
       const pubkey = getPublicKey(priv);
       saveKey({ method, pubkey, encPriv });
       signInWithLocal(priv);
