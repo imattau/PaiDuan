@@ -15,6 +15,10 @@ Visit <http://localhost:3000/feed> for the swipeable video feed demo.
 
 Client-side video trimming now relies on the [WebCodecs API](https://developer.mozilla.org/docs/Web/API/WebCodecs_API) with a lightweight polyfill for browsers lacking native support, eliminating the previous `ffmpeg.wasm` dependency. Toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
 
+## Relay configuration
+
+Override the default Nostr relays with the `NEXT_PUBLIC_RELAYS` environment variable or by editing `apps/web/relays.json`. The environment variable accepts a comma‑separated list or a JSON array. If neither is provided, the app falls back to `wss://relay.damus.io`, `wss://nos.lol` and `wss://relay.snort.social`.
+
 ## PWA features
 
 The web client ships as a Progressive Web App:
