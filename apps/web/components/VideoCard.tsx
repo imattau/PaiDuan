@@ -16,6 +16,7 @@ import useAdaptiveSource from '../hooks/useAdaptiveSource';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
+import { useFeedSelection } from '@/store/feedSelection';
 
 const MoreVertical = dynamic(
   () => import('lucide-react').then((mod) => mod.MoreVertical),
@@ -66,6 +67,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [reportOpen, setReportOpen] = useState(false);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
+  const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
 
   const handleShare = () => {
     const url = `${window.location.origin}/v/${eventId}`;
@@ -93,8 +95,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   }, [pubkey]);
 
   useEffect(() => {
-    if (inView) setCurrent({ eventId, pubkey, caption, posterUrl });
-  }, [inView, setCurrent, eventId, pubkey, caption, posterUrl]);
+    if (inView) {
+      setCurrent({ eventId, pubkey, caption, posterUrl });
+      setSelectedVideo(eventId, pubkey);
+    }
+  }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
 
 
   const bind = useGesture(
@@ -159,6 +164,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       transition={{ duration: 0.25 }}
       className="relative h-screen w-screen overflow-hidden rounded-2xl bg-brand-surface text-white shadow-card"
       onDoubleClick={onLike}
+      onClick={() => setSelectedVideo(eventId, pubkey)}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}

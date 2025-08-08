@@ -1,16 +1,17 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import Thread from '@/components/comments/Thread';
+import { useFeedSelection } from '@/store/feedSelection';
 
 export default function RightPanel({
   author,
   onFilterByAuthor,
-  thread,
 }: {
   author?: { avatar: string; name: string; username: string; pubkey: string; followers: number };
   onFilterByAuthor: (pubkey: string) => void;
-  thread: React.ReactNode; // threaded comments component
 }) {
+  const { selectedVideoId, selectedVideoAuthor } = useFeedSelection();
   return (
     <div className="space-y-6">
       {author && (
@@ -22,8 +23,12 @@ export default function RightPanel({
               <div className="text-sm text-muted-foreground">@{author.username}</div>
               <div className="text-xs text-muted-foreground mt-1">{author.followers.toLocaleString()} followers</div>
               <div className="mt-3 flex gap-2">
-                <Link href={`/p/${author.pubkey}`} className="btn btn-secondary">View profile</Link>
-                <button className="btn btn-primary" onClick={() => onFilterByAuthor(author.pubkey)}>Filter by author</button>
+                <Link href={`/p/${author.pubkey}`} className="btn btn-secondary">
+                  View profile
+                </Link>
+                <button className="btn btn-primary" onClick={() => onFilterByAuthor(author.pubkey)}>
+                  Filter by author
+                </button>
               </div>
             </div>
           </div>
@@ -31,7 +36,7 @@ export default function RightPanel({
       )}
 
       <div className="bg-card border border-token rounded-2xl p-0">
-        {thread}
+        <Thread rootId={selectedVideoId} authorPubkey={selectedVideoAuthor} />
       </div>
     </div>
   );

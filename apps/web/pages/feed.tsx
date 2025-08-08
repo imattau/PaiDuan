@@ -1,7 +1,6 @@
 import AppShell from '@/components/layout/AppShell';
 import LeftNav from '@/components/layout/LeftNav';
 import RightPanel from '@/components/feed/RightPanel';
-import Thread from '@/components/comments/Thread';
 import { useFeedSelection } from '@/store/feedSelection';
 
 export default function FeedPage() {
@@ -29,7 +28,7 @@ export default function FeedPage() {
           )}
         </div>
       }
-      right={<RightPanel author={author} onFilterByAuthor={filterByAuthor} thread={<Thread />} />}
+      right={<RightPanel author={author} onFilterByAuthor={filterByAuthor} />}
     />
   );
 }
