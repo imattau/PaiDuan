@@ -24,6 +24,12 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow the root path to render without locale redirection so that
+  // unauthenticated users can see the landing page hero.
+  if (pathname === '/') {
+    return NextResponse.next();
+  }
+
   const hasLocale = locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
   );

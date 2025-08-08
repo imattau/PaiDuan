@@ -15,10 +15,12 @@ import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 import { NextIntlClientProvider } from 'next-intl';
 import { trackPageview, analyticsEnabled, consentGiven } from '../utils/analytics';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   useOffline();
   const router = useRouter();
+  const { hasKeys, hasProfile } = useAuth();
   const locale = (router.query.locale as string) || 'en';
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   useEffect(() => {
@@ -31,6 +33,18 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       Sentry.init({ dsn: process.env.NEXT_PUBLIC_SENTRY_DSN });
     }
   }, []);
+
+  // Redirect users based on authentication state when visiting the landing page.
+  useEffect(() => {
+    const landingPaths = ['/', '/[locale]'];
+    if (landingPaths.includes(router.pathname) && hasKeys) {
+      if (!hasProfile) {
+        router.replace('/onboarding/profile');
+      } else {
+        router.replace('/en/feed');
+      }
+    }
+  }, [router, hasKeys, hasProfile]);
 
   useEffect(() => {
     const handleRoute = (url: string) => trackPageview(url);

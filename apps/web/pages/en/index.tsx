@@ -1,10 +1,8 @@
 import Logo from '@/components/branding/Logo'
 import HeroArt from '@/components/branding/HeroArt'
 import Link from 'next/link'
-import { useVaultGate } from '@/hooks/useVaultGate'
 
 export default function LandingPage() {
-  useVaultGate();
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
