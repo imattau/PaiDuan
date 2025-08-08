@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { cardStyle } from '@/components/ui/Card';
 
 export default function MiniProfileCard() {
   const { state } = useAuth();
@@ -8,7 +9,7 @@ export default function MiniProfileCard() {
   const name = profile?.name || 'user';
 
   return (
-    <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/60 p-3 text-center">
+    <div className={`${cardStyle} p-3 text-center`}>
       <div
         className="mx-auto mb-2 rounded-lg p-[2px]"
         style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}

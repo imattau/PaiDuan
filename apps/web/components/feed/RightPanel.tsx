@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import Thread from '@/components/comments/Thread';
 import { useFeedSelection } from '@/store/feedSelection';
+import { cardStyle } from '@/components/ui/Card';
 
 export default function RightPanel({
   author,
@@ -15,7 +16,7 @@ export default function RightPanel({
   return (
     <div className="p-[1.2rem] space-y-4">
       {author && (
-        <div className="bg-card border border-token rounded-2xl p-4">
+        <div className={`${cardStyle} p-4`}>
           <div className="flex gap-3">
             <img src={author.avatar} className="w-12 h-12 rounded-full object-cover" alt="" />
             <div>
@@ -37,7 +38,7 @@ export default function RightPanel({
         </div>
       )}
 
-      <div className="bg-card border border-token rounded-2xl p-0">
+      <div className={`${cardStyle} p-0`}>
         <Thread rootId={selectedVideoId} authorPubkey={selectedVideoAuthor} />
       </div>
     </div>
