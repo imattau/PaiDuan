@@ -1,18 +1,17 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Card } from '../ui/Card';
+import { Card } from '@/components/ui/Card';
 
 export function AccountCard() {
   const { signOut } = useAuth();
+  const handleLogout = () => {
+    signOut();
+    window.location.href = '/';
+  };
+
   return (
     <Card title="Account">
-      <button
-        onClick={() => {
-          signOut();
-          window.location.href = '/';
-        }}
-        className="btn btn-secondary"
-      >
+      <button onClick={handleLogout} className="btn btn-secondary">
         🔓 Logout / Reset Identity
       </button>
     </Card>
