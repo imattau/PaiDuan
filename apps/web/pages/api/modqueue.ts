@@ -1,41 +1,23 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs';
-import path from 'path';
+import { ModQueueService, Report } from '../../lib/modqueue-service';
 
-const DATA_PATH = path.join(process.cwd(), 'apps', 'web', 'data', 'modqueue.json');
+const service = new ModQueueService();
 
-type Report = {
-  targetId: string;
-  targetKind: 'video' | 'comment';
-  reason: string;
-  reporterPubKey: string;
-  ts: number;
-};
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  let data: Report[] = [];
-  try {
-    const raw = fs.readFileSync(DATA_PATH, 'utf8');
-    data = JSON.parse(raw);
-  } catch {
-    /* ignore */
-  }
-
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const report = req.body as Report;
-    data.push(report);
-    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+    await service.add(report);
     res.status(200).json({ ok: true });
     return;
   }
 
   if (req.method === 'DELETE') {
     const { targetId } = req.body as { targetId: string };
-    data = data.filter((r) => r.targetId !== targetId);
-    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+    await service.remove(targetId);
     res.status(200).json({ ok: true });
     return;
   }
 
+  const data = await service.read();
   res.status(200).json(data);
 }
