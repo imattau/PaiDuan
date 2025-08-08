@@ -3,29 +3,39 @@ import { useEffect, useState } from 'react';
 import { trimVideoWebCodecs } from '@/utils/trimVideoWebCodecs';
 import { MetadataStep } from './MetadataStep';
 
-export function UploadStep({ onBack, onCancel }: { onBack: () => void; onCancel: () => void }) {
+interface UploadStepProps {
+  onBack: () => void;
+  onCancel: () => void;
+  /**
+   * Used by tests to simulate large screens without relying on matchMedia.
+   */
+  forceIsLarge?: boolean;
+}
+
+export function UploadStep({ onBack, onCancel, forceIsLarge }: UploadStepProps) {
   const [file, setFile] = useState<File | null>(null);
   const [outBlob, setOutBlob] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [step, setStep] = useState<'process' | 'metadata'>('process');
-  const [isLarge, setIsLarge] = useState(false);
+  const [showMetadata, setShowMetadata] = useState(false);
+  const [isLarge, setIsLarge] = useState(forceIsLarge ?? false);
 
   useEffect(() => {
+    if (forceIsLarge !== undefined) return;
     const mq = window.matchMedia('(min-width: 1024px)');
     const listener = (e: MediaQueryListEvent) => setIsLarge(e.matches);
     setIsLarge(mq.matches);
     mq.addEventListener('change', listener);
     return () => mq.removeEventListener('change', listener);
-  }, []);
+  }, [forceIsLarge]);
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
     setFile(f);
     setOutBlob(null);
     setPreview(f ? URL.createObjectURL(f) : null);
-    setStep('process');
+    setShowMetadata(false);
   }
 
   async function convert() {
@@ -36,7 +46,7 @@ export function UploadStep({ onBack, onCancel }: { onBack: () => void; onCancel:
       const blob = await trimVideoWebCodecs(file, 0);
       setOutBlob(blob);
       setPreview(URL.createObjectURL(blob));
-      if (!isLarge) setStep('metadata');
+      setShowMetadata(true);
     } catch (e) {
       console.error(e);
       setErr('Conversion failed.');
@@ -50,18 +60,18 @@ export function UploadStep({ onBack, onCancel }: { onBack: () => void; onCancel:
     onCancel();
   }
 
-  if (!isLarge && step === 'metadata' && outBlob) {
+  if (!isLarge && showMetadata && outBlob) {
     return (
       <MetadataStep
         blob={outBlob!}
         preview={preview ?? undefined}
-        onBack={() => setStep('process')}
+        onBack={() => setShowMetadata(false)}
         onCancel={onCancel}
       />
     );
   }
 
-  const showMetadata = isLarge && outBlob;
+  const showMetadataInline = isLarge && showMetadata && outBlob;
   const buttonLabel = busy
     ? 'Processing…'
     : isLarge
@@ -74,7 +84,7 @@ export function UploadStep({ onBack, onCancel }: { onBack: () => void; onCancel:
 
   return (
     <section className="rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
-      <div className={`space-y-4 ${isLarge && !showMetadata ? 'lg:col-span-2' : ''}`}>
+      <div className={`space-y-4 ${isLarge && !showMetadataInline ? 'lg:col-span-2' : ''}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button className="btn btn-secondary" onClick={onBack}>
@@ -118,7 +128,7 @@ export function UploadStep({ onBack, onCancel }: { onBack: () => void; onCancel:
           </div>
         )}
       </div>
-      {showMetadata && (
+      {showMetadataInline && (
         <MetadataStep blob={outBlob!} onBack={() => {}} onCancel={onCancel} inline />
       )}
     </section>
