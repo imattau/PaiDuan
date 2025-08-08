@@ -44,9 +44,12 @@ export default function Settings() {
                 <div className="space-y-6">
                   <KeysCard />
                   <AccountCard />
-                  <LightningCard />
                 </div>
               ),
+            },
+            {
+              title: 'Wallet Management',
+              content: <LightningCard />,
             },
             {
               title: 'Network',
