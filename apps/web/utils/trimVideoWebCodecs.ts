@@ -5,6 +5,7 @@ export async function trimVideoWebCodecs(
   blob: Blob,
   start: number,
   end?: number,
+  onProgress?: (progress: number) => void,
 ): Promise<Blob> {
   if (typeof window === 'undefined') {
     throw new Error('trimVideoWebCodecs can only run in the browser')
@@ -57,6 +58,8 @@ export async function trimVideoWebCodecs(
   })
 
   let current = start
+  const total = endTime - start
+  onProgress?.(0)
   while (current < endTime) {
     video.currentTime = current
     await new Promise((r) => video.addEventListener('seeked', r, { once: true }))
@@ -67,9 +70,11 @@ export async function trimVideoWebCodecs(
     encoder.encode(frame)
     frame.close()
     current += frameInterval
+    onProgress?.(Math.min((current - start) / total, 1))
   }
 
   await encoder.flush()
+  onProgress?.(1)
   URL.revokeObjectURL(url)
   return new Blob(chunks, { type: 'video/webm' })
 }
