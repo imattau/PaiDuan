@@ -15,11 +15,12 @@ module.exports = {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: 'hsl(var(--card))',
+        surface: 'hsl(var(--surface))',
+        panel: 'hsl(var(--panel))',
         accent: 'hsl(var(--accent))',
         border: 'hsl(var(--border))',
         brand: {
           DEFAULT: '#9d4edd',
-          panel: '#202125',
         },
       },
       fontFamily: {

@@ -15,7 +15,7 @@ export default function NavBar() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-card/95 backdrop-blur shadow-card"
+      className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-panel/95 backdrop-blur shadow-card"
     >
       {links.map(({ href, icon, label }) => {
         const active = asPath.startsWith(href);

@@ -8,7 +8,7 @@ export default function AppShell({
 }: { left: React.ReactNode; center: React.ReactNode; right: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-[1400px] grid grid-cols-1 lg:grid-cols-[300px_1fr_400px] gap-0">
+    <div className="mx-auto w-full max-w-[1400px] bg-surface grid grid-cols-1 lg:grid-cols-[300px_1fr_400px] gap-0">
         {/* Left column: menu/search/profile summary (sticky on desktop) */}
         <aside className="hidden lg:block border-r divider sticky top-0 h-screen overflow-y-auto">
           <div className="p-4">{left}</div>
