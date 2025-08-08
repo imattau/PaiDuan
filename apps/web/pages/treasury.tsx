@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Event as NostrEvent } from 'nostr-tools/pure';
+import type { Filter } from 'nostr-tools/filter';
 
 function relayList(): string[] {
   if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];

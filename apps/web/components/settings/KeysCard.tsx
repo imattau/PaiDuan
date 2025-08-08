@@ -1,4 +1,4 @@
-import { nip19 } from 'nostr-tools';
+import * as nip19 from 'nostr-tools/nip19';
 import { hexToBytes } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '../ui/Card';

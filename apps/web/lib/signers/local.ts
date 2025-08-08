@@ -1,5 +1,6 @@
 import { bytesToHex } from '@noble/hashes/utils';
-import { finalizeEvent, generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
+import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure';
+import * as nip19 from 'nostr-tools/nip19';
 import type { Signer } from './types';
 
 const LS_KEY = 'pd.auth.v1';

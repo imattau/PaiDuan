@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { nip19, generateSecretKey, getPublicKey } from 'nostr-tools';
+import * as nip19 from 'nostr-tools/nip19';
+import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { encryptPrivkeyHex } from '@/utils/cryptoVault';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SimplePool } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
 

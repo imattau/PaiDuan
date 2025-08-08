@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { kinds, type Filter } from 'nostr-tools';
+import * as kinds from 'nostr-tools/kinds';
+import type { Filter } from 'nostr-tools/filter';
 import { getPool, RELAYS } from '@/lib/nostr';
 
 export function useProfile(pubkey?: string) {

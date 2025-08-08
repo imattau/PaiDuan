@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { SimplePool, Event as NostrEvent } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Event as NostrEvent } from 'nostr-tools/pure';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import { X, MoreVertical } from 'lucide-react';
 import { toast } from 'react-hot-toast';

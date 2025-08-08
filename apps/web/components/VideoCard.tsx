@@ -8,7 +8,7 @@ import CommentDrawer from './CommentDrawer';
 import ReportModal from './ReportModal';
 import Link from 'next/link';
 import Image from 'next/image';
-import { SimplePool } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
 import useOffline from '../utils/useOffline';

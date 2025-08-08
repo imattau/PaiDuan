@@ -1,7 +1,9 @@
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools/pool';
+import type { Event as NostrEvent } from 'nostr-tools/pure';
+import type { Filter } from 'nostr-tools/filter';
 import { toast } from 'react-hot-toast';
 import VideoCard, { VideoCardProps } from '../../../components/VideoCard';
 import useFollowing, { getFollowers } from '../../../hooks/useFollowing';

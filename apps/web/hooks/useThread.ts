@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Event, kinds, type Filter, finalizeEvent } from 'nostr-tools';
+import * as kinds from 'nostr-tools/kinds';
+import { finalizeEvent, type Event } from 'nostr-tools/pure';
+import type { Filter } from 'nostr-tools/filter';
 import { getPool, RELAYS, getMyPrivkey, getMyPubkey } from '@/lib/nostr';
 
 type Note = {
@@ -42,7 +44,7 @@ export function useThread(rootEventId?: string) {
     setNotes([]);
 
     // Filters: all kind-1 notes that reference rootEventId in 'e' tag
-    const filters: Filter[] = [{ kinds: [kinds.Text], '#e': [rootEventId], limit: 200 }];
+    const filters: Filter[] = [{ kinds: [kinds.ShortTextNote], '#e': [rootEventId], limit: 200 }];
 
     const sub = pool.subscribeMany(RELAYS, filters, {
       onevent: () => {},
@@ -77,7 +79,7 @@ export function useThread(rootEventId?: string) {
     if (parentId && parentId !== rootEventId) tags.push(['e', parentId]);
 
     const draft = {
-      kind: kinds.Text,
+      kind: kinds.ShortTextNote,
       created_at: now,
       tags,
       content,
