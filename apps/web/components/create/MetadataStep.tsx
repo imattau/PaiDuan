@@ -1,5 +1,8 @@
 'use client';
 import { useState } from 'react';
+import { SimplePool } from 'nostr-tools/pool';
+import { useAuth } from '@/hooks/useAuth';
+import { getRelays } from '@/lib/nostr';
 
 export interface MetadataStepProps {
   blob: Blob;
@@ -10,28 +13,69 @@ export interface MetadataStepProps {
 
 export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepProps) {
   const [caption, setCaption] = useState('');
-  const [tags, setTags] = useState('');
+  const [topics, setTopics] = useState('');
   const [copyright, setCopyright] = useState('');
   const [nsfw, setNsfw] = useState(false);
+  const [zap, setZap] = useState('');
   const [busy, setBusy] = useState(false);
 
-  async function upload() {
-    setBusy(true);
-    const form = new FormData();
-    form.append('file', blob, 'video.webm');
-    form.append('caption', caption);
-    form.append('tags', tags);
-    form.append('copyright', copyright);
-    form.append('nsfw', nsfw ? 'true' : 'false');
-    // This is a stub for the real upload request
-    alert(
-      'Ready to upload with metadata (stub): ' + JSON.stringify({ caption, tags, copyright, nsfw }),
-    );
-    setBusy(false);
+  const { state } = useAuth();
+
+  async function postVideo() {
+    try {
+      setBusy(true);
+      const form = new FormData();
+      form.append('file', blob, 'video.webm');
+      form.append('caption', caption);
+      form.append('topics', topics);
+      form.append('copyright', copyright);
+      form.append('nsfw', nsfw ? 'true' : 'false');
+      if (zap) form.append('zap', zap);
+
+      const res = await fetch('https://nostr.media/api/upload', {
+        method: 'POST',
+        body: form,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const { video, poster, manifest } = await res.json();
+
+      const tags: string[][] = [
+        ['v', video],
+        ['image', poster],
+        ['vman', manifest],
+      ];
+      topics
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .forEach((t) => tags.push(['t', t]));
+      if (zap) tags.push(['zap', zap]);
+      if (nsfw) tags.push(['nsfw', 'true']);
+      if (copyright) tags.push(['copyright', copyright]);
+
+      if (state.status !== 'ready') throw new Error('signer required');
+      const event: any = {
+        kind: 30023,
+        created_at: Math.floor(Date.now() / 1000),
+        content: caption,
+        tags,
+        pubkey: state.pubkey,
+      };
+
+      const signed = await state.signer.signEvent(event);
+      const pool = new SimplePool();
+      pool.publish(getRelays(), signed);
+      alert('Posted to Nostr');
+    } catch (e: any) {
+      alert(e.message || 'Failed to post');
+    } finally {
+      setBusy(false);
+    }
   }
 
   function handleCancel() {
-    if ((caption || tags || copyright || nsfw) && !confirm('Discard your progress?')) return;
+    if ((caption || topics || copyright || nsfw || zap) && !confirm('Discard your progress?'))
+      return;
     onCancel();
   }
 
@@ -66,9 +110,16 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
           />
           <input
             type="text"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="Tags (comma separated)"
+            value={topics}
+            onChange={(e) => setTopics(e.target.value)}
+            placeholder="Topic tags (comma separated)"
+            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+          />
+          <input
+            type="text"
+            value={zap}
+            onChange={(e) => setZap(e.target.value)}
+            placeholder="Lightning address"
             className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
           />
           <input
@@ -82,8 +133,8 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
             <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
             <span className="text-sm">NSFW</span>
           </label>
-          <button className="btn btn-primary disabled:opacity-60" disabled={busy} onClick={upload}>
-            {busy ? 'Uploading…' : 'Upload'}
+          <button className="btn btn-primary disabled:opacity-60" disabled={busy} onClick={postVideo}>
+            {busy ? 'Posting…' : 'Post Video'}
           </button>
         </div>
       </div>

@@ -50,7 +50,7 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, a
 | 5   | Transcoding        | Use the WebCodecs API with a polyfill; default to WebM VP9, 9:16 crop. |
 | 6   | Trim tool          | Ensure trim UI loads only after video metadata loaded; fix “pressing Next throws trim error” by validating clip bounds.                                                            |
 | 7   | Poster capture     | Frame capture via `<canvas>`; store as JPEG/WebP; attach to upload payload.                                                                                                        |
-| 8   | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; on success, publish NIP-23 event.                                                                                  |
+| 8   | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; capture `video`, `poster` & `manifest` URLs and publish kind‑30023 event with `v`, `image`, `vman`, optional `zap` and one `t` tag per topic.                                                                                  |
 | 9   | Error handling     | Toasts for FFmpeg load failure, file type issues, upload errors.                                                                                                                   |
 | 10  | Responsive design  | Wizard, video preview, and controls adapt cleanly to mobile/desktop.                                                                                                               |
 
