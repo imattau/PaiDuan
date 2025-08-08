@@ -1,61 +1,101 @@
-import { useEffect, useRef, useState } from 'react';
-import { SimplePool, EventTemplate } from 'nostr-tools';
+import { useCallback, useEffect, useState } from 'react';
+import Cropper from 'react-easy-crop';
+import type { Area } from 'react-easy-crop';
+import { EventTemplate } from 'nostr-tools';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { getPool, RELAYS } from '@/lib/nostr';
 
 export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   const { state } = useAuth();
+  const meta = useProfile(state.status === 'ready' ? state.pubkey : undefined);
   const [name, setName] = useState('');
   const [about, setAbout] = useState('');
-  const [picture, setPicture] = useState('');
+  const [picture, setPicture] = useState<string>('');
+  const [rawImage, setRawImage] = useState<string>('');
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedArea, setCroppedArea] = useState<Area | null>(null);
   const [loading, setLoading] = useState(false);
-  const poolRef = useRef<SimplePool>();
 
   useEffect(() => {
-    if (state.status !== 'ready') return;
-    const pool = (poolRef.current ||= new SimplePool());
-    const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
-    const sub = pool.subscribeMany(relays, [{ kinds: [0], authors: [state.pubkey], limit: 1 }], {
-      onevent(ev) {
-        try {
-          const c = JSON.parse(ev.content);
-          setName(c.name || '');
-          setAbout(c.about || '');
-          setPicture(c.picture || '');
-        } catch {}
-      }
-    });
-    return () => sub.close();
-  }, [state]);
+    if (!meta) return;
+    if (!name) setName(meta.name || '');
+    if (!about) setAbout(meta.about || '');
+    if (!picture) setPicture(meta.picture || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meta]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setPicture(reader.result as string);
+    reader.onload = () => setRawImage(reader.result as string);
     reader.readAsDataURL(file);
   }
 
-  async function saveProfile() {
-    if (state.status !== 'ready') return;
-    const content = JSON.stringify({ name, about, picture });
+  const onCropComplete = useCallback((_area: Area, cropped: Area) => {
+    setCroppedArea(cropped);
+  }, []);
+
+  function createImage(url: string) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(err);
+      img.src = url;
+    });
+  }
+
+  const finishCrop = useCallback(async () => {
+    if (!rawImage || !croppedArea) return;
+    const image = await createImage(rawImage);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const size = Math.min(croppedArea.width, croppedArea.height);
+    canvas.width = size;
+    canvas.height = size;
+    ctx.drawImage(
+      image,
+      croppedArea.x,
+      croppedArea.y,
+      size,
+      size,
+      0,
+      0,
+      size,
+      size
+    );
+    const dataUrl = canvas.toDataURL('image/png');
+    setPicture(dataUrl);
+    setRawImage('');
+  }, [rawImage, croppedArea]);
+
+  async function setMetadata(data: { name?: string; about?: string; picture?: string }) {
+    if (state.status !== 'ready') throw new Error('Not signed in');
+    const content = JSON.stringify(data);
     const tmpl: EventTemplate = {
       kind: 0,
       created_at: Math.floor(Date.now() / 1000),
       tags: [],
       content
     };
-    let signed;
+    const signed = await state.signer.signEvent({ ...tmpl });
+    const pool = getPool();
+    await pool.publish(RELAYS, signed as any);
+  }
+
+  async function saveProfile() {
     try {
-      signed = await state.signer.signEvent({ ...tmpl });
+      setLoading(true);
+      await setMetadata({ name, about, picture });
+      setLoading(false);
+      onComplete();
     } catch (e: any) {
-      alert(e.message || 'No signer available');
-      return;
+      alert(e.message || 'Failed to save');
+      setLoading(false);
     }
-    const pool = (poolRef.current ||= new SimplePool());
-    setLoading(true);
-    await pool.publish(['wss://relay.damus.io', 'wss://nos.lol'], signed as any);
-    setLoading(false);
-    onComplete();
   }
 
   return (
@@ -75,7 +115,37 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
           className="w-full rounded border p-2 text-black"
         />
         <input type="file" accept="image/*" onChange={handleFile} />
-        {picture && (
+        {rawImage && (
+          <div className="relative h-64 w-64">
+            <Cropper
+              image={rawImage}
+              crop={crop}
+              zoom={zoom}
+              cropShape="round"
+              aspect={1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              showGrid={false}
+            />
+          </div>
+        )}
+        {rawImage && (
+          <div className="flex gap-2">
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(e) => setZoom(parseFloat(e.target.value))}
+            />
+            <button className="btn-secondary" onClick={finishCrop}>
+              Done
+            </button>
+          </div>
+        )}
+        {!rawImage && picture && (
           <img src={picture} alt="avatar" className="h-24 w-24 rounded-full object-cover" />
         )}
         <button
