@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { getFFmpeg, writeInputFile } from '@/lib/ffmpegClient'
 
 export function UploadStep({ onBack }: { onBack: () => void }) {
   const ffRef = useRef<any>(null)
-  const fetchRef = useRef<any>(null)
   const trimRef = useRef<{ start: number; end: number } | null>(null)
   const [ready, setReady] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -17,18 +17,12 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
     let cancelled = false
     ;(async () => {
       try {
-        const { createFFmpeg, fetchFile } = await import('@ffmpeg/ffmpeg')
-        const ff = createFFmpeg({
-          log: true,
-          corePath: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
-        })
+        const ff = await getFFmpeg()
         ff.setProgress(({ ratio }: any) =>
           setProgress(Math.max(0, Math.min(1, ratio || 0))),
         )
-        await ff.load()
         if (cancelled) return
         ffRef.current = ff
-        fetchRef.current = fetchFile
         setReady(true)
       } catch (e) {
         console.error(e)
@@ -48,7 +42,7 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
   }
 
   async function convert() {
-    if (!file || !ffRef.current || !fetchRef.current) return
+    if (!file || !ffRef.current) return
     if (file.size > 50 * 1024 * 1024) {
       setErr('Max file size is 50MB')
       return
@@ -64,8 +58,7 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
     setErr(null)
     try {
       const ff = ffRef.current
-      const fetchFile = fetchRef.current
-      ff.FS('writeFile', 'in', await fetchFile(file))
+      await writeInputFile(ff, file, 'input')
 
       const startSec = (trimRef.current?.start ?? 0) / 1000
       const durationSec =
@@ -76,7 +69,7 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
       const args = [
         ...(startSec > 0 ? ['-ss', `${startSec}`] : []),
         '-i',
-        'in',
+        'input',
         ...(durationSec !== null ? ['-t', `${durationSec}`] : []),
         '-c:v',
         'libvpx-vp9',
@@ -97,7 +90,7 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
       setErr('Conversion failed.')
     } finally {
       try {
-        ffRef.current?.FS('unlink', 'in')
+        ffRef.current?.FS('unlink', 'input')
         ffRef.current?.FS('unlink', 'out.webm')
       } catch {}
       setBusy(false)
