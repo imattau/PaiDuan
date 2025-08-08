@@ -70,17 +70,17 @@ export class Nip46Signer implements Signer {
   }
 
   private async rpc(method: string, params: any[]): Promise<any> {
-    const conns = (
-      await Promise.all(
-        this.session.relays.map(async (url) => {
-          try {
-            return await Relay.connect(url);
-          } catch {
-            return undefined;
-          }
-        }),
-      )
-    ).filter((r): r is Relay => !!r);
+    const conns = await Promise.all(
+      this.session.relays.map(async (url) => {
+        try {
+          return await Relay.connect(url);
+        } catch {
+          return undefined;
+        }
+      }),
+    );
+    const validConns = conns.filter(Boolean) as Relay[];
+    if (validConns.length === 0) throw new Error('Failed to connect to any relays');
 
     const myPub = getPublicKey(this.session.myPrivkey);
     const id = Math.random().toString(36).slice(2);
@@ -100,12 +100,12 @@ export class Nip46Signer implements Signer {
     };
 
     const pool = this.pool;
-    await pool.publish(conns, ev as any);
+    await pool.publish(validConns, ev as any);
 
     const reply = await new Promise<any>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('NIP-46 RPC timeout')), 8000);
       const sub = pool.subscribeMany(
-        conns,
+        validConns,
         [{ kinds: [24133], authors: [this.session.remotePubkey], '#p': [myPub], since: ev.created_at }],
         {
           onevent: async (msg) => {
@@ -130,7 +130,7 @@ export class Nip46Signer implements Signer {
       );
     });
 
-    conns.forEach((r) => {
+    validConns.forEach((r) => {
       try {
         r.close();
       } catch {
