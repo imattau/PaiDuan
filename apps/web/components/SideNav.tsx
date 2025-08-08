@@ -2,15 +2,15 @@ import Link from 'next/link';
 import { Home, Users, Plus, Cog } from 'lucide-react';
 import { useRouter } from 'next/router';
 
-const links = [
-  { href: '/feed', icon: Home, label: 'Home' },
-  { href: '/feed?tab=following', icon: Users, label: 'Following' },
-  { href: '/create', icon: Plus, label: 'Create', desktopOnly: true },
-  { href: '/settings', icon: Cog, label: 'Settings' },
-];
-
 export default function SideNav() {
-  const { asPath } = useRouter();
+  const { asPath, query } = useRouter();
+  const locale = (query.locale as string) || 'en';
+  const links = [
+    { href: `/${locale}/feed`, icon: Home, label: 'Home' },
+    { href: `/${locale}/feed?tab=following`, icon: Users, label: 'Following' },
+    { href: `/${locale}/create`, icon: Plus, label: 'Create', desktopOnly: true },
+    { href: `/${locale}/settings`, icon: Cog, label: 'Settings' },
+  ];
   return (
     <nav className="hidden lg:flex lg:flex-col lg:w-48 lg:fixed lg:left-0 lg:inset-y-0 bg-brand-surface/95 backdrop-blur z-40 pl-4 pt-6">
       <h1 className="mb-8 text-2xl font-bold text-white">PaiDuan</h1>
