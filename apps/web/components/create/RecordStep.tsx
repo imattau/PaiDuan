@@ -27,7 +27,13 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
   function start() {
     if (!stream) return
     chunks.current = []
-    const mr = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' })
+    const mr = new MediaRecorder(
+      stream,
+      {
+        mimeType: 'video/webm;codecs=vp9',
+        aspectRatio: 9 / 16,
+      } as any
+    )
     mediaRef.current = mr
     mr.ondataavailable = (e) => e.data.size && chunks.current.push(e.data)
     mr.onstop = () => {
