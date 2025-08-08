@@ -8,7 +8,11 @@ export function useProfile(pubkey?: string) {
   useEffect(() => {
     if (!pubkey) return;
     const pool = getPool();
-    const sub = pool.subscribeMany(RELAYS, [{ kinds: [kinds.Metadata], authors: [pubkey], limit: 1 } as Filter]);
+    const sub = pool.subscribeMany(
+      RELAYS,
+      [{ kinds: [kinds.Metadata], authors: [pubkey], limit: 1 } as Filter],
+      {},
+    );
     sub.on('event', (ev) => {
       try {
         setMeta(JSON.parse(ev.content));
