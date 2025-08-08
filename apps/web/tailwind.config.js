@@ -14,11 +14,11 @@ module.exports = {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        card: 'hsl(var(--card))',
         accent: 'hsl(var(--accent))',
         border: 'hsl(var(--border))',
         brand: {
           DEFAULT: '#9d4edd',
-          surface: '#1a1b1f',
           panel: '#202125',
         },
       },
