@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 export function UploadStep({ onBack }: { onBack: () => void }) {
   const ffRef = useRef<any>(null)
   const fetchRef = useRef<any>(null)
+  const trimRef = useRef<{ start: number; end: number } | null>(null)
   const [ready, setReady] = useState(false)
   const [progress, setProgress] = useState(0)
   const [file, setFile] = useState<File | null>(null)
@@ -52,24 +53,41 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
       setErr('Max file size is 50MB')
       return
     }
+    // If already webm, no conversion is needed
+    if (file.type === 'video/webm') {
+      setOutBlob(file)
+      setPreview(URL.createObjectURL(file))
+      return
+    }
+
     setBusy(true)
     setErr(null)
     try {
       const ff = ffRef.current
       const fetchFile = fetchRef.current
       ff.FS('writeFile', 'in', await fetchFile(file))
-      await ff.run(
+
+      const startSec = (trimRef.current?.start ?? 0) / 1000
+      const durationSec =
+        trimRef.current && trimRef.current.end > trimRef.current.start
+          ? (trimRef.current.end - trimRef.current.start) / 1000
+          : null
+
+      const args = [
+        ...(startSec > 0 ? ['-ss', `${startSec}`] : []),
         '-i',
         'in',
-        '-vf',
-        'crop=in_h*9/16:in_h:(in_w-in_h*9/16)/2:0,scale=720:-2',
+        ...(durationSec !== null ? ['-t', `${durationSec}`] : []),
         '-c:v',
         'libvpx-vp9',
+        '-crf',
+        '30',
         '-b:v',
-        '1M',
-        '-an',
+        '0',
         'out.webm',
-      )
+      ]
+
+      await ff.run(...args)
       const data = ff.FS('readFile', 'out.webm')
       const blob = new Blob([data.buffer], { type: 'video/webm' })
       setOutBlob(blob)
@@ -122,7 +140,7 @@ export function UploadStep({ onBack }: { onBack: () => void }) {
           disabled={!file || busy || !ready}
           onClick={convert}
         >
-          {busy ? `Processing… ${Math.round(progress * 100)}%` : 'Convert to .webm (9:16)'}
+          {busy ? `Processing… ${Math.round(progress * 100)}%` : 'Convert to .webm'}
         </button>
         <button
           className="btn btn-secondary disabled:opacity-60"
