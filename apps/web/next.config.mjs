@@ -15,6 +15,7 @@ const withPWAConfig = withPWA({
 })
 
 export default withPWAConfig({
+  experimental: { esmExternals: 'loose' },
   reactStrictMode: true,
   typescript: { ignoreBuildErrors: true },
   transpilePackages: ['@paiduan/ui']
