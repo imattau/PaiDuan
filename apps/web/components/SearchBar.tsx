@@ -39,7 +39,7 @@ const SearchBar: React.FC = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-20 flex h-12 items-center space-x-2 bg-background/80 p-2 text-foreground">
+      <div className="fixed inset-x-0 top-0 z-20 flex h-12 items-center space-x-2 bg-background/80 p-2 text-foreground lg:static lg:max-w-[1400px] lg:mx-auto">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -61,7 +61,7 @@ const SearchBar: React.FC = () => {
         <NotificationBell />
       </div>
       <div
-        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-background text-foreground transition-transform duration-300 ${
+        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-background text-foreground transition-transform duration-300 lg:absolute lg:inset-x-auto lg:right-0 ${
           showDrawer ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
