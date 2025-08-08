@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SimplePool } from 'nostr-tools/pool';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { getRelays } from '@/lib/nostr';
 
 export interface MetadataStepProps {
@@ -20,6 +21,23 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
   const [busy, setBusy] = useState(false);
 
   const { state } = useAuth();
+  const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
+
+  const zapOptions = Array.from(
+    new Set([
+      ...(profile?.lud16 ? [profile.lud16] : []),
+      ...(Array.isArray(profile?.zapSplits)
+        ? profile.zapSplits.map((s: any) => s?.lnaddr).filter(Boolean)
+        : []),
+    ]),
+  );
+  const showZapSelect =
+    (profile?.zapSplits && profile.zapSplits.length > 0) || zapOptions.length > 1;
+  const selectedZapOption = zapOptions.includes(lightningAddress) ? lightningAddress : '';
+
+  useEffect(() => {
+    if (!lightningAddress && profile?.lud16) setLightningAddress(profile.lud16);
+  }, [profile, lightningAddress]);
 
   async function postVideo() {
     const topicList = topics
@@ -130,6 +148,20 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
           />
           <label className="block text-sm">
             <span className="mb-1 block">Lightning address</span>
+            {showZapSelect && (
+              <select
+                value={selectedZapOption}
+                onChange={(e) => setLightningAddress(e.target.value)}
+                className="block w-full border rounded px-3 py-2 bg-transparent mb-2"
+              >
+                {zapOptions.map((addr) => (
+                  <option key={addr} value={addr}>
+                    {addr}
+                  </option>
+                ))}
+                <option value="">Other...</option>
+              </select>
+            )}
             <input
               type="text"
               value={lightningAddress}
