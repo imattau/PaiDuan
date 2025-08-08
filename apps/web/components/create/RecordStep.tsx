@@ -12,12 +12,19 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     ;(async () => {
-      const s = await navigator.mediaDevices.getUserMedia({
-        video: { aspectRatio: 9 / 16 },
-        audio: true,
-      })
-      setStream(s)
-      if (videoRef.current) videoRef.current.srcObject = s
+      try {
+        // Guard against unsupported environments (SSR or old browsers)
+        if (!navigator?.mediaDevices?.getUserMedia) return
+
+        const s = await navigator.mediaDevices.getUserMedia({
+          video: { aspectRatio: 9 / 16 },
+          audio: true,
+        })
+        setStream(s)
+        if (videoRef.current) videoRef.current.srcObject = s
+      } catch (err) {
+        console.error('Failed to access media devices', err)
+      }
     })()
     return () => {
       stream?.getTracks().forEach((t) => t.stop())
