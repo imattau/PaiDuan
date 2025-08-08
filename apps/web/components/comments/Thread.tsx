@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useThread } from '@/hooks/useThread';
 import { useProfile } from '@/hooks/useProfile';
+import { SkeletonComment } from '../ui/SkeletonComment';
 
 export default function Thread({
   rootId,
@@ -38,7 +39,12 @@ export default function Thread({
             <div className="text-sm">{n.content}</div>
           </div>
         ))}
-        {loading && <div className="text-sm text-muted-foreground">Loading…</div>}
+        {loading && (
+          <>
+            <SkeletonComment />
+            <SkeletonComment />
+          </>
+        )}
         {err && <div className="text-sm text-red-600">{err}</div>}
       </div>
 

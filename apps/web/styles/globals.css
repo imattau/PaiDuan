@@ -20,58 +20,104 @@
   --border: 220 12% 20%;
 }
 
-body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
 
 @layer utilities {
-  .text-foreground { color: hsl(var(--foreground)); }
-  .bg-app { background: hsl(var(--background)); }
-  .break-inside-avoid { break-inside: avoid; }
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  .bg-app {
+    background: hsl(var(--background));
+  }
+  .break-inside-avoid {
+    break-inside: avoid;
+  }
 }
 
 /* Button system — works in light & dark */
 @layer components {
-  .btn { @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2; }
-  .btn-primary {
-    background: hsl(var(--accent)); color: white;
+  .btn {
+    @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2;
   }
-  .btn-secondary { @apply border border-current text-current bg-transparent; }
+  .btn-primary {
+    background: hsl(var(--accent));
+    color: white;
+  }
+  .btn-secondary {
+    @apply border border-current text-current bg-transparent;
+  }
   .btn-danger {
-    background: #ef4444; color: white;
+    background: #ef4444;
+    color: white;
   }
   .btn-ghost {
-    background: transparent; color: hsl(var(--foreground));
+    background: transparent;
+    color: hsl(var(--foreground));
   }
 }
 
 @layer base {
   :root {
     --bg: 255 255 255;
-    --foreground: 17 24 39;         /* slate-900-ish */
+    --foreground: 17 24 39; /* slate-900-ish */
     --muted-foreground: 107 114 128; /* slate-500 */
     --card: 255 255 255;
-    --border: 229 231 235;           /* gray-200 */
+    --border: 229 231 235; /* gray-200 */
   }
   .dark {
     --bg: 17 17 17;
-    --foreground: 243 244 246;       /* gray-100 */
+    --foreground: 243 244 246; /* gray-100 */
     --muted-foreground: 156 163 175; /* gray-400 */
-    --card: 24 24 27;                /* zinc-900 */
-    --border: 39 39 42;              /* zinc-800 */
+    --card: 24 24 27; /* zinc-900 */
+    --border: 39 39 42; /* zinc-800 */
   }
 
-  html, body { background-color: rgb(var(--bg)); color: rgb(var(--foreground)); }
+  html,
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--foreground));
+  }
 }
 
 @layer utilities {
-  .text-foreground { color: rgb(var(--foreground)); }
-  .text-muted-foreground { @apply text-foreground opacity-60; }
-  .bg-app { background-color: rgb(var(--bg)); }
-  .bg-card { background-color: rgb(var(--card)); }
-  .border-token { border-color: rgb(var(--border)); }
+  .text-foreground {
+    color: rgb(var(--foreground));
+  }
+  .text-muted-foreground {
+    @apply text-foreground opacity-60;
+  }
+  .bg-app {
+    background-color: rgb(var(--bg));
+  }
+  .bg-card {
+    background-color: rgb(var(--card));
+  }
+  .border-token {
+    border-color: rgb(var(--border));
+  }
 }
 
-:root { --accent: #7c3aed; }
-[data-accent="violet"] { --accent:#7c3aed; }
-[data-accent="blue"]   { --accent:#2563eb; }
-[data-accent="green"]  { --accent:#16a34a; }
-[data-accent="pink"]   { --accent:#db2777; }
+:root {
+  --accent: #7c3aed;
+}
+[data-accent='violet'] {
+  --accent: #7c3aed;
+}
+[data-accent='blue'] {
+  --accent: #2563eb;
+}
+[data-accent='green'] {
+  --accent: #16a34a;
+}
+[data-accent='pink'] {
+  --accent: #db2777;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
