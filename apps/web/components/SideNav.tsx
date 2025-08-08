@@ -27,7 +27,7 @@ export default function SideNav() {
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
                   isActive
                     ? 'bg-accent/20 text-accent'
-                    : 'text-muted-foreground hover:bg-accent/10 hover:text-accent'
+                    : 'text-muted-foreground hover:bg-accent/20 hover:text-accent'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >

@@ -45,7 +45,7 @@ export default function LeftNav({
                   className={`px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
                     active
                       ? 'bg-accent/20 text-accent'
-                      : 'text-muted-foreground hover:bg-accent/10 hover:text-accent'
+                      : 'text-muted-foreground hover:bg-accent/20 hover:text-accent'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
@@ -61,7 +61,7 @@ export default function LeftNav({
       <div className="bg-card border border-token rounded-2xl p-2 flex items-center justify-between">
         <button
           onClick={toggleMode}
-          className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10"
+          className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 focus-visible:bg-white/50 dark:focus-visible:bg-white/10"
         >
           {mode === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>

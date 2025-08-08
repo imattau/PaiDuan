@@ -17,7 +17,7 @@ module.exports = {
         accent: 'hsl(var(--accent))',
         border: 'hsl(var(--border))',
         brand: {
-          DEFAULT: '#7c3aed',
+          DEFAULT: '#9d4edd',
           surface: '#1a1b1f',
           panel: '#202125',
         },
