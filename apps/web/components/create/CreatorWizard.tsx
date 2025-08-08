@@ -16,9 +16,11 @@ export default function CreatorWizard() {
     <main className="max-w-2xl mx-auto py-12 px-4 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Create Video</h1>
-        <button className="text-sm text-muted-foreground" onClick={handleCancel}>
-          Cancel
-        </button>
+        {!mode && (
+          <button className="text-sm text-muted-foreground" onClick={handleCancel}>
+            Cancel
+          </button>
+        )}
       </div>
       {!mode && (
         <section className="rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-3">
