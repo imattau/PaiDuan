@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context/authContext'
+import { promptPassphrase } from '../../utils/promptPassphrase'
 import { SimplePool, EventTemplate, getEventHash, signEvent } from 'nostr-tools'
 
 export default function ProfileOnboarding() {
-  const { pubkey, auth, privkeyHex } = useAuth()
+  const { pubkey, auth, privkeyHex, unlock } = useAuth()
   const [name, setName] = useState('')
   const [about, setAbout] = useState('')
   const [picture, setPicture] = useState('')
@@ -52,14 +53,26 @@ export default function ProfileOnboarding() {
         return
       }
       signed = await nostr.signEvent({ ...tmpl, pubkey })
-    } else if (privkeyHex) {
+    } else {
+      let key = privkeyHex
+      if (!key) {
+        const pass = await promptPassphrase('Enter passphrase to unlock key')
+        if (!pass) return
+        try {
+          key = await unlock(pass)
+        } catch {
+          alert('Incorrect passphrase')
+          return
+        }
+      }
+      if (!key) {
+        alert('Key is locked')
+        return
+      }
       const ev: any = { ...tmpl, pubkey }
       ev.id = getEventHash(ev)
-      ev.sig = signEvent(ev, privkeyHex)
+      ev.sig = signEvent(ev, key)
       signed = ev
-    } else {
-      alert('Key is locked')
-      return
     }
     const pool = (poolRef.current ||= new SimplePool())
     setLoading(true)
