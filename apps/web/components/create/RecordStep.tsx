@@ -1,68 +1,69 @@
-'use client'
-import { useEffect, useRef, useState } from 'react'
+'use client';
+import { useEffect, useRef, useState } from 'react';
 
 export function RecordStep({ onBack }: { onBack: () => void }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const mediaRef = useRef<MediaRecorder | null>(null)
-  const chunks = useRef<BlobPart[]>([])
-  const [stream, setStream] = useState<MediaStream | null>(null)
-  const [blob, setBlob] = useState<Blob | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [rec, setRec] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaRef = useRef<MediaRecorder | null>(null);
+  const chunks = useRef<BlobPart[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [blob, setBlob] = useState<Blob | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [rec, setRec] = useState(false);
 
   useEffect(() => {
-    ;(async () => {
+    (async () => {
       try {
         // Guard against unsupported environments (SSR or old browsers)
-        if (!navigator?.mediaDevices?.getUserMedia) return
+        if (!navigator?.mediaDevices?.getUserMedia) return;
 
         const s = await navigator.mediaDevices.getUserMedia({
           video: { aspectRatio: 9 / 16 },
           audio: true,
-        })
-        setStream(s)
-        if (videoRef.current) videoRef.current.srcObject = s
+        });
+        streamRef.current = s;
+        if (videoRef.current) videoRef.current.srcObject = s;
       } catch (err) {
-        console.error('Failed to access media devices', err)
+        console.error('Failed to access media devices', err);
       }
-    })()
+    })();
     return () => {
-      stream?.getTracks().forEach((t) => t.stop())
-    }
-  }, [])
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, []);
 
   function start() {
-    if (!stream) return
-    chunks.current = []
-    const mr = new MediaRecorder(
-      stream,
-      {
-        mimeType: 'video/webm;codecs=vp9',
-        aspectRatio: 9 / 16,
-      } as any
-    )
-    mediaRef.current = mr
-    mr.ondataavailable = (e) => e.data.size && chunks.current.push(e.data)
+    const stream = streamRef.current;
+    if (!stream) return;
+    chunks.current = [];
+    const mr = new MediaRecorder(stream, {
+      mimeType: 'video/webm;codecs=vp9',
+    } as any);
+    mediaRef.current = mr;
+    mr.ondataavailable = (e) => e.data.size && chunks.current.push(e.data);
     mr.onstop = () => {
-      const b = new Blob(chunks.current, { type: 'video/webm' })
-      setBlob(b)
-      setPreview(URL.createObjectURL(b))
-    }
-    mr.start()
-    setRec(true)
-    setTimeout(() => {
-      if (rec) stop()
-    }, 3 * 60 * 1000)
+      const b = new Blob(chunks.current, { type: 'video/webm' });
+      setBlob(b);
+      setPreview(URL.createObjectURL(b));
+    };
+    mr.start();
+    setRec(true);
+    setTimeout(
+      () => {
+        if (rec) stop();
+      },
+      3 * 60 * 1000,
+    );
   }
 
   function stop() {
-    mediaRef.current?.stop()
-    setRec(false)
+    mediaRef.current?.stop();
+    setRec(false);
   }
 
   async function upload() {
-    if (!blob) return
-    alert('Ready to upload recorded .webm (stub).')
+    if (!blob) return;
+    alert('Ready to upload recorded .webm (stub).');
   }
 
   return (
@@ -105,8 +106,7 @@ export function RecordStep({ onBack }: { onBack: () => void }) {
         />
       )}
     </section>
-  )
+  );
 }
 
-export default RecordStep
-
+export default RecordStep;
