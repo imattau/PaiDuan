@@ -10,6 +10,7 @@ import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { encryptPrivkeyHex } from '@/utils/cryptoVault';
 import { saveKey } from '@/utils/keyStorage';
+import { promptPassphrase } from '@/utils/promptPassphrase';
 
 function privHexFrom(input: string): string {
   const s = input.trim();
@@ -27,7 +28,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
   const [uri, setUri] = useState('');
 
   async function saveLocalKey(priv: string, method: 'manual' | 'generated') {
-    const pass = prompt('Set a passphrase to encrypt your key');
+    const pass = await promptPassphrase('Set a passphrase to encrypt your key');
     if (!pass) return;
     try {
       const encPriv = await encryptPrivkeyHex(priv, pass);
