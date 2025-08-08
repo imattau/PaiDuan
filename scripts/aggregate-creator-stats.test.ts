@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { aggregateCreatorStats, Event } from './aggregate-creator-stats';
+import { CreatorStatsStore, Event } from '../apps/web/lib/creatorStatsStore';
 
-describe('aggregateCreatorStats', () => {
+describe('CreatorStatsStore.aggregate', () => {
   it('computes totals and daily series', () => {
     const ts = 1_700_000_000; // arbitrary timestamp
     const events: Event[] = [
@@ -16,7 +16,8 @@ describe('aggregateCreatorStats', () => {
       { kind: 1, pubkey: 'a', created_at: ts },
       { kind: 3, pubkey: 'a', created_at: ts },
     ];
-    const stats = aggregateCreatorStats(events, 0.001);
+    const store = new CreatorStatsStore('');
+    const stats = store.aggregate(events, 0.001);
     expect(stats.totals.views).toBe(1);
     expect(stats.totals.zapsSats).toBe(10);
     expect(stats.totals.comments).toBe(1);
