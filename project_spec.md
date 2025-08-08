@@ -62,3 +62,10 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, a
 - Trim works without errors; poster capture succeeds.
 - UI looks modern, consistent with landing/auth redesign.
 - FFmpeg loads only when needed, no `createFFmpeg` import errors.
+
+## Progressive Web App UI Standard
+
+- Installable on desktop and mobile via the browser menu or the in-app install banner.
+- Works offline by caching pages, avatars and the last 20 videos watched.
+- Zap / comment buttons disable while offline.
+- Clear cached videos via **Settings → Storage**.
