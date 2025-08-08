@@ -74,7 +74,7 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
         }`}
       >
         {creators.length > 0 && (
-          <div className="p-4 border-b border-foreground/20">
+          <div className="p-4 border-b divider">
             <div className="mb-2 text-sm">{t('creators')}</div>
             {creators.map((c) => (
               <div

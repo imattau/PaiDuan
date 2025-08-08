@@ -10,7 +10,7 @@ export default function AppShell({
     <div className="min-h-screen bg-app text-foreground">
       <div className="mx-auto w-full max-w-[1400px] grid grid-cols-1 lg:grid-cols-[300px_1fr_400px] gap-0">
         {/* Left column: menu/search/profile summary (sticky on desktop) */}
-        <aside className="hidden lg:block border-r border-token sticky top-0 h-screen overflow-y-auto">
+        <aside className="hidden lg:block border-r divider sticky top-0 h-screen overflow-y-auto">
           <div className="p-4">{left}</div>
         </aside>
 
@@ -20,7 +20,7 @@ export default function AppShell({
         </main>
 
         {/* Right column: author info & comments (sticky on desktop) */}
-        <aside className="hidden lg:block border-l border-token sticky top-0 h-screen overflow-y-auto">
+        <aside className="hidden lg:block border-l divider sticky top-0 h-screen overflow-y-auto">
           <div className="p-4">{right}</div>
         </aside>
       </div>

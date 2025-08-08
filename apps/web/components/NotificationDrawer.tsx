@@ -28,7 +28,7 @@ const NotificationDrawer: React.FC = () => {
         open ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      <div className="flex items-center justify-between border-b border-foreground/20 p-2">
+      <div className="flex items-center justify-between border-b divider p-2">
         <span className="font-semibold">Notifications</span>
         <button
           className="text-sm text-accent"
@@ -43,7 +43,7 @@ const NotificationDrawer: React.FC = () => {
       {notifications.map((n) => (
         <div
           key={n.id}
-          className="cursor-pointer border-b border-foreground/20 p-3"
+          className="cursor-pointer border-b divider p-3"
           onClick={() => handleClick(n.id, n.noteId)}
         >
           <div className="flex items-start space-x-3">

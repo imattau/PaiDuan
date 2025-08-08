@@ -98,6 +98,9 @@ body {
   .border-token {
     border-color: rgb(var(--border));
   }
+  .divider {
+    border-color: hsl(var(--border));
+  }
 }
 
 :root {
