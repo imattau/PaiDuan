@@ -10,6 +10,7 @@ pnpm dev
 ```
 
 The development server starts the Next.js web app at <http://localhost:3000>.
+The moderation dashboard runs on <http://localhost:3001>.
 Visit <http://localhost:3000/feed> for the swipeable video feed demo.
 
 Client-side video trimming relies on [`@ffmpeg/ffmpeg`](https://github.com/ffmpegwasm/ffmpeg.wasm) and toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
