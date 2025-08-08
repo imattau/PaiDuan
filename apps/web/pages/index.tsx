@@ -1,27 +1,5 @@
-import Logo from '@/components/branding/Logo'
-import HeroArt from '@/components/branding/HeroArt'
-import Link from 'next/link'
-
-export default function LandingPage() {
-  return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <HeroArt className="w-full h-[400px] text-foreground" />
-      </div>
-
-      <div className="relative max-w-5xl mx-auto px-4 py-20 text-center">
-        <div className="flex justify-center">
-          <Logo />
-        </div>
-        <h1 className="mt-6 text-5xl font-bold">Decentralised Short Video</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          Built on Nostr. Own your keys, your audience, your revenue.
-        </p>
-        <div className="mt-8 flex justify-center gap-3">
-          <Link className="btn btn-primary" href="/auth">Get Started</Link>
-          <Link className="btn btn-secondary" href="/feed">Explore Feed</Link>
-        </div>
-      </div>
-    </section>
-  )
-}
+import { GetServerSideProps } from 'next';
+export const getServerSideProps: GetServerSideProps = async () => ({
+  redirect: { destination: '/en', permanent: false },
+});
+export default function RootRedirect() { return null; }
