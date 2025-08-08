@@ -14,17 +14,28 @@ interface ProfileHeaderProps {
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ avatarUrl, name, lightningAddress, pubkey, zapTotal }) => {
   const online = useOffline();
   return (
-    <div className="flex items-center space-x-3 p-4">
-      <Image
-        src={avatarUrl}
-        alt={name}
-        width={48}
-        height={48}
-        className="h-12 w-12 rounded-full"
-        unoptimized
+    <div className="flex flex-col items-center space-y-3 p-4 text-center">
+      <div
+        className="rounded-lg p-[2px]"
+        style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
+      >
+        <Image
+          src={avatarUrl}
+          alt={name}
+          width={80}
+          height={80}
+          className="h-20 w-20 rounded-lg"
+          unoptimized
+        />
+      </div>
+      <div className="font-semibold">{name}</div>
+      <ZapButton
+        lightningAddress={lightningAddress}
+        pubkey={pubkey}
+        total={zapTotal}
+        disabled={!online}
+        title={!online ? 'Offline – reconnect to interact.' : undefined}
       />
-      <div className="flex-1 font-semibold">{name}</div>
-      <ZapButton lightningAddress={lightningAddress} pubkey={pubkey} total={zapTotal} disabled={!online} title={!online ? 'Offline – reconnect to interact.' : undefined} />
     </div>
   );
 };

@@ -16,11 +16,16 @@ export default function TopNavProfile() {
   };
 
   return (
-    <img
-      src={profile?.picture || '/avatar.svg'}
-      alt="Profile avatar"
-      className="h-8 w-8 rounded-full cursor-pointer"
+    <div
       onClick={handleClick}
-    />
+      className="cursor-pointer rounded-lg p-[2px]"
+      style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
+    >
+      <img
+        src={profile?.picture || '/avatar.svg'}
+        alt="Profile avatar"
+        className="h-20 w-20 rounded-lg"
+      />
+    </div>
   );
 }
