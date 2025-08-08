@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import SideNav from '../components/SideNav';
+import MainNav from '@/components/layout/MainNav';
 import { Card } from '../components/ui/Card';
 import * as nip19 from 'nostr-tools/nip19';
 import { hexToBytes } from '@noble/hashes/utils';
@@ -23,7 +23,7 @@ export default function Profile() {
   if (state.status !== 'ready') {
     return (
       <>
-        <SideNav />
+        <MainNav showSearch={false} showProfile={false} />
         <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
           <Card title="Profile" desc="Sign in to view your profile.">
             <div>Not signed in.</div>
@@ -35,7 +35,7 @@ export default function Profile() {
 
   return (
     <>
-      <SideNav />
+      <MainNav showSearch={false} showProfile={false} />
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
         <Card title="Profile" desc="Your public profile information.">
           <div className="flex items-center gap-4">

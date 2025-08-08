@@ -8,26 +8,32 @@ import { Sun, Moon, Home, Users, Plus, User } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { cardStyle } from '@/components/ui/Card';
 
-export default function LeftNav({
-  me,
-}: {
-  me: {
+interface MainNavProps {
+  me?: {
     avatar: string;
     name: string;
     username: string;
     stats: { followers: number; following: number };
   };
-}) {
+  showSearch?: boolean;
+  showProfile?: boolean;
+}
+
+export default function MainNav({
+  me,
+  showSearch = true,
+  showProfile = true,
+}: MainNavProps) {
   const { mode, toggleMode } = useTheme();
   const { asPath } = useRouter();
 
   return (
     <div className="p-[1.2rem] space-y-4">
       {/* Search */}
-      <SearchBar showActions={false} />
+      {showSearch && <SearchBar showActions={false} />}
 
       {/* Profile mini card */}
-      <MiniProfileCard stats={me.stats} />
+      {showProfile && <MiniProfileCard stats={me?.stats} />}
 
       {/* Nav */}
       <nav className={`${cardStyle} p-2`}>
