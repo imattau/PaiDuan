@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
 import { SimplePool } from 'nostr-tools/pool';
@@ -7,11 +8,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { getRelays } from '../../lib/nostr';
 
-interface CreateVideoFormProps {
-  onCancel: () => void;
-}
-
-export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
+export default function CreateVideoForm() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [outBlob, setOutBlob] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -136,11 +134,18 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
 
   function handleCancel() {
     if (
-      (file || outBlob || preview || caption || topics || copyright || nsfw || lightningAddress) &&
+      (file ||
+        outBlob ||
+        preview ||
+        caption ||
+        topics ||
+        copyright ||
+        nsfw ||
+        lightningAddress) &&
       !confirm('Discard your progress?')
     )
       return;
-    onCancel();
+    router.back();
   }
 
   const form = (
@@ -243,5 +248,3 @@ export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
     </section>
   );
 }
-
-export default CreateVideoForm;
