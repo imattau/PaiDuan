@@ -10,9 +10,10 @@ export interface MetadataStepProps {
   preview?: string;
   onBack: () => void;
   onCancel: () => void;
+  inline?: boolean;
 }
 
-export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepProps) {
+export function MetadataStep({ blob, preview, onBack, onCancel, inline }: MetadataStepProps) {
   const [caption, setCaption] = useState('');
   const [topics, setTopics] = useState('');
   const [copyright, setCopyright] = useState('');
@@ -110,6 +111,66 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
     onCancel();
   }
 
+  const form = (
+    <>
+      <input
+        type="text"
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        placeholder="Caption"
+        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+      />
+      <input
+        type="text"
+        value={topics}
+        onChange={(e) => setTopics(e.target.value)}
+        placeholder="Topic tags (comma separated)"
+        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+      />
+      <label className="block text-sm">
+        <span className="mb-1 block">Lightning address</span>
+        {showZapSelect && (
+          <select
+            value={selectedZapOption}
+            onChange={(e) => setLightningAddress(e.target.value)}
+            className="block w-full border rounded px-3 py-2 bg-transparent mb-2"
+          >
+            {zapOptions.map((addr) => (
+              <option key={addr} value={addr}>
+                {addr}
+              </option>
+            ))}
+            <option value="">Other...</option>
+          </select>
+        )}
+        <input
+          type="text"
+          value={lightningAddress}
+          onChange={(e) => setLightningAddress(e.target.value)}
+          className="block w-full border rounded px-3 py-2 bg-transparent"
+        />
+      </label>
+      <input
+        type="text"
+        value={copyright}
+        onChange={(e) => setCopyright(e.target.value)}
+        placeholder="Copyright information"
+        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+      />
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
+        <span className="text-sm">NSFW</span>
+      </label>
+      <button className="btn btn-primary disabled:opacity-60" disabled={busy} onClick={postVideo}>
+        {busy ? 'Posting…' : 'Post Video'}
+      </button>
+    </>
+  );
+
+  if (inline) {
+    return <div className="space-y-4">{form}</div>;
+  }
+
   return (
     <section className="max-w-4xl mx-auto rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -131,59 +192,7 @@ export function MetadataStep({ blob, preview, onBack, onCancel }: MetadataStepPr
             className="rounded-xl w-full aspect-[9/16] object-cover bg-black lg:col-span-1"
           />
         )}
-        <div className="space-y-4 col-span-2 lg:col-span-1">
-          <input
-            type="text"
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder="Caption"
-            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
-          />
-          <input
-            type="text"
-            value={topics}
-            onChange={(e) => setTopics(e.target.value)}
-            placeholder="Topic tags (comma separated)"
-            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
-          />
-          <label className="block text-sm">
-            <span className="mb-1 block">Lightning address</span>
-            {showZapSelect && (
-              <select
-                value={selectedZapOption}
-                onChange={(e) => setLightningAddress(e.target.value)}
-                className="block w-full border rounded px-3 py-2 bg-transparent mb-2"
-              >
-                {zapOptions.map((addr) => (
-                  <option key={addr} value={addr}>
-                    {addr}
-                  </option>
-                ))}
-                <option value="">Other...</option>
-              </select>
-            )}
-            <input
-              type="text"
-              value={lightningAddress}
-              onChange={(e) => setLightningAddress(e.target.value)}
-              className="block w-full border rounded px-3 py-2 bg-transparent"
-            />
-          </label>
-          <input
-            type="text"
-            value={copyright}
-            onChange={(e) => setCopyright(e.target.value)}
-            placeholder="Copyright information"
-            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
-          />
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
-            <span className="text-sm">NSFW</span>
-          </label>
-          <button className="btn btn-primary disabled:opacity-60" disabled={busy} onClick={postVideo}>
-            {busy ? 'Posting…' : 'Post Video'}
-          </button>
-        </div>
+        <div className="space-y-4 col-span-2 lg:col-span-1">{form}</div>
       </div>
     </section>
   );
