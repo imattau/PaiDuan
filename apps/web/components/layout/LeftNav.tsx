@@ -4,7 +4,7 @@ import SearchBar from '@/components/SearchBar';
 import MiniProfileCard from '@/components/MiniProfileCard';
 import NotificationBell from '@/components/NotificationBell';
 import { useTheme } from '@/context/themeContext';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Home, Users, Plus, User } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { cardStyle } from '@/components/ui/Card';
 
@@ -33,24 +33,24 @@ export default function LeftNav({
       <nav className={`${cardStyle} p-2`}>
         <ul className="flex flex-col">
           {[
-            { href: '/feed', label: 'Home' },
-            { href: '/following', label: 'Following' },
-            { href: '/create', label: 'Create' },
-            { href: '/settings#profile', label: 'Profile settings' },
-          ].map(({ href, label }) => {
+            { href: '/feed', label: 'Home', icon: Home },
+            { href: '/following', label: 'Following', icon: Users },
+            { href: '/create', label: 'Create', icon: Plus },
+            { href: '/settings#profile', label: 'Profile settings', icon: User },
+          ].map(({ href, label, icon: Icon }) => {
             const active = asPath.startsWith(href);
             return (
               <li key={href}>
                 <Link
                   href={href}
-                  className={`px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
                     active
                       ? 'bg-accent/20 text-accent'
                       : 'text-muted-foreground hover:bg-accent/20 hover:text-accent'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
-                  {label}
+                  <Icon size={20} /> {label}
                 </Link>
               </li>
             );
