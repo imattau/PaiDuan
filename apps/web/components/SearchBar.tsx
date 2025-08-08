@@ -7,7 +7,7 @@ import NotificationBell from './NotificationBell';
 import { useTheme } from '@/context/themeContext';
 import useT from '../hooks/useT';
 
-const SearchBar: React.FC = () => {
+const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) => {
   const [value, setValue] = useState('');
   const [query, setQuery] = useState('');
   const router = useRouter();
@@ -51,14 +51,22 @@ const SearchBar: React.FC = () => {
             <X />
           </button>
         )}
-        <button
-          onClick={toggleMode}
-          title={t('toggle_theme')}
-          className="hover:text-accent"
-        >
-          {mode === 'dark' ? <Sun className="text-gray-900 dark:text-gray-100" /> : <Moon className="text-gray-900 dark:text-gray-100" />}
-        </button>
-        <NotificationBell />
+        {showActions && (
+          <>
+            <button
+              onClick={toggleMode}
+              title={t('toggle_theme')}
+              className="hover:text-accent"
+            >
+              {mode === 'dark' ? (
+                <Sun className="text-gray-900 dark:text-gray-100" />
+              ) : (
+                <Moon className="text-gray-900 dark:text-gray-100" />
+              )}
+            </button>
+            <NotificationBell />
+          </>
+        )}
       </div>
       <div
         className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-background text-foreground transition-transform duration-300 lg:absolute lg:inset-x-auto lg:right-0 ${
