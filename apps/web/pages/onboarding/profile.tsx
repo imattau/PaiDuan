@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context/authContext'
 import { promptPassphrase } from '../../utils/promptPassphrase'
-import { SimplePool, EventTemplate, getEventHash, signEvent } from 'nostr-tools'
+import { SimplePool, EventTemplate, finalizeEvent } from 'nostr-tools'
+import { hexToBytes } from '@noble/hashes/utils'
 
 export default function ProfileOnboarding() {
   const { pubkey, auth, privkeyHex, unlock } = useAuth()
@@ -69,10 +70,7 @@ export default function ProfileOnboarding() {
         alert('Key is locked')
         return
       }
-      const ev: any = { ...tmpl, pubkey }
-      ev.id = getEventHash(ev)
-      ev.sig = signEvent(ev, key)
-      signed = ev
+      signed = finalizeEvent({ ...tmpl, pubkey }, hexToBytes(key))
     }
     const pool = (poolRef.current ||= new SimplePool())
     setLoading(true)
