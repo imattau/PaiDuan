@@ -21,7 +21,7 @@ export default function LeftNav({
   return (
     <div className="space-y-6">
       {/* Search */}
-      <SearchBar />
+      <SearchBar showActions={false} />
 
       {/* Profile mini card */}
       <MiniProfileCard />
