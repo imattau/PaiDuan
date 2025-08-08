@@ -1,25 +1,29 @@
 'use client';
 import { useEffect, useState } from 'react';
+import PlaceholderVideo from '../PlaceholderVideo';
+import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
 import { SimplePool } from 'nostr-tools/pool';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
-import { getRelays } from '@/lib/nostr';
+import { useAuth } from '../../hooks/useAuth';
+import { useProfile } from '../../hooks/useProfile';
+import { getRelays } from '../../lib/nostr';
 
-export interface MetadataStepProps {
-  blob: Blob;
-  preview?: string;
-  onBack: () => void;
+interface CreateVideoFormProps {
   onCancel: () => void;
-  inline?: boolean;
 }
 
-export function MetadataStep({ blob, preview, onBack, onCancel, inline }: MetadataStepProps) {
+export function CreateVideoForm({ onCancel }: CreateVideoFormProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [outBlob, setOutBlob] = useState<Blob | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+
   const [caption, setCaption] = useState('');
   const [topics, setTopics] = useState('');
   const [copyright, setCopyright] = useState('');
   const [nsfw, setNsfw] = useState(false);
   const [lightningAddress, setLightningAddress] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [posting, setPosting] = useState(false);
 
   const { state } = useAuth();
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
@@ -40,12 +44,39 @@ export function MetadataStep({ blob, preview, onBack, onCancel, inline }: Metada
     if (!lightningAddress && profile?.lud16) setLightningAddress(profile.lud16);
   }, [profile, lightningAddress]);
 
+  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    setFile(f);
+    setOutBlob(null);
+    setPreview(f ? URL.createObjectURL(f) : null);
+  }
+
+  async function convert() {
+    if (!file) return;
+    setProcessing(true);
+    setErr(null);
+    try {
+      const blob = await trimVideoWebCodecs(file, 0);
+      setOutBlob(blob);
+      setPreview(URL.createObjectURL(blob));
+    } catch (e) {
+      console.error(e);
+      setErr('Conversion failed.');
+    } finally {
+      setProcessing(false);
+    }
+  }
+
   async function postVideo() {
     const topicList = topics
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean);
 
+    if (!outBlob) {
+      alert('Please process a video first');
+      return;
+    }
     if (!lightningAddress.trim()) {
       alert('Lightning address is required');
       return;
@@ -56,9 +87,9 @@ export function MetadataStep({ blob, preview, onBack, onCancel, inline }: Metada
     }
 
     try {
-      setBusy(true);
+      setPosting(true);
       const form = new FormData();
-      form.append('file', blob, 'video.webm');
+      form.append('file', outBlob, 'video.webm');
       form.append('caption', caption);
       form.append('topics', topics);
       form.append('copyright', copyright);
@@ -98,13 +129,13 @@ export function MetadataStep({ blob, preview, onBack, onCancel, inline }: Metada
     } catch (e: any) {
       alert(e.message || 'Failed to post');
     } finally {
-      setBusy(false);
+      setPosting(false);
     }
   }
 
   function handleCancel() {
     if (
-      (caption || topics || copyright || nsfw || lightningAddress) &&
+      (file || outBlob || preview || caption || topics || copyright || nsfw || lightningAddress) &&
       !confirm('Discard your progress?')
     )
       return;
@@ -161,41 +192,54 @@ export function MetadataStep({ blob, preview, onBack, onCancel, inline }: Metada
         <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
         <span className="text-sm">NSFW</span>
       </label>
-      <button className="btn btn-primary disabled:opacity-60" disabled={busy} onClick={postVideo}>
-        {busy ? 'Posting…' : 'Post Video'}
+      <button
+        className="btn btn-primary disabled:opacity-60"
+        data-testid="post-button"
+        disabled={!outBlob || posting}
+        onClick={postVideo}
+      >
+        {posting ? 'Posting…' : 'Post Video'}
       </button>
     </>
   );
 
-  if (inline) {
-    return <div className="space-y-4">{form}</div>;
-  }
-
   return (
     <section className="max-w-4xl mx-auto rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button className="btn btn-secondary" onClick={onBack}>
-            ← Back
-          </button>
-          <h2 className="text-lg font-semibold">Metadata</h2>
-        </div>
+      <div className="flex items-center justify-end">
         <button className="text-sm text-muted-foreground" onClick={handleCancel}>
           Cancel
         </button>
       </div>
-      <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-        {preview && (
-          <video
-            controls
-            src={preview}
-            className="rounded-xl w-full aspect-[9/16] object-cover bg-black lg:col-span-1"
+      <div className="lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 space-y-4">
+        <div className="space-y-4">
+          <input
+            type="file"
+            accept="video/*"
+            onChange={onPick}
+            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
           />
-        )}
-        <div className="space-y-4 col-span-2 lg:col-span-1">{form}</div>
+          {preview ? (
+            <video
+              controls
+              src={preview}
+              className="rounded-xl w-full aspect-[9/16] object-cover bg-black"
+            />
+          ) : (
+            <PlaceholderVideo className="rounded-xl w-full aspect-[9/16] object-cover bg-black" />
+          )}
+          <button
+            className="btn btn-primary disabled:opacity-60"
+            disabled={!file || processing}
+            onClick={convert}
+          >
+            {processing ? 'Processing…' : 'Process Video'}
+          </button>
+          {err && <p className="text-sm text-red-500">{err}</p>}
+        </div>
+        <div className="space-y-4">{form}</div>
       </div>
     </section>
   );
 }
 
-export default MetadataStep;
+export default CreateVideoForm;
