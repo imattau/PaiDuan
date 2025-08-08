@@ -2,7 +2,7 @@
 import { mkdirSync, writeFileSync, createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { randomUUID } from 'crypto';
-import { execSync } from 'child_process';
+import Gst from 'gstreamer-superficial';
 import path from 'path';
 
 async function main() {
@@ -31,8 +31,31 @@ async function main() {
     '720': path.join(outDir, '720.webm'),
   };
 
+  async function transcodeVariant(height, file) {
+    return new Promise((resolve, reject) => {
+      const pipelineStr =
+        `filesrc location="${inputPath}" ! decodebin ! videoconvert ! videoscale ! ` +
+        `video/x-raw,height=${height} ! vp9enc ! webmmux ! filesink location="${file}"`;
+
+      const p = new Gst.Pipeline(pipelineStr);
+      p.pollBus((msg) => {
+        switch (msg.type) {
+          case 'eos':
+            p.stop();
+            resolve();
+            break;
+          case 'error':
+            p.stop();
+            reject(new Error(msg.error || 'GStreamer error'));
+            break;
+        }
+      });
+      p.play();
+    });
+  }
+
   for (const [h, file] of Object.entries(variants)) {
-    execSync(`ffmpeg -i ${inputPath} -vf scale=-2:${h} -c:v libvpx-vp9 -b:v 0 -crf 33 ${file}`);
+    await transcodeVariant(h, file);
     variants[h] = file;
   }
 
