@@ -15,6 +15,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   const [name, setName] = useState('');
   const [about, setAbout] = useState('');
   const [picture, setPicture] = useState<string>('');
+  const [lud16, setLud16] = useState('');
   const [rawImage, setRawImage] = useState<string>('');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -26,6 +27,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     if (!name) setName(meta.name || '');
     if (!about) setAbout(meta.about || '');
     if (!picture) setPicture(meta.picture || '');
+    if (!lud16) setLud16(meta.lud16 || '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meta]);
 
@@ -75,7 +77,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     setRawImage('');
   }, [rawImage, croppedArea]);
 
-  async function setMetadata(data: { name?: string; about?: string; picture?: string }) {
+  async function setMetadata(data: { name?: string; about?: string; picture?: string; lud16?: string }) {
     if (state.status !== 'ready') throw new Error('Not signed in');
     const content = JSON.stringify(data);
     const tmpl: EventTemplate = {
@@ -92,7 +94,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   async function saveProfile() {
     try {
       setLoading(true);
-      await setMetadata({ name, about, picture });
+      await setMetadata({ name, about, picture, lud16 });
       setLoading(false);
       onComplete();
     } catch (e: any) {
@@ -115,6 +117,12 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
           value={about}
           onChange={(e) => setAbout(e.target.value)}
           placeholder="Bio"
+          className="w-full rounded border-token border p-2 bg-card text-foreground"
+        />
+        <input
+          value={lud16}
+          onChange={(e) => setLud16(e.target.value)}
+          placeholder="Lightning Address"
           className="w-full rounded border-token border p-2 bg-card text-foreground"
         />
         <input type="file" accept="image/*" onChange={handleFile} />
