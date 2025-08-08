@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { X, Sun, Moon } from 'lucide-react';
 import useSearch from '../hooks/useSearch';
 import NotificationBell from './NotificationBell';
-import { useTheme } from '../hooks/useTheme';
+import { useTheme } from '@/context/themeContext';
 import useT from '../hooks/useT';
 
 const SearchBar: React.FC = () => {
