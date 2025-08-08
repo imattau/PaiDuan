@@ -108,13 +108,13 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Name"
-          className="w-full rounded border p-2 text-black"
+          className="w-full rounded border-token border p-2 bg-card text-foreground"
         />
         <textarea
           value={about}
           onChange={(e) => setAbout(e.target.value)}
           placeholder="Bio"
-          className="w-full rounded border p-2 text-black"
+          className="w-full rounded border-token border p-2 bg-card text-foreground"
         />
         <input type="file" accept="image/*" onChange={handleFile} />
         {rawImage && (
@@ -142,7 +142,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
             />
-            <button className="btn-secondary" onClick={finishCrop}>
+            <button className="btn btn-secondary" onClick={finishCrop}>
               Done
             </button>
           </div>
@@ -153,7 +153,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
         <button
           onClick={saveProfile}
           disabled={loading}
-          className="px-4 py-2 rounded-xl border bg-yellow-100/70 hover:bg-yellow-100 text-gray-900 disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {loading ? 'Saving…' : 'Save'}
         </button>

@@ -84,7 +84,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs">
       <button
-        className="btn-primary w-full"
+        className="btn btn-primary w-full"
         onClick={connectExtension}
         disabled={!(globalThis as any).nostr}
       >
@@ -99,15 +99,15 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
           placeholder="nostrconnect:..."
           className="input w-full"
         />
-        <button className="btn-secondary w-full" onClick={connectRemote}>
+        <button className="btn btn-secondary w-full" onClick={connectRemote}>
           Connect remote signer
         </button>
       </div>
 
-      <button className="btn-secondary w-full" onClick={importKey}>
+      <button className="btn btn-secondary w-full" onClick={importKey}>
         Import nsec / hex
       </button>
-      <button className="btn-secondary w-full" onClick={generateKey}>
+      <button className="btn btn-secondary w-full" onClick={generateKey}>
         Generate new key
       </button>
     </div>
