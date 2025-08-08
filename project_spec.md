@@ -54,6 +54,7 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, a
 | 8   | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; capture `video`, `poster` & `manifest` URLs and publish kind‑30023 event with `v`, `image`, `vman`, optional `zap` and one `t` tag per topic.                                                                                  |
 | 9   | Error handling     | Toasts for FFmpeg load failure, file type issues, upload errors.                                                                                                                   |
 | 10  | Responsive design  | Wizard lets steps manage their own widths; metadata step displays preview and fields side-by-side on large (`lg`) screens. |
+| 11  | Event publishing   | CreatorWizard publishes a signed kind-30023 event containing video URL, poster, manifest, zap address, and topic tags. |
 ### Acceptance Criteria
 
 - CreatorWizard first screen is option chooser.
@@ -62,6 +63,7 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, a
 - Trim works without errors; poster capture succeeds.
 - UI looks modern, consistent with landing/auth redesign.
 - FFmpeg loads only when needed, no `createFFmpeg` import errors.
+- Metadata screen shows video preview (left) and metadata form (right) in two columns on large screens.
 
 ## Progressive Web App UI Standard
 
