@@ -6,6 +6,7 @@ import NotificationBell from '@/components/NotificationBell';
 import { useTheme } from '@/context/themeContext';
 import { Sun, Moon } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { cardStyle } from '@/components/ui/Card';
 
 export default function LeftNav({
   me,
@@ -29,7 +30,7 @@ export default function LeftNav({
       <MiniProfileCard />
 
       {/* Nav */}
-      <nav className="bg-card border border-token rounded-2xl p-2">
+      <nav className={`${cardStyle} p-2`}>
         <ul className="flex flex-col">
           {[
             { href: '/feed', label: 'Home' },
@@ -58,7 +59,7 @@ export default function LeftNav({
       </nav>
 
       {/* Actions */}
-      <div className="bg-card border border-token rounded-2xl p-2 flex items-center justify-between">
+      <div className={`${cardStyle} p-2 flex items-center justify-between`}>
         <button
           onClick={toggleMode}
           className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 focus-visible:bg-white/50 dark:focus-visible:bg-white/10"
@@ -69,7 +70,7 @@ export default function LeftNav({
       </div>
 
       {/* Stats */}
-      <div className="bg-card border border-token rounded-2xl p-4 text-sm">
+      <div className={`${cardStyle} p-4 text-sm`}>
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Followers</span>
           <span className="text-[0.9rem] font-light">{me.stats.followers.toLocaleString()}</span>
