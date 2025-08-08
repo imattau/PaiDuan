@@ -1,6 +1,8 @@
-import { NostrLogin } from '../NostrLogin'
+import { useRouter } from 'next/router'
 
 export default function Hero() {
+  const router = useRouter()
+
   return (
     <section className="py-16 px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
       {/* left: text and login */}
@@ -12,7 +14,12 @@ export default function Hero() {
           Lightning-fast short video, powered by Nostr and Lightning.
         </p>
         <div className="mt-8 flex justify-center md:justify-start">
-          <NostrLogin />
+          <button
+            className="btn-primary"
+            onClick={() => router.push('/onboarding')}
+          >
+            Get Started
+          </button>
         </div>
       </div>
       {/* right: preview grid */}
