@@ -87,7 +87,7 @@ export function UploadStep({ onBack, onCancel }: { onBack: () => void; onCancel:
           disabled={!file || busy}
           onClick={convert}
         >
-          {busy ? 'Processing…' : 'Convert to .webm'}
+          {busy ? 'Processing…' : file ? 'Next' : 'Convert to .webm'}
         </button>
       </div>
 
