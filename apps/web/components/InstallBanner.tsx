@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useInstallPrompt from '../hooks/useInstallPrompt';
 import { trackEvent } from '../utils/analytics';
 import useT from '../hooks/useT';
+import useFocusTrap from '../hooks/useFocusTrap';
 
 export default function InstallBanner() {
   const { canInstall, showPrompt } = useInstallPrompt();
   const [visible, setVisible] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
   const t = useT();
+
+  useFocusTrap(visible, bannerRef);
 
   useEffect(() => {
     const dismissed = localStorage.getItem('installDismissed');
@@ -30,7 +34,13 @@ export default function InstallBanner() {
   };
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-50 bg-background/90 p-4 flex items-center justify-between">
+    <div
+      ref={bannerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('install_paiduan')}
+      className="fixed bottom-0 inset-x-0 z-50 bg-background/90 p-4 flex items-center justify-between"
+    >
       <span>{t('install_paiduan')}</span>
       <div className="space-x-2">
         <button onClick={handleInstall} className="rounded bg-accent px-3 py-1 text-white">

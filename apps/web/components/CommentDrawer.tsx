@@ -9,6 +9,7 @@ import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
+import useFocusTrap from '../hooks/useFocusTrap';
 
 interface CommentDrawerProps {
   videoId: string;
@@ -24,6 +25,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   onCountChange,
 }) => {
   const poolRef = useRef(new SimplePool());
+  const drawerRef = useRef<HTMLDivElement>(null);
   const { state } = useAuth();
   const [events, setEvents] = useState<NostrEvent[]>([]);
   const [input, setInput] = useState('');
@@ -34,6 +36,8 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   const [{ y }, api] = useSpring(() => ({ y: 100 }));
+
+  useFocusTrap(open, drawerRef);
 
   useEffect(() => {
     api.start({ y: open ? 0 : 100 });
@@ -181,13 +185,17 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
 
   return (
     <animated.div
+      ref={drawerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Comments"
       style={{ transform: y.to((py) => `translateY(${py}%)`) }}
       className="fixed inset-x-0 bottom-0 z-50 h-1/2 bg-background text-foreground"
       {...bind()}
     >
       <div className="flex items-center justify-between border-b border-foreground/10 p-2">
         <span className="font-semibold">Comments</span>
-        <button onClick={onClose} className="p-1 hover:text-accent">
+        <button onClick={onClose} className="p-1 hover:text-accent" aria-label="Close comments">
           <X />
         </button>
       </div>
@@ -207,7 +215,11 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
                 </button>
               </div>
               <div className="relative">
-                <button onClick={() => setMenuFor(c.id)} className="p-1 text-foreground/50">
+                <button
+                  onClick={() => setMenuFor(c.id)}
+                  className="p-1 text-foreground/50"
+                  aria-label="Comment options"
+                >
                   <MoreVertical size={16} />
                 </button>
                 {menuFor === c.id && (
@@ -239,10 +251,14 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
                     Reply
                   </button>
                 </div>
-                <div className="relative">
-                  <button onClick={() => setMenuFor(r.id)} className="p-1 text-foreground/50">
-                    <MoreVertical size={16} />
-                  </button>
+              <div className="relative">
+                <button
+                  onClick={() => setMenuFor(r.id)}
+                  className="p-1 text-foreground/50"
+                  aria-label="Comment options"
+                >
+                  <MoreVertical size={16} />
+                </button>
                   {menuFor === r.id && (
                     <div className="absolute right-0 mt-1 w-24 rounded bg-background p-1 shadow">
                       <button
