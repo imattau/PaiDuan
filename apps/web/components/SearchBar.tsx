@@ -56,7 +56,7 @@ const SearchBar: React.FC = () => {
           title={t('toggle_theme')}
           className="hover:text-accent"
         >
-          {mode === 'dark' ? <Sun /> : <Moon />}
+          {mode === 'dark' ? <Sun className="text-gray-900 dark:text-gray-100" /> : <Moon className="text-gray-900 dark:text-gray-100" />}
         </button>
         <NotificationBell />
       </div>

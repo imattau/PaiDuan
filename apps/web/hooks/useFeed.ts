@@ -3,7 +3,7 @@ import { SimplePool, Event as NostrEvent, Filter } from 'nostr-tools';
 import { VideoCardProps } from '../components/VideoCard';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 
-export type FeedMode = { type: 'all' } | { type: 'following'; authors: string[] } | { type: 'tag'; tag: string };
+export type FeedMode = 'all' | 'following' | { tag: string } | { author: string }; 
 
 interface FeedResult {
   items: VideoCardProps[];
@@ -26,7 +26,7 @@ function relayList(): string[] {
   return ['wss://relay.damus.io', 'wss://nos.lol'];
 }
 
-export function useFeed(mode: FeedMode): FeedResult {
+export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
   const [items, setItems] = useState<VideoCardProps[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const poolRef = useRef<SimplePool>();
@@ -84,15 +84,16 @@ export function useFeed(mode: FeedMode): FeedResult {
     subRef.current?.close();
 
     const filter: Filter = { kinds: [30023], limit: 1000 };
-    if (mode.type === 'following') {
-      if (mode.authors.length === 0) {
+    if (mode === 'following') {
+      if (authors.length === 0) {
         setItems([]);
         return;
       }
-      filter.authors = mode.authors;
-    }
-    if (mode.type === 'tag') {
+      filter.authors = authors;
+    } else if (typeof mode === 'object' && 'tag' in mode) {
       filter['#t'] = [mode.tag];
+    } else if (typeof mode === 'object' && 'author' in mode) {
+      filter.authors = [mode.author];
     }
 
     const relays = relayList();
@@ -123,7 +124,7 @@ export function useFeed(mode: FeedMode): FeedResult {
           onLike: () => {},
         });
         setItems([...nextItems]);
-        if (mode.type === 'all') {
+        if (mode === 'all') {
           const sorted = Object.entries(tagCounts)
             .sort((a, b) => b[1] - a[1])
             .map(([t]) => t);
@@ -135,7 +136,7 @@ export function useFeed(mode: FeedMode): FeedResult {
 
     subRef.current = sub;
     return () => sub.close();
-  }, [JSON.stringify(mode)]);
+  }, [JSON.stringify(mode), authors.join(',')]);
 
   const prepend = (item: VideoCardProps) => setItems((prev) => [item, ...prev]);
 

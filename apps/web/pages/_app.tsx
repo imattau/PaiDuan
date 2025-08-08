@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { NotificationsProvider } from '../hooks/useNotifications';
 import NotificationDrawer from '../components/NotificationDrawer';
 import NavBar from '../components/NavBar';
+import FabUpload from '../components/FabUpload';
 import { ThemeProvider } from '@/context/themeContext';
 import InstallBanner from '../components/InstallBanner';
 import useOffline from '../utils/useOffline';
@@ -21,6 +22,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const locale = (router.query.locale as string) || 'en';
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  useEffect(() => {
+    const accent = localStorage.getItem('accent') || 'violet';
+    document.documentElement.setAttribute('data-accent', accent);
+  }, []);
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_SENTRY_DSN && consentGiven()) {
@@ -59,8 +64,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
               >
                 <Component {...pageProps} />
               </Sentry.ErrorBoundary>
+              {!pageProps?.config?.hideFab && <FabUpload />}
               <NotificationDrawer />
-              <NavBar />
+              {router.pathname.startsWith('/en/feed') || router.pathname.startsWith('/en/create') || router.pathname.startsWith('/en/settings') ? <NavBar /> : null}
               <InstallBanner />
               <Toaster />
             </NotificationsProvider>
