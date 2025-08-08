@@ -1,29 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
+import { getRelays } from '@/lib/nostr';
 
 export function NetworkCard() {
-  const [relays, setRelays] = useState<string[]>([]);
+  const [relays, setRelays] = useState<string[]>(getRelays);
   const [input, setInput] = useState('');
-
-  // load relays from localStorage on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const stored = window.localStorage.getItem('pd.relays');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setRelays(parsed);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   // persist relays to localStorage whenever they change
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       window.localStorage.setItem('pd.relays', JSON.stringify(relays));
+      window.dispatchEvent(new Event('pd.relays')); // notify listeners
     } catch {
       /* ignore */
     }

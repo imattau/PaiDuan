@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import { SimplePool } from 'nostr-tools/pool';
+import { getRelays } from '../../apps/web/lib/nostr';
 
 const ADMIN_PUBKEYS = (process.env.ADMIN_PUBKEYS || '').split(',').filter(Boolean);
 
@@ -55,7 +56,7 @@ export default function Dashboard({ allowed }: Props) {
     const event = { kind: 9001, created_at: ts, content: JSON.stringify(hide) };
     const signed = await nostr.signEvent(event);
     const pool: any = new SimplePool();
-    await pool.publish(['wss://relay.damus.io', 'wss://nos.lol'], signed);
+    await pool.publish(getRelays(), signed);
     await approve(id);
   };
 

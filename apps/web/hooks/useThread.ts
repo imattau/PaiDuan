@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Event, type Filter, finalizeEvent } from 'nostr-tools';
 import * as nostrKinds from 'nostr-tools/kinds';
-import { getPool, RELAYS, getMyPrivkey, getMyPubkey } from '@/lib/nostr';
+import { getPool, getRelays, getMyPrivkey, getMyPubkey } from '@/lib/nostr';
 
 type Note = {
   id: string;
@@ -46,7 +46,7 @@ export function useThread(rootEventId?: string) {
     const evs: Event[] = [];
     const filters: Filter[] = [{ kinds: [nostrKinds.ShortTextNote], '#e': [rootEventId], limit: 200 }];
 
-    const sub = pool.subscribeMany(RELAYS, filters, {
+    const sub = pool.subscribeMany(getRelays(), filters, {
       onevent: (ev: Event) => {
         evs.push(ev);
         setNotes(parseThread(evs));
@@ -97,7 +97,7 @@ export function useThread(rootEventId?: string) {
       },
     ]);
 
-    await pool.publish(RELAYS, ev);
+    await pool.publish(getRelays(), ev);
     return ev.id;
   }
 

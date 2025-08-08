@@ -4,6 +4,7 @@ import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { VideoCardProps } from '../components/VideoCard';
 import { ADMIN_PUBKEYS } from '../utils/admin';
+import { getRelays } from '@/lib/nostr';
 
 export type FeedMode = 'all' | 'following' | { tag: string } | { author: string }; 
 
@@ -11,21 +12,6 @@ interface FeedResult {
   items: VideoCardProps[];
   tags: string[];
   prepend: (item: VideoCardProps) => void;
-}
-
-function relayList(): string[] {
-  if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
-  const nostr = (window as any).nostr;
-  if (nostr?.getRelays) {
-    try {
-      const relays = nostr.getRelays();
-      if (Array.isArray(relays)) return relays;
-      if (relays && typeof relays === 'object') return Object.keys(relays);
-    } catch {
-      /* ignore */
-    }
-  }
-  return ['wss://relay.damus.io', 'wss://nos.lol'];
 }
 
 export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
@@ -67,7 +53,7 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
     window.addEventListener('modqueue', listener);
 
     const pool = (poolRef.current ||= new SimplePool());
-    const relays = relayList();
+    const relays = getRelays();
     const sub = pool.subscribeMany(relays, [{ kinds: [9001] }], {
       onevent: (ev: any) => {
         const tag = ev.tags.find((t: string[]) => t[0] === 'e');
@@ -98,7 +84,7 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
       filter.authors = [mode.author];
     }
 
-    const relays = relayList();
+    const relays = getRelays();
     const nextItems: VideoCardProps[] = [];
     const tagCounts: Record<string, number> = {};
     const sub = pool.subscribeMany(relays, [filter], {

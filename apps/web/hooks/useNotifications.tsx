@@ -2,8 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import pool from './pool';
 import { toast } from 'react-hot-toast';
-
-const relays = ['wss://relay.damus.io', 'wss://nos.lol'];
+import { getRelays } from '@/lib/nostr';
 
 export interface Notification {
   id: string;
@@ -95,6 +94,7 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     (async () => {
       try {
         const pubkey = await nostr.getPublicKey();
+        const relays = getRelays();
 
         // fetch my video ids (kind 30023)
         let myVideos: NostrEvent[] = [];

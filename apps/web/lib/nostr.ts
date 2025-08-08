@@ -73,7 +73,15 @@ function parseRelays(input: unknown): string[] | undefined {
   return undefined;
 }
 
-export const RELAYS: string[] =
-  parseRelays(process.env.NEXT_PUBLIC_RELAYS) ??
-  parseRelays(relaysConfig) ??
-  DEFAULT_RELAYS;
+export function getRelays(): string[] {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('pd.relays');
+      const parsed = parseRelays(stored);
+      if (parsed && parsed.length > 0) return parsed;
+    } catch {
+      /* ignore */
+    }
+  }
+  return parseRelays(relaysConfig) ?? DEFAULT_RELAYS;
+}

@@ -3,6 +3,7 @@ import { SimplePool } from 'nostr-tools/pool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { VideoCardProps } from '../components/VideoCard';
+import { getRelays } from '@/lib/nostr';
 
 export interface CreatorResult {
   pubkey: string;
@@ -15,20 +16,6 @@ export interface SearchResults {
   creators: CreatorResult[];
 }
 
-function relayList(): string[] {
-  if (typeof window === 'undefined') return ['wss://relay.damus.io', 'wss://nos.lol'];
-  const nostr = (window as any).nostr;
-  if (nostr?.getRelays) {
-    try {
-      const relays = nostr.getRelays();
-      if (Array.isArray(relays)) return relays;
-      if (relays && typeof relays === 'object') return Object.keys(relays);
-    } catch {
-      /* ignore */
-    }
-  }
-  return ['wss://relay.damus.io', 'wss://nos.lol'];
-}
 
 export function useSearch(query: string): SearchResults {
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
@@ -49,7 +36,7 @@ export function useSearch(query: string): SearchResults {
     subRef.current?.close();
     if (timerRef.current) clearTimeout(timerRef.current);
 
-    const relays = relayList();
+    const relays = getRelays();
     const filters: Filter[] = [];
     const q = query.startsWith('@') || query.startsWith('#') ? query.slice(1) : query;
 
