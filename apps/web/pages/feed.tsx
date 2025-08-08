@@ -1,6 +1,7 @@
 import AppShell from '@/components/layout/AppShell';
 import LeftNav from '@/components/layout/LeftNav';
 import RightPanel from '@/components/feed/RightPanel';
+import PlaceholderVideo from '@/components/PlaceholderVideo';
 import useFeed from '@/hooks/useFeed';
 import { useAuth } from '@/hooks/useAuth';
 import useFollowing, { getFollowers } from '@/hooks/useFollowing';
@@ -22,7 +23,12 @@ export default function FeedPage() {
           username: meProfile?.name || auth.pubkey.slice(0, 8),
           stats: { followers: getFollowers(auth.pubkey), following: following.length },
         }
-      : { avatar: '/api/avatar/me', name: 'You', username: 'me', stats: { followers: 0, following: 0 } };
+      : {
+          avatar: '/api/avatar/me',
+          name: 'You',
+          username: 'me',
+          stats: { followers: 0, following: 0 },
+        };
 
   const authorProfile = useProfile(selectedVideoAuthor);
   const author =
@@ -47,7 +53,7 @@ export default function FeedPage() {
         <div className="space-y-6">
           {/* tabs bar you already have can stay on top */}
           {videos.length === 0 ? (
-            <div className="text-center text-muted-foreground py-20">No videos yet.</div>
+            <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-foreground" />
           ) : (
             videos.map((v) => <div key={v.eventId}>{/* <VideoCard {...v} /> */}</div>)
           )}
