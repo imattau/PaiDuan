@@ -15,19 +15,36 @@ export type AuthState =
       };
     };
 
-const KEY = 'nostr-auth';
+class KeyStore {
+  private readonly KEY = 'nostr-auth';
 
-export function saveKey(data: AuthState) {
-  if ((data as any).privkey) throw new Error('Refusing to store plaintext privkey');
-  localStorage.setItem(KEY, JSON.stringify(data));
+  save(data: AuthState) {
+    if (
+      typeof (data as any).privkey === 'string' ||
+      typeof (data as any).privkeyHex === 'string'
+    )
+      throw new Error('Refusing to store plaintext privkey');
+
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify(data));
+    } catch {}
+  }
+
+  load(): AuthState | null {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      return raw ? (JSON.parse(raw) as AuthState) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  clear() {
+    try {
+      localStorage.removeItem(this.KEY);
+    } catch {}
+  }
 }
 
-export function getStoredKey(): AuthState | null {
-  const raw = localStorage.getItem(KEY);
-  return raw ? JSON.parse(raw) : null;
-}
-
-export function clearKey() {
-  localStorage.removeItem(KEY);
-}
+export const keyStore = new KeyStore();
 

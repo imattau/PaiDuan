@@ -6,7 +6,7 @@ import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { cryptoVault } from '@/utils/cryptoVault';
-import { saveKey } from '@/utils/keyStorage';
+import { keyStore } from '@/utils/keyStorage';
 import { promptPassphrase } from '@/utils/promptPassphrase';
 import { Button } from '@paiduan/ui';
 
@@ -31,7 +31,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
     try {
       const encPriv = await cryptoVault.encryptPrivkeyHex(priv, pass);
       const pubkey = getPublicKey(priv);
-      saveKey({ method, pubkey, encPriv });
+      keyStore.save({ method, pubkey, encPriv });
       signInWithLocal(priv);
       // remove plaintext storage from auth hook
       try {
@@ -64,7 +64,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
       await signInWithNip46(uri);
       if (state.status === 'ready') {
         try {
-          saveKey({ method: 'remote', pubkey: state.pubkey, relay: uri });
+          keyStore.save({ method: 'remote', pubkey: state.pubkey, relay: uri });
         } catch {}
       }
       onComplete();
