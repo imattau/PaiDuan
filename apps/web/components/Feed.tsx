@@ -51,7 +51,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
 
   useEffect(() => {
     api.start({ y: -index * 100 });
-  }, [index]);
+  }, [index, api]);
 
   if (loading) {
     return (

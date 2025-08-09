@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Thread from '@/components/comments/Thread';
 import { useFeedSelection } from '@/store/feedSelection';
 import { cardStyle } from '@/components/ui/Card';
@@ -18,7 +19,13 @@ export default function RightPanel({
       {author && (
         <div className={`${cardStyle} p-4`}>
           <div className="flex gap-3">
-            <img src={author.avatar} className="w-12 h-12 rounded-full object-cover" alt="" />
+            <Image
+              src={author.avatar}
+              alt={author.name}
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-full object-cover"
+            />
             <div>
               <div className="font-semibold">{author.name}</div>
               <div className="text-sm text-muted">@{author.username}</div>

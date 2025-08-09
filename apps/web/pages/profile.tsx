@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import AppShell from '@/components/layout/AppShell';
@@ -45,9 +46,11 @@ export default function Profile() {
         <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
           <Card title="Profile" desc="Your public profile information.">
             <div className="flex items-center gap-4">
-              <img
+              <Image
                 src={meta?.picture || '/avatar.svg'}
                 alt="avatar"
+                width={96}
+                height={96}
                 className="h-24 w-24 rounded-full object-cover"
               />
               <div className="text-lg font-semibold">{meta?.name || 'Anonymous'}</div>
