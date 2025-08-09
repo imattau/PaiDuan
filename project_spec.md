@@ -38,27 +38,26 @@ Replace “Enter Feed” with standard Nostr login flow, support new/imported ke
 
 ### Objective
 
-Modernise Creator Wizard UI, fix tool loading/trim bugs, add recording option, and ensure WebM (9:16) is default format.
+Modernise Creator Wizard UI, fix tool loading/trim bugs, and ensure WebM (9:16) is default format. Recording in the browser is currently out of scope.
 
 ### Tasks
 
 | #   | Area               | Work required                                                                                                                                                                      |
 | --- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | CreatorWizard UI   | Replace current 3-step flow with wizard that first asks “What do you want to do?” — options: **Record video**, **Upload existing**, **Import from URL**.                           |
-| 2   | Dynamic components | Load relevant step component depending on option (e.g., `RecordStep.tsx`, `UploadStep.tsx`).                                                                                       |
-| 3   | Recording          | Implement `getUserMedia()` recording via `MediaRecorder` API; ≤3 minutes; store Blob in state.                                                                                     |
-| 4   | Upload             | Existing file input flow; enforce ≤3 minutes; immediately transcode if not WebM.                                                                                                   |
-| 5   | Transcoding        | Use the WebCodecs API with a polyfill; default to WebM VP9, 9:16 crop. |
-| 6   | Trim tool          | Ensure trim UI loads only after video metadata loaded; fix “pressing Next throws trim error” by validating clip bounds.                                                            |
-| 7   | Poster capture     | Frame capture via `<canvas>`; store as JPEG/WebP; attach to upload payload.                                                                                                        |
-| 8   | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; capture `video`, `poster` & `manifest` URLs and publish kind‑30023 event with `v`, `image`, `vman`, optional `zap` and one `t` tag per topic.                                                                                  |
-| 9   | Error handling     | Toasts for FFmpeg load failure, file type issues, upload errors.                                                                                                                   |
-| 10  | Responsive design  | Wizard lets steps manage their own widths; metadata step displays preview and fields side-by-side on large (`lg`) screens. |
-| 11  | Event publishing   | CreatorWizard publishes a signed kind-30023 event containing video URL, poster, manifest, zap address, and topic tags. |
+| 1   | CreatorWizard UI   | Replace current 3-step flow with wizard that first asks “What do you want to do?” — options: **Upload existing** or **Import from URL**.                           |
+| 2   | Dynamic components | Load relevant step component depending on option (e.g., `UploadStep.tsx`).                                                                                |
+| 3   | Upload             | Existing file input flow; enforce ≤3 minutes; immediately transcode if not WebM.                                                                                |
+| 4   | Transcoding        | Use the WebCodecs API with a polyfill; default to WebM VP9, 9:16 crop. |
+| 5   | Trim tool          | Ensure trim UI loads only after video metadata loaded; fix “pressing Next throws trim error” by validating clip bounds.                                                            |
+| 6   | Poster capture     | Frame capture via `<canvas>`; store as JPEG/WebP; attach to upload payload.                                                                                |
+| 7   | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; capture `video`, `poster` & `manifest` URLs and publish kind‑30023 event with `v`, `image`, `vman`, optional `zap` and one `t` tag per topic.                                                            |
+| 8   | Error handling     | Toasts for FFmpeg load failure, file type issues, upload errors.                                                                                |
+| 9   | Responsive design  | Wizard lets steps manage their own widths; metadata step displays preview and fields side-by-side on large (`lg`) screens. |
+| 10  | Event publishing   | CreatorWizard publishes a signed kind-30023 event containing video URL, poster, manifest, zap address, and topic tags. |
 ### Acceptance Criteria
 
 - CreatorWizard first screen is option chooser.
-- Recording, uploading, importing all work end-to-end.
+- Uploading and importing work end-to-end; no in-browser recording is provided.
 - All videos output as WebM (VP9), 9:16 cropped if needed.
 - Trim works without errors; poster capture succeeds.
 - UI looks modern, consistent with landing/auth redesign.
