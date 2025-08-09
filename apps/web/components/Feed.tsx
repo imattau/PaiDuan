@@ -4,6 +4,7 @@ import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
 import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
 import Link from 'next/link';
+import { useFeedSelection } from '@/store/feedSelection';
 
 interface FeedProps {
   items: VideoCardProps[];
@@ -16,6 +17,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const [{ y }, api] = useSpring(() => ({ y: 0 }));
 
   const wheelOffset = useRef(0);
+  const { setSelectedVideo } = useFeedSelection();
 
   const bind = useGesture(
     {
@@ -59,6 +61,11 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
       loadMore?.();
     }
   }, [index, items.length, loadMore]);
+
+  useEffect(() => {
+    if (!items[index]) return;
+    setSelectedVideo(items[index].eventId, items[index].pubkey);
+  }, [index, items, setSelectedVideo]);
 
   if (loading) {
     return (
