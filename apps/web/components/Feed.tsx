@@ -161,7 +161,7 @@ export const Feed: React.FC<FeedProps> = ({
               e.stopPropagation();
               prev();
             }}
-            className="btn btn-secondary absolute top-1/2 -translate-y-1/2 left-4"
+
           >
             Previous
           </button>
@@ -170,7 +170,7 @@ export const Feed: React.FC<FeedProps> = ({
               e.stopPropagation();
               next();
             }}
-            className="btn btn-secondary absolute top-1/2 -translate-y-1/2 right-4"
+
           >
             Next
           </button>
