@@ -1,3 +1,4 @@
+
 importScripts('/workbox-sw.js');
 
 self.addEventListener('install', () => {
