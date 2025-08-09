@@ -21,7 +21,7 @@ import { useFeedSelection } from '@/store/feedSelection';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
-import { SimplePool } from 'nostr-tools/pool';
+import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
 
 const MoreVertical = dynamic(() => import('lucide-react').then((mod) => mod.MoreVertical), {
@@ -91,12 +91,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     if (auth.status !== 'ready') return;
     if (!window.confirm('Repost this video?')) return;
     try {
-      const relays = getRelays();
-      const pool = new SimplePool();
+        const relays = getRelays();
       let original: any = null;
       let relayUrl: string | undefined;
-      for (const r of relays) {
-        original = await pool.get([r], { ids: [eventId] });
+        for (const r of relays) {
+          original = await pool.get([r], { ids: [eventId] });
         if (original) {
           relayUrl = r;
           break;

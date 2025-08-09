@@ -1,9 +1,9 @@
-import { SimplePool } from 'nostr-tools/pool';
 import { generateSecretKey, getPublicKey, type EventTemplate } from 'nostr-tools/pure';
 import * as nip04 from 'nostr-tools/nip04';
 import { Relay } from 'nostr-tools/relay';
 import type { Signer } from './types';
 import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 
 type Nip46Session = {
   remotePubkey: string;
@@ -14,7 +14,7 @@ type Nip46Session = {
 export class Nip46Signer implements Signer {
   type: Signer['type'] = 'nip46';
   private session: Nip46Session;
-  private pool = new SimplePool();
+    private pool = pool;
 
   constructor(session: Nip46Session) {
     this.session = session;

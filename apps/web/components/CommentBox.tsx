@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SimplePool } from 'nostr-tools/pool';
+import pool from '@/lib/relayPool';
 import type { Event } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
@@ -24,8 +24,8 @@ export default function CommentBox({ videoId, onSend }: CommentBoxProps) {
         content: input,
         pubkey: state.pubkey,
       };
-      const signed = await state.signer.signEvent(event);
-      await new SimplePool().publish(getRelays(), signed);
+        const signed = await state.signer.signEvent(event);
+        await pool.publish(getRelays(), signed);
       setInput('');
       onSend?.(signed);
     } catch {

@@ -37,7 +37,7 @@ vi.mock('../../hooks/useFollowing', () => ({ default: () => ({ following: [] }) 
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
 
 const mockPublish = vi.fn();
-vi.mock('nostr-tools/pool', () => ({ SimplePool: vi.fn(() => ({ publish: mockPublish })) }));
+vi.mock('../../lib/relayPool', () => ({ default: { publish: mockPublish } }));
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn() }) }));
 

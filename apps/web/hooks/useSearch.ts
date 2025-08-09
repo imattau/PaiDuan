@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { SimplePool } from 'nostr-tools/pool';
+import pool from '@/lib/relayPool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { VideoCardProps } from '../components/VideoCard';
@@ -47,8 +47,7 @@ export interface SearchResults {
 export function useSearch(query: string): SearchResults {
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [creators, setCreators] = useState<CreatorResult[]>([]);
-  const poolRef = useRef<SimplePool>();
-  const subRef = useRef<{ close: () => void } | null>(null);
+    const subRef = useRef<{ close: () => void } | null>(null);
   const timerRef = useRef<NodeJS.Timeout>();
   const debounceRef = useRef<NodeJS.Timeout>();
 
@@ -63,8 +62,7 @@ export function useSearch(query: string): SearchResults {
       return;
     }
 
-    const pool = (poolRef.current ||= new SimplePool());
-    const relays = getRelays();
+      const relays = getRelays();
     const filters: Filter[] = [];
     const q = query.startsWith('@') || query.startsWith('#') ? query.slice(1) : query;
 

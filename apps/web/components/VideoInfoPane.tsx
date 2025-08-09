@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { SimplePool } from 'nostr-tools/pool';
 import type { Event } from 'nostr-tools/pure';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFollowing } from '../hooks/useFollowing';
 import ZapButton from './ZapButton';
 import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function VideoInfoPane() {
@@ -20,8 +20,7 @@ export default function VideoInfoPane() {
   useEffect(() => {
     if (!current) return;
     (async () => {
-      const pool = new SimplePool();
-      const relays = getRelays();
+        const relays = getRelays();
       try {
         const [m] = await pool.list(relays, [{ kinds: [0], authors: [current.pubkey], limit: 1 }]);
         setMeta(m ? JSON.parse(m.content) : null);

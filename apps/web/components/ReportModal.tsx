@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SimplePool } from 'nostr-tools/pool';
+import pool from '@/lib/relayPool';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
@@ -25,18 +25,15 @@ const ReportModal: React.FC<Props> = ({ targetId, targetKind, open, onClose }) =
       const reporterPubKey = state.pubkey;
       const ts = Math.floor(Date.now() / 1000);
       const report = { targetId, targetKind, reason, reporterPubKey, ts, details };
-      const event = { kind: 30041, created_at: ts, content: JSON.stringify(report), pubkey: reporterPubKey };
-      const signed = await state.signer.signEvent(event);
-      const pool: any = new SimplePool();
-      const relays = getRelays();
-      try {
-        await pool.publish(relays, signed);
-      } catch (err) {
-        console.error('Failed to publish report', err);
-        throw err;
-      } finally {
-        pool.close(relays);
-      }
+        const event = { kind: 30041, created_at: ts, content: JSON.stringify(report), pubkey: reporterPubKey };
+        const signed = await state.signer.signEvent(event);
+        const relays = getRelays();
+        try {
+          await pool.publish(relays, signed);
+        } catch (err) {
+          console.error('Failed to publish report', err);
+          throw err;
+        }
       await fetch('/api/modqueue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
-import pool from './pool';
+import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
 
 export interface ZapEvent {

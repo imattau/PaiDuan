@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { SimplePool } from 'nostr-tools/pool';
+import { useEffect, useState } from 'react';
+import pool from '@/lib/relayPool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { getRelays } from '@/lib/nostr';
@@ -7,7 +7,6 @@ import { getRelays } from '@/lib/nostr';
 export default function TreasuryPage() {
   const [authorised, setAuthorised] = useState(false);
   const [total, setTotal] = useState(0);
-  const poolRef = useRef<SimplePool>();
 
   useEffect(() => {
     let sub: { close: () => void } | undefined;
@@ -20,8 +19,7 @@ export default function TreasuryPage() {
       const pk = await nostr.getPublicKey();
       if (pk !== admin) return;
       setAuthorised(true);
-      const pool = (poolRef.current ||= new SimplePool());
-      const since = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
+        const since = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
       sub = pool.subscribeMany(getRelays(), [{ kinds: [9736], since } as Filter], {
         onevent: (ev: NostrEvent) => {
           try {

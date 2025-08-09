@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
 import { trimVideoFfmpeg } from '../../utils/trimVideoFfmpeg';
-import { SimplePool } from 'nostr-tools/pool';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useProfiles } from '../../hooks/useProfiles';
 import useFollowing from '../../hooks/useFollowing';
 import { getRelays } from '../../lib/nostr';
+import pool from '../../lib/relayPool';
 
 export default function CreateVideoForm() {
   const router = useRouter();
@@ -247,8 +247,7 @@ export default function CreateVideoForm() {
       };
 
       const signed = await state.signer.signEvent(event);
-      const pool = new SimplePool();
-      pool.publish(getRelays(), signed);
+      await pool.publish(getRelays(), signed);
       alert('Posted to Nostr');
     } catch (e: any) {
       alert(e.message || 'Failed to post');
