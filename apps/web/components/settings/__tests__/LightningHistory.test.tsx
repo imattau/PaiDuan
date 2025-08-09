@@ -11,7 +11,7 @@ vi.mock('@/lib/nostr', () => ({
 const subscribeManyMock = vi.hoisted(() => vi.fn());
 let onEvent: any;
 
-vi.mock('@/hooks/pool', () => ({
+vi.mock('@/lib/relayPool', () => ({
   default: {
     subscribeMany: (...args: any[]) => subscribeManyMock(...args),
   },

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { SimplePool } from 'nostr-tools/pool';
+import pool from '@/lib/relayPool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import VideoCard, { VideoCardProps } from '../../components/VideoCard';
 import { getRelays } from '@/lib/nostr';
@@ -13,9 +13,8 @@ export default function VideoPage() {
   useEffect(() => {
     if (!eventId) return;
     document.body.style.overflow = 'hidden';
-    const pool = new SimplePool();
-    const relays = getRelays();
-    pool.get(relays, { ids: [eventId] }).then((ev: NostrEvent | null) => {
+      const relays = getRelays();
+      pool.get(relays, { ids: [eventId] }).then((ev: NostrEvent | null) => {
       if (!ev) return;
       const videoTag = ev.tags.find((t) => t[0] === 'v');
       if (!videoTag) return;

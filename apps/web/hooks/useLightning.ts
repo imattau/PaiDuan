@@ -1,4 +1,4 @@
-import { SimplePool } from 'nostr-tools/pool';
+import pool from '@/lib/relayPool';
 import type { Filter } from 'nostr-tools/filter';
 import { useAuth } from './useAuth';
 import { getRelays } from '../lib/nostr';
@@ -18,7 +18,6 @@ interface Split {
 }
 
 export default function useLightning() {
-  const pool = new SimplePool();
   const { state } = useAuth();
 
   const payLn = async (lnaddr: string, sats: number, comment?: string) => {
