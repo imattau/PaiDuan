@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { GetServerSideProps } from 'next';
-import pool from '../../apps/web/lib/relayPool';
-import { getRelays } from '../../apps/web/lib/nostr';
+
 
 const ADMIN_PUBKEYS = (process.env.ADMIN_PUBKEYS || '').split(',').filter(Boolean);
 
