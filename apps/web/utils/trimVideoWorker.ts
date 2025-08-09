@@ -1,3 +1,5 @@
+import MP4Box from 'mp4box';
+
 self.onmessage = async (e: MessageEvent) => {
   const { blob, start, end, width, height, bitrate } = e.data || {};
   try {
@@ -7,8 +9,35 @@ self.onmessage = async (e: MessageEvent) => {
       return;
     }
 
-    // Read the blob as a stream so we can feed it to the decoder.
-    const reader = (blob as Blob).stream().getReader();
+    // Demux the container using mp4box.js to extract encoded samples with real timestamps
+    const buffer = await (blob as Blob).arrayBuffer();
+    const mp4box = MP4Box.createFile();
+    let track: any;
+    const samples: { data: Uint8Array; timestamp: number; type: 'key' | 'delta' }[] = [];
+    mp4box.onReady = (info: any) => {
+      track = info.videoTracks?.[0];
+      if (track) {
+        mp4box.setExtractionOptions(track.id);
+        mp4box.start();
+      }
+    };
+    mp4box.onSamples = (_id: number, _user: any, samps: any[]) => {
+      if (!track) return;
+      for (const s of samps) {
+        samples.push({
+          data: s.data,
+          timestamp: (s.dts / track.timescale) * 1_000_000,
+          type: s.is_sync ? 'key' : 'delta',
+        });
+      }
+    };
+    (buffer as any).fileStart = 0;
+    mp4box.appendBuffer(buffer);
+    mp4box.flush();
+
+    if (!track) {
+      throw new Error('No video track found');
+    }
 
     const outChunks: Uint8Array[] = [];
     const encoder = new (self as any).VideoEncoder({
@@ -72,18 +101,17 @@ self.onmessage = async (e: MessageEvent) => {
       },
     });
 
-    decoder.configure({ codec: 'vp8' });
+    decoder.configure({ codec: track.codec });
 
-    let timestamp = 0;
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
+    // Ensure the first chunk fed to the decoder is a key frame
+    const firstKey = samples.findIndex((s) => s.type === 'key');
+    const feed = firstKey >= 0 ? samples.slice(firstKey) : samples;
+    for (const s of feed) {
       const chunk = new (self as any).EncodedVideoChunk({
-        type: 'key',
-        timestamp,
-        data: value,
+        type: s.type,
+        timestamp: Math.round(s.timestamp),
+        data: s.data,
       });
-      timestamp += 1_000_000; // placeholder increment
       decoder.decode(chunk);
     }
 
