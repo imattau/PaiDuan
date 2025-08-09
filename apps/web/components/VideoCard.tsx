@@ -63,6 +63,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const adaptiveUrl = useAdaptiveSource(manifestUrl, playerRef);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
+  const [reposted, setReposted] = useState(false);
   const holdTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
   const { state: auth } = useAuth();
@@ -88,21 +89,38 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   const handleRepost = async () => {
     if (auth.status !== 'ready') return;
+    if (!window.confirm('Repost this video?')) return;
     try {
+      const relays = getRelays();
+      const pool = new SimplePool();
+      let original: any = null;
+      let relayUrl: string | undefined;
+      for (const r of relays) {
+        original = await pool.get([r], { ids: [eventId] });
+        if (original) {
+          relayUrl = r;
+          break;
+        }
+      }
+      if (!original || !relayUrl) {
+        throw new Error('Original event not found');
+      }
       const event: any = {
         kind: 6,
         created_at: Math.floor(Date.now() / 1000),
         tags: [
-          ['e', eventId],
+          ['e', eventId, relayUrl],
           ['p', pubkey],
         ],
-        content: '',
+        content: JSON.stringify(original),
         pubkey: auth.pubkey,
       };
       const signed = await auth.signer.signEvent(event);
-      await new SimplePool().publish(getRelays(), signed);
+      await pool.publish(relays, signed);
+      setReposted(true);
       toast.success('Reposted');
-    } catch {
+    } catch (e) {
+      console.error(e);
       toast.error('Repost failed');
     }
   };
@@ -249,8 +267,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <button
           onClick={handleRepost}
           className="hover:text-accent-primary disabled:opacity-50"
-          disabled={!online}
-          title={!online ? 'Offline – reconnect to interact.' : undefined}
+          disabled={!online || reposted}
+          title={!online
+            ? 'Offline – reconnect to interact.'
+            : reposted
+              ? 'Already reposted'
+              : undefined}
         >
           <Repeat2 className="icon" />
         </button>
