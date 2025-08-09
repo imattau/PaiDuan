@@ -3,18 +3,7 @@ import runtimeCaching from 'next-pwa/cache.js';
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const withPWAConfig = withPWA({
-  dest: 'public',
-  disable: !isProd,
-  runtimeCaching,
-  buildExcludes: [/middleware-manifest\.json$/],
-  fallbacks: {
-    image: '/offline.jpg',
-    document: '/offline.html',
-  },
-});
-
-export default withPWAConfig({
+const baseConfig = {
   experimental: { esmExternals: 'loose' },
   reactStrictMode: true,
   typescript: { ignoreBuildErrors: true },
@@ -31,4 +20,16 @@ export default withPWAConfig({
       },
     ];
   },
+};
+
+const withPWAConfig = withPWA({
+  dest: 'public',
+  runtimeCaching,
+  buildExcludes: [/middleware-manifest\.json$/],
+  fallbacks: {
+    image: '/offline.jpg',
+    document: '/offline.html',
+  },
 });
+
+export default isProd ? withPWAConfig(baseConfig) : baseConfig;
