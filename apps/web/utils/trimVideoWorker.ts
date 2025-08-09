@@ -13,20 +13,36 @@ function detectCodec(blobType?: string, trackCodec?: string): string | null {
   return null;
 }
 
+let encoder: any;
+let decoder: any;
+
+function postError(error: string, message: string) {
+  self.postMessage({ type: 'error', error, message });
+  try {
+    encoder?.close?.();
+  } catch {}
+  try {
+    decoder?.close?.();
+  } catch {}
+  self.close();
+}
+
 self.onmessage = async (e: MessageEvent) => {
   const { blob, start, end, width, height, bitrate } = e.data || {};
   try {
-    // Basic capability check
     if (typeof (self as any).VideoDecoder === 'undefined' || typeof (self as any).VideoEncoder === 'undefined') {
-      self.postMessage({ type: 'error', message: 'WebCodecs not supported' });
+      postError('unsupported', 'WebCodecs not supported');
       return;
     }
 
-    // Demux the container using mp4box.js to extract encoded samples with real timestamps
     const buffer = await (blob as Blob).arrayBuffer();
     const mp4box = MP4Box.createFile();
     let track: any;
+    let demuxError: any;
     const samples: { data: Uint8Array; timestamp: number; type: 'key' | 'delta' }[] = [];
+    mp4box.onError = (err: any) => {
+      demuxError = err;
+    };
     mp4box.onReady = (info: any) => {
       track = info.videoTracks?.[0];
       if (track) {
@@ -44,32 +60,39 @@ self.onmessage = async (e: MessageEvent) => {
         });
       }
     };
-    (buffer as any).fileStart = 0;
-    mp4box.appendBuffer(buffer);
-    mp4box.flush();
+    try {
+      (buffer as any).fileStart = 0;
+      mp4box.appendBuffer(buffer);
+      mp4box.flush();
+    } catch (err) {
+      demuxError = err;
+    }
 
-    if (!track) {
-      throw new Error('No video track found');
+    if (demuxError || !track) {
+      postError('demux-failed', 'Failed to demux video');
+      return;
     }
 
     const codec = detectCodec((blob as Blob).type, track.codec);
     if (!codec) {
-      throw new Error(`Unsupported video codec: ${track.codec || (blob as Blob).type || 'unknown'}`);
+      postError('unsupported-codec', `Unsupported video codec: ${track.codec || (blob as Blob).type || 'unknown'}`);
+      return;
     }
     const support = await (self as any).VideoDecoder.isConfigSupported({ codec });
     if (!support?.supported) {
-      throw new Error(`Codec ${codec} not supported`);
+      postError('unsupported-codec', `Codec ${codec} not supported`);
+      return;
     }
 
     const outChunks: Uint8Array[] = [];
-    const encoder = new (self as any).VideoEncoder({
+    encoder = new (self as any).VideoEncoder({
       output: (chunk: any) => {
         const arr = new Uint8Array(chunk.byteLength);
         chunk.copyTo(arr);
         outChunks.push(arr);
       },
       error: (err: any) => {
-        self.postMessage({ type: 'error', message: String(err) });
+        postError('encode-error', String(err));
       },
     });
 
@@ -86,8 +109,7 @@ self.onmessage = async (e: MessageEvent) => {
     }
 
     const total = (end ?? 0) - start;
-
-    const decoder = new (self as any).VideoDecoder({
+    decoder = new (self as any).VideoDecoder({
       output: (frame: VideoFrame) => {
         try {
           if (!encoderConfigured) {
@@ -108,46 +130,62 @@ self.onmessage = async (e: MessageEvent) => {
 
           const ts = frame.timestamp / 1e6; // microseconds -> seconds
           if (ts >= start && (end === undefined || ts <= end)) {
-            encoder.encode(frame);
+            try {
+              encoder.encode(frame);
+            } catch (err: any) {
+              postError('encode-error', err?.message ?? String(err));
+              return;
+            }
             const progress = total > 0 ? (ts - start) / total : 1;
             self.postMessage({ type: 'progress', progress: Math.max(0, Math.min(1, progress)) });
           }
         } catch (err: any) {
-          self.postMessage({ type: 'error', message: err?.message ?? String(err) });
+          postError('decode-error', err?.message ?? String(err));
         } finally {
           frame.close();
         }
       },
       error: (err: any) => {
-        self.postMessage({ type: 'error', message: String(err) });
+        postError('decode-error', String(err));
       },
     });
 
     decoder.configure({ codec });
 
-    // Ensure the first chunk fed to the decoder is a key frame
     const firstKey = samples.findIndex((s) => s.type === 'key');
-    const feed = firstKey >= 0 ? samples.slice(firstKey) : samples;
+    if (firstKey < 0) {
+      postError('no-keyframe', 'No key frame found');
+      return;
+    }
+    const feed = samples.slice(firstKey);
     for (const s of feed) {
       const chunk = new (self as any).EncodedVideoChunk({
         type: s.type,
         timestamp: Math.round(s.timestamp),
         data: s.data,
       });
-      decoder.decode(chunk);
+      try {
+        decoder.decode(chunk);
+      } catch (err: any) {
+        postError('decode-error', err?.message ?? String(err));
+        return;
+      }
     }
 
     await decoder.flush();
     if (!encoderConfigured) {
-      throw new Error('Failed to configure encoder due to missing dimensions');
+      postError('encode-error', 'Failed to configure encoder due to missing dimensions');
+      return;
     }
     await encoder.flush();
 
     const result = new Blob(outChunks, { type: 'video/webm' });
     self.postMessage({ type: 'done', blob: result });
+    self.close();
   } catch (err: any) {
-    self.postMessage({ type: 'error', message: err?.message ?? String(err) });
+    postError('unknown', err?.message ?? String(err));
   }
 };
 
 export {};
+
