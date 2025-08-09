@@ -55,6 +55,35 @@ function writeStorage(list: Notification[]) {
   }
 }
 
+export async function requestNotificationPermission() {
+  if (typeof window === 'undefined') return;
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    const permission =
+      Notification.permission === 'default'
+        ? await Notification.requestPermission()
+        : Notification.permission;
+    if (permission !== 'granted') return;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!key) return;
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(key),
+      });
+      await fetch('/api/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub }),
+      });
+    }
+  } catch (err) {
+    console.error('push setup failed', err);
+  }
+}
+
 export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>(readStorage);
   const [open, setOpen] = useState(false);
@@ -112,34 +141,6 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     writeStorage(notifications);
   }, [notifications]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!('serviceWorker' in navigator)) return;
-    (async () => {
-      try {
-        const reg = await navigator.serviceWorker.register('/sw.js');
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') return;
-        let sub = await reg.pushManager.getSubscription();
-        if (!sub) {
-          const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-          if (!key) return;
-          sub = await reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(key),
-          });
-          await fetch('/api/push', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subscription: sub }),
-          });
-        }
-      } catch (err) {
-        console.error('push setup failed', err);
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
