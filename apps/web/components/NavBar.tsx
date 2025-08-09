@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Home, Users, Plus, User } from 'lucide-react';
+import { Home, Users, Plus, Settings } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 
@@ -10,7 +10,7 @@ export default function NavBar() {
     { href: `/${locale}/feed`, icon: <Home />, label: 'Home' },
     { href: `/${locale}/feed?tab=following`, icon: <Users />, label: 'Following' },
     { href: `/${locale}/create`, icon: <Plus />, label: 'Create' },
-    { href: `/${locale}/profile`, icon: <User />, label: 'Profile' },
+    { href: `/${locale}/settings`, icon: <Settings />, label: 'Settings' },
   ];
   return (
     <nav
