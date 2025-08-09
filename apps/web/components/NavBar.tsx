@@ -4,7 +4,8 @@ import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 
 export default function NavBar() {
-  const { asPath, query } = useRouter();
+  const router = useRouter();
+  const { asPath, query } = router;
   const locale = (query.locale as string) || 'en';
   const links = [
     { href: `/${locale}/feed`, icon: <Home />, label: 'Home' },
@@ -29,6 +30,8 @@ export default function NavBar() {
                 : 'text-muted hover:bg-accent-primary/20 hover:text-accent-primary'
             }`}
             aria-current={active ? 'page' : undefined}
+            prefetch={false}
+            onMouseEnter={() => router.prefetch(href)}
           >
             <motion.div
               animate={{ scale: active ? 1.2 : 1 }}

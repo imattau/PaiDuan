@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import Thread from '@/components/comments/Thread';
 import { useFeedSelection } from '@/store/feedSelection';
 import { cardStyle } from '@/components/ui/Card';
@@ -14,6 +15,7 @@ export default function RightPanel({
   onFilterByAuthor: (pubkey: string) => void;
 }) {
   const { selectedVideoId, selectedVideoAuthor } = useFeedSelection();
+  const router = useRouter();
   return (
     <div className="p-[1.2rem] space-y-4">
       {author && (
@@ -33,7 +35,12 @@ export default function RightPanel({
                 {author.followers.toLocaleString()} followers
               </div>
               <div className="mt-3 flex gap-2">
-                <Link href={`/p/${author.pubkey}`} className="btn btn-secondary">
+                <Link
+                  href={`/p/${author.pubkey}`}
+                  className="btn btn-secondary"
+                  prefetch={false}
+                  onMouseEnter={() => router.prefetch(`/p/${author.pubkey}`)}
+                >
                   View profile
                 </Link>
                 <button className="btn btn-primary" onClick={() => onFilterByAuthor(author.pubkey)}>

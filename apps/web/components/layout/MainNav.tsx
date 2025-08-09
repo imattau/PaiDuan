@@ -27,11 +27,12 @@ export default function MainNav({
   showProfile = true,
 }: MainNavProps) {
   const { mode, toggleMode } = useTheme();
-  const { asPath, locale } = useRouter();
+  const router = useRouter();
+  const { asPath, locale } = router;
 
   return (
     <div className="p-[1.2rem] space-y-4">
-      <Link href="/" className="block pl-5">
+      <Link href="/" className="block pl-5" prefetch>
         <Logo width={160} height={34} />
       </Link>
 
@@ -64,6 +65,8 @@ export default function MainNav({
                       : 'text-muted hover:bg-accent-primary/20 hover:text-accent-primary'
                   }`}
                   aria-current={active ? 'page' : undefined}
+                  prefetch={false}
+                  onMouseEnter={() => router.prefetch(href)}
                 >
                   <Icon size={20} /> {label}
                 </Link>

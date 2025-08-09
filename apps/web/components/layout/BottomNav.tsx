@@ -5,7 +5,8 @@ import { useRouter } from 'next/router';
 import { navItems } from './nav';
 
 export default function BottomNav() {
-  const { asPath } = useRouter();
+  const router = useRouter();
+  const { asPath } = router;
 
   return (
     <nav className="fixed bottom-0 inset-x-0 flex justify-around border-t bg-surface lg:hidden">
@@ -20,6 +21,8 @@ export default function BottomNav() {
             }`}
             aria-label={label}
             aria-current={active ? 'page' : undefined}
+            prefetch={false}
+            onMouseEnter={() => router.prefetch(href)}
           >
             <Icon size={24} />
             <span className="sr-only">{label}</span>

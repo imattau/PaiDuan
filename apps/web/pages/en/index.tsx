@@ -18,10 +18,10 @@ export default function LandingPage() {
           Built on Nostr. Own your keys, your audience, your revenue.
         </p>
         <div className="mt-8 flex justify-center gap-3">
-          <Link href="/onboarding/key" className="btn btn-primary">
+          <Link href="/onboarding/key" className="btn btn-primary" prefetch>
             Get Started
           </Link>
-          <Link href="/en/feed" className="btn btn-secondary">
+          <Link href="/en/feed" className="btn btn-secondary" prefetch>
             Explore Feed
           </Link>
         </div>
