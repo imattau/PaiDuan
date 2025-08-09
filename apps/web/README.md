@@ -15,3 +15,7 @@ A thin progress bar appears at the bottom of the video preview while conversion 
 ### Publish button validation
 
 The **Publish** button remains disabled until a converted video is available and required metadata are supplied—at least one topic and a Lightning address. Validation logic lives in `CreateVideoForm.tsx` and is exposed through the `formValid` flag.
+
+## Cross-origin headers
+
+The application sends `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` on all routes. These headers enable cross-origin isolation, which is required for future multi-threaded FFmpeg builds in the browser.
