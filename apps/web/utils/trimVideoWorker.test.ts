@@ -3,7 +3,12 @@ import { beforeAll, describe, expect, it } from 'vitest';
 let detectCodec: (blobType?: string, trackCodec?: string) => string | null;
 
 beforeAll(async () => {
-  (globalThis as any).self = {};
+  (globalThis as any).self = {
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  };
+  (globalThis as any).addEventListener = () => {};
+  (globalThis as any).removeEventListener = () => {};
   ({ detectCodec } = await import('./trimVideoWorker'));
 });
 

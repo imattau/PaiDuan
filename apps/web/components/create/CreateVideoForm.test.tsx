@@ -15,7 +15,7 @@ vi.mock('../../utils/trimVideoFfmpeg', () => ({
   terminateFfmpegPool: vi.fn(),
 }));
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
-  trimVideoWebCodecs: vi.fn(() => null),
+  trimVideoWebCodecs: vi.fn(() => Promise.resolve(null)),
 }));
 vi.mock('../../utils/codec', () => ({ sniffCodec: () => Promise.resolve('hvc1') }));
 vi.mock('../../utils/canDecode', () => ({ canDecode: () => Promise.resolve(true) }));
