@@ -29,6 +29,7 @@ const mockPublish = vi.fn();
 vi.mock('../../lib/relayPool', () => ({ default: { publish: mockPublish } }));
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn() }) }));
+let origCreateElement: any;
 
 describe('CreateVideoForm', () => {
   beforeEach(() => {
@@ -41,7 +42,7 @@ describe('CreateVideoForm', () => {
     (globalThis as any).fetch = undefined;
 
     (document.createElement as any).mockRestore?.();
-    const origCreateElement = document.createElement.bind(document);
+    origCreateElement = document.createElement.bind(document);
     vi.spyOn(document, 'createElement').mockImplementation((tag: any, opts?: any) => {
       const el = origCreateElement(tag, opts) as any;
       if (tag === 'video') {
@@ -55,7 +56,7 @@ describe('CreateVideoForm', () => {
     queryClient.clear();
   });
 
-  it('auto converts selected file and keeps publish disabled until form complete', async () => {
+  it('auto trims selected file and keeps publish disabled until form complete', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
     mockTrim.mockImplementation((_f: any, opts: any, onProgress: any) => {
       onProgress?.(0.5);
@@ -110,6 +111,78 @@ describe('CreateVideoForm', () => {
       '[data-testid="publish-button"]',
     ) as HTMLButtonElement;
     expect(publishButtonAfter.disabled).toBe(false);
+  });
+
+  it('caps trimming at five minutes', async () => {
+    (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    (document.createElement as any).mockImplementation((tag: any, opts?: any) => {
+      const el = origCreateElement(tag, opts) as any;
+      if (tag === 'video') {
+        Object.defineProperty(el, 'videoWidth', { configurable: true, value: 540 });
+        Object.defineProperty(el, 'videoHeight', { configurable: true, value: 960 });
+        Object.defineProperty(el, 'duration', { configurable: true, value: 400 });
+        setTimeout(() => el.onloadedmetadata?.(new Event('loadedmetadata')));
+      }
+      return el;
+    });
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
+
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await Promise.resolve();
+
+    expect(mockTrim).toHaveBeenCalledWith(file, { start: 0, end: 300 }, expect.any(Function));
+  });
+
+  it('rejects non-9:16 aspect ratio', async () => {
+    (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    (document.createElement as any).mockImplementation((tag: any, opts?: any) => {
+      const el = origCreateElement(tag, opts) as any;
+      if (tag === 'video') {
+        Object.defineProperty(el, 'videoWidth', { configurable: true, value: 640 });
+        Object.defineProperty(el, 'videoHeight', { configurable: true, value: 480 });
+        Object.defineProperty(el, 'duration', { configurable: true, value: 10 });
+        setTimeout(() => el.onloadedmetadata?.(new Event('loadedmetadata')));
+      }
+      return el;
+    });
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
+
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await Promise.resolve();
+
+    expect(mockTrim).not.toHaveBeenCalled();
+    const error = container.querySelector('p.text-red-500');
+    expect(error?.textContent).toContain('Video must be 9:16 aspect ratio.');
   });
 
   it('posts video when publish is clicked', async () => {
