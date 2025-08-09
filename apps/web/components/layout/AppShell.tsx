@@ -27,7 +27,7 @@ export default function AppShell({
         </aside>
 
         {/* Middle column: main feed */}
-        <main className="h-screen overflow-hidden">
+        <main className="h-screen overflow-y-auto">
           <div className="max-w-2xl mx-auto h-full px-4">{center}</div>
         </main>
 

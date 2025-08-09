@@ -5,7 +5,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   return (
     <AppShell
       left={<MainNav showSearch={false} showProfile={false} />}
-      center={<div className="space-y-8">{children}</div>}
+      center={<div className="space-y-8 min-h-full">{children}</div>}
     />
   );
 }
