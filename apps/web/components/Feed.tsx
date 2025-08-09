@@ -39,22 +39,35 @@ export const Feed: React.FC<FeedProps> = ({
   const [{ y }, api] = useSpring(() => ({ y: 0, config: springConfig }));
 
   const wheelOffset = useRef(0);
+  const isTransitioning = useRef(false);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
   const showControls = useMediaQuery('(orientation: landscape) and (min-width: 768px)');
 
   const next = useCallback(() => {
-    setIndex((i) => (i < items.length - 1 ? i + 1 : i));
+    setIndex((i) => {
+      if (i < items.length - 1) {
+        isTransitioning.current = true;
+        return i + 1;
+      }
+      return i;
+    });
   }, [items.length]);
 
   const prev = useCallback(() => {
-    setIndex((i) => (i > 0 ? i - 1 : i));
+    setIndex((i) => {
+      if (i > 0) {
+        isTransitioning.current = true;
+        return i - 1;
+      }
+      return i;
+    });
   }, []);
 
   const bind = useGesture(
     {
       onDrag: ({ down, movement: [, my], cancel }) => {
-        if (!down) return;
+        if (!down || isTransitioning.current) return;
         if (my < -50 && index < items.length - 1) {
           next();
           cancel();
@@ -66,18 +79,18 @@ export const Feed: React.FC<FeedProps> = ({
       },
       onWheel: ({ event, delta: [, dy] }) => {
         event.preventDefault();
+        if (isTransitioning.current) return;
         wheelOffset.current += dy;
         if (wheelOffset.current > 50) {
           if (index < items.length - 1) {
             next();
           }
-          wheelOffset.current = 0;
-        }
-        if (wheelOffset.current < -50) {
+          wheelOffset.current -= 50;
+        } else if (wheelOffset.current < -50) {
           if (index > 0) {
             prev();
           }
-          wheelOffset.current = 0;
+          wheelOffset.current += 50;
         }
       },
     },
@@ -99,8 +112,6 @@ export const Feed: React.FC<FeedProps> = ({
   }, [next, prev]);
 
   useEffect(() => {
-    api.start({ y: -index * 100, config: springConfig });
-  }, [index, api, springConfig]);
 
   useEffect(() => {
     if (index >= items.length - 2) {
