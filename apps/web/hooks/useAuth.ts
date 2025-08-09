@@ -15,13 +15,13 @@ export function useAuth() {
   const [hasKeys, setHasKeys] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
 
-  useEffect(() => {
-    function refreshFlags() {
-      if (typeof localStorage === 'undefined') return;
-      setHasKeys(!!localStorage.getItem(LS_KEY));
-      setHasProfile(localStorage.getItem('pd.onboarded') === '1');
-    }
+  function refreshFlags() {
+    if (typeof localStorage === 'undefined') return;
+    setHasKeys(!!localStorage.getItem(LS_KEY));
+    setHasProfile(localStorage.getItem('pd.onboarded') === '1');
+  }
 
+  useEffect(() => {
     refreshFlags();
     const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(LS_KEY) : null;
     if (raw) {
@@ -53,7 +53,7 @@ export function useAuth() {
     signer.getPublicKey().then((pubkey) => {
       localStorage.setItem(LS_KEY, JSON.stringify({ method: 'local', data: { privkeyHex } }));
       setState({ status: 'ready', signer, pubkey, method: 'local' });
-      setHasKeys(true);
+      refreshFlags();
     });
   }
 
@@ -62,7 +62,7 @@ export function useAuth() {
     signer.getPublicKey().then((pubkey) => {
       localStorage.setItem(LS_KEY, JSON.stringify({ method: 'nip07', data: {} }));
       setState({ status: 'ready', signer, pubkey, method: 'nip07' });
-      setHasKeys(true);
+      refreshFlags();
     });
   }
 
@@ -72,13 +72,13 @@ export function useAuth() {
     // @ts-ignore
     localStorage.setItem(LS_KEY, JSON.stringify({ method: 'nip46', data: { session: signer['session'] } }));
     setState({ status: 'ready', signer, pubkey, method: 'nip46' });
-    setHasKeys(true);
+    refreshFlags();
   }
 
   function signOut() {
     localStorage.removeItem(LS_KEY);
     setState({ status: 'signedOut' });
-    setHasKeys(false);
+    refreshFlags();
   }
 
   return {
