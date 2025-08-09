@@ -27,7 +27,7 @@ export default function MiniProfileCard({
       )}
       <Link
         href="/settings#profile"
-        className="text-xs text-[hsl(var(--accent-primary))]"
+        className="text-xs text-[var(--accent-primary)]"
       >
         Manage profile
       </Link>
