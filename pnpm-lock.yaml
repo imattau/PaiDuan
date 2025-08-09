@@ -99,6 +99,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.84.2
         version: 5.84.2(react@19.1.1)
+      '@tanstack/react-virtual':
+        specifier: 3.13.12
+        version: 3.13.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@videojs-player/react':
         specifier: ^1.0.0
         version: 1.0.0(@types/video.js@7.3.58)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(video.js@8.23.4)

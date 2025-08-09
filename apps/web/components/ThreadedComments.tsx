@@ -1,12 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import type { Event } from 'nostr-tools/pure';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
 
 export default function ThreadedComments({ noteId }: { noteId?: string }) {
   const [events, setEvents] = useState<Event[]>([]);
+  const parentRef = useRef<HTMLUListElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: events.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80,
+    overscan: 5,
+  });
 
   useEffect(() => {
     if (!noteId) return;
@@ -30,15 +39,30 @@ export default function ThreadedComments({ noteId }: { noteId?: string }) {
       {events.length === 0 ? (
         <p className="text-xs text-gray-600 dark:text-gray-400">Thread will render here.</p>
       ) : (
-        <ul className="space-y-2">
-          {events.map((ev) => (
-            <li key={ev.id} className="text-sm text-gray-800 dark:text-gray-200">
-              {ev.content}
-            </li>
-          ))}
+        <ul ref={parentRef} className="max-h-96 overflow-auto relative">
+          <div
+            style={{
+              height: rowVirtualizer.getTotalSize(),
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+              <li
+                key={events[virtualRow.index].id}
+                ref={rowVirtualizer.measureElement}
+                className="absolute top-0 left-0 w-full text-sm text-gray-800 dark:text-gray-200"
+                style={{
+                  transform: `translateY(${virtualRow.start}px)`,
+                  height: `${virtualRow.size}px`,
+                }}
+              >
+                {events[virtualRow.index].content}
+              </li>
+            ))}
+          </div>
         </ul>
       )}
     </div>
   );
 }
-
