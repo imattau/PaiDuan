@@ -81,6 +81,9 @@ export function LightningCard() {
 
   async function deriveKey() {
     if (state.status !== 'ready') throw new Error('auth required');
+    if (!globalThis.crypto?.subtle)
+      throw new Error('WebCrypto API not supported');
+    const subtle = globalThis.crypto.subtle;
     const evt: EventTemplate = {
       kind: 22242,
       created_at: 0,
@@ -88,8 +91,8 @@ export function LightningCard() {
       content: 'paiduan-wallet-backup',
     };
     const signed = await state.signer.signEvent(evt);
-    const hash = await crypto.subtle.digest('SHA-256', hexToBytes(signed.sig));
-    return crypto.subtle.importKey('raw', hash, 'AES-GCM', false, [
+    const hash = await subtle.digest('SHA-256', hexToBytes(signed.sig));
+    return subtle.importKey('raw', hash, 'AES-GCM', false, [
       'encrypt',
       'decrypt',
     ]);
@@ -97,10 +100,12 @@ export function LightningCard() {
 
   async function exportConfig() {
     try {
+      if (!globalThis.crypto?.subtle) throw new Error('WebCrypto API not supported');
+      const subtle = globalThis.crypto.subtle;
       const key = await deriveKey();
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const data = te.encode(JSON.stringify({ wallets, zapSplits }));
-      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+      const ct = await subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
       const out = JSON.stringify({ iv: b64(iv.buffer), ct: b64(ct) });
       const blob = new Blob([out], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -121,9 +126,11 @@ export function LightningCard() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
+      if (!globalThis.crypto?.subtle) throw new Error('WebCrypto API not supported');
+      const subtle = globalThis.crypto.subtle;
       const key = await deriveKey();
       const payload = JSON.parse(await file.text());
-      const pt = await crypto.subtle.decrypt(
+      const pt = await subtle.decrypt(
         { name: 'AES-GCM', iv: ub64(payload.iv) },
         key,
         ub64(payload.ct),

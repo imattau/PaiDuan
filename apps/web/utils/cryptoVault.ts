@@ -1,3 +1,14 @@
+export function getSubtle(): SubtleCrypto | undefined {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle)
+    return globalThis.crypto.subtle;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('crypto').webcrypto?.subtle;
+  } catch {
+    return undefined;
+  }
+}
+
 export class CryptoVault {
   private static te = new TextEncoder();
   private static td = new TextDecoder();
@@ -15,14 +26,16 @@ export class CryptoVault {
     salt: ArrayBuffer,
     iter = 250_000
   ) {
-    const base = await crypto.subtle.importKey(
+    const subtle = getSubtle();
+    if (!subtle) throw new Error('WebCrypto API not available');
+    const base = await subtle.importKey(
       'raw',
       this.te.encode(pass),
       'PBKDF2',
       false,
       ['deriveKey']
     );
-    return crypto.subtle.deriveKey(
+    return subtle.deriveKey(
       { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: iter },
       base,
       { name: 'AES-GCM', length: 256 },
@@ -37,7 +50,9 @@ export class CryptoVault {
     const salt = crypto.getRandomValues(new Uint8Array(16)).buffer;
     const iv = crypto.getRandomValues(new Uint8Array(12)).buffer;
     const k = await CryptoVault.deriveKey(pass, salt);
-    const ct = await crypto.subtle.encrypt(
+    const subtle = getSubtle();
+    if (!subtle) throw new Error('WebCrypto API not available');
+    const ct = await subtle.encrypt(
       { name: 'AES-GCM', iv },
       k,
       CryptoVault.te.encode(privHex.toLowerCase())
@@ -68,7 +83,9 @@ export class CryptoVault {
       CryptoVault.ub64(vault.salt),
       vault.iter
     );
-    const pt = await crypto.subtle.decrypt(
+    const subtle = getSubtle();
+    if (!subtle) throw new Error('WebCrypto API not available');
+    const pt = await subtle.decrypt(
       { name: 'AES-GCM', iv: CryptoVault.ub64(vault.iv) },
       k,
       CryptoVault.ub64(vault.ct)
