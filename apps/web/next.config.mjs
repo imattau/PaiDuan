@@ -1,5 +1,6 @@
 import withPWA from 'next-pwa';
 import runtimeCaching from 'next-pwa/cache.js';
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -59,4 +60,8 @@ const withPWAConfig = withPWA({
   },
 });
 
-export default isProd ? withPWAConfig(baseConfig) : baseConfig;
+const withNextIntl = createNextIntlPlugin();
+
+const config = isProd ? withPWAConfig(baseConfig) : baseConfig;
+
+export default withNextIntl(config);
