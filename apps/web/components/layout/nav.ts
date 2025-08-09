@@ -9,7 +9,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { href: '/feed', label: 'Home', icon: Home },
-  { href: '/following', label: 'Following', icon: Users },
+  { href: '/feed?tab=following', label: 'Following', icon: Users },
   { href: '/create', label: 'Create', icon: Plus },
   { href: '/settings', label: 'Settings', icon: User },
 ];

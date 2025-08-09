@@ -27,7 +27,7 @@ export default function MainNav({
   showProfile = true,
 }: MainNavProps) {
   const { mode, toggleMode } = useTheme();
-  const { asPath } = useRouter();
+  const { asPath, locale } = useRouter();
 
   return (
     <div className="p-[1.2rem] space-y-4">
@@ -45,7 +45,15 @@ export default function MainNav({
       <nav className={`${cardStyle} p-2`}>
         <ul className="flex flex-col">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = asPath.startsWith(href);
+            const currentUrl = new URL(asPath, 'http://localhost');
+            const targetUrl = new URL(href, 'http://localhost');
+            let currentPath = currentUrl.pathname;
+            if (locale) currentPath = currentPath.replace(new RegExp(`^/${locale}`), '');
+            const active =
+              currentPath === targetUrl.pathname &&
+              (targetUrl.search
+                ? currentUrl.search === targetUrl.search
+                : currentUrl.search === '');
             return (
               <li key={href}>
                 <Link
