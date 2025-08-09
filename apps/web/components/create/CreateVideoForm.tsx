@@ -4,7 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
-import { trimVideoFfmpeg } from '../../utils/trimVideoFfmpeg';
+import { trimVideoFfmpeg, terminateFfmpegPool } from '../../utils/trimVideoFfmpeg';
 import { sniffCodec } from '../../utils/codec';
 import { canDecode } from '../../utils/canDecode';
 import { useAuth } from '../../hooks/useAuth';
@@ -143,6 +143,12 @@ export default function CreateVideoForm() {
       if (preview) URL.revokeObjectURL(preview);
     };
   }, [preview]);
+
+  useEffect(() => {
+    return () => {
+      terminateFfmpegPool();
+    };
+  }, []);
 
   async function onPick(f: File | null) {
     setFile(f);
