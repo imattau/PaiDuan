@@ -8,17 +8,14 @@ const createFFmpegFn: any =
   (ffmpegModule as any).default;
 
 if (typeof createFFmpegFn !== 'function') {
-  throw new Error(
-    '@ffmpeg/ffmpeg does not provide a `createFFmpeg` export or default export',
-  );
+  throw new Error('@ffmpeg/ffmpeg does not provide a `createFFmpeg` export or default export');
 }
 
 let ffmpeg: FFmpeg | null = null;
 let loading: Promise<void> | null = null;
 
 export interface GetFFmpegOptions {
-  logger?: Parameters<FFmpeg['setLogger']>[0];
-  progress?: Parameters<FFmpeg['setProgress']>[0];
+  onProgress?: (progress: number) => void;
 }
 
 export async function getFFmpeg(opts: GetFFmpegOptions = {}): Promise<FFmpeg> {
@@ -29,9 +26,8 @@ export async function getFFmpeg(opts: GetFFmpegOptions = {}): Promise<FFmpeg> {
     });
     loading = ffmpeg.load();
   }
-  if (opts.logger) ffmpeg.setLogger(opts.logger);
-  if (opts.progress) ffmpeg.setProgress(opts.progress);
+  ffmpeg.setLogger(({ type, message }) => console.debug('[ffmpeg]', type, message));
+  ffmpeg.setProgress(({ ratio }) => opts.onProgress?.(ratio ?? 0));
   if (loading) await loading;
   return ffmpeg;
 }
-
