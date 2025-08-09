@@ -25,7 +25,13 @@ self.onmessage = async (e: MessageEvent) => {
       return;
     }
 
-    const buffer = await (blob as Blob).arrayBuffer();
+    let buffer: ArrayBuffer;
+    try {
+      buffer = await (blob as Blob).arrayBuffer();
+    } catch (err: any) {
+      postError('permission', err?.message ?? String(err));
+      return;
+    }
     const mp4box = createFile();
     let track: any;
     let demuxError: any;
@@ -68,7 +74,13 @@ self.onmessage = async (e: MessageEvent) => {
       postError('unsupported-codec', `Unsupported video codec: ${track.codec || (blob as Blob).type || 'unknown'}`);
       return;
     }
-    const support = await (self as any).VideoDecoder.isConfigSupported({ codec });
+    let support;
+    try {
+      support = await (self as any).VideoDecoder.isConfigSupported({ codec });
+    } catch (err: any) {
+      postError('permission', err?.message ?? String(err));
+      return;
+    }
     if (!support?.supported) {
       postError('unsupported-codec', `Codec ${codec} not supported`);
       return;
