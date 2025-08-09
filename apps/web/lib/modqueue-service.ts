@@ -16,8 +16,8 @@ export class ModQueueService {
 
   async read(): Promise<Report[]> {
     try {
-      const raw = await fs.readFile(this.filePath, 'utf8');
-      return JSON.parse(raw) as Report[];
+      const raw = await fs.readFile(this.filePath);
+      return JSON.parse(raw.toString('utf8')) as Report[];
     } catch {
       return [];
     }
