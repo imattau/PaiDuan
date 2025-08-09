@@ -1,9 +1,9 @@
-import { locales } from '../../utils/locales';
+import { otherLocales } from '../../utils/locales';
 export { default } from '../create';
 
 export function getStaticPaths() {
   return {
-    paths: locales.map((locale) => ({ params: { locale } })),
+    paths: otherLocales.map((locale) => ({ params: { locale } })),
     fallback: false,
   };
 }
