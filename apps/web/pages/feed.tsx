@@ -13,7 +13,9 @@ import { CurrentVideoProvider } from '@/hooks/useCurrentVideo';
 
 export default function FeedPage() {
   const { filterAuthor, setFilterAuthor, selectedVideoAuthor } = useFeedSelection();
-  const { items: videos } = useFeed(filterAuthor ? { author: filterAuthor } : 'all');
+  const { items: videos, loadMore } = useFeed(
+    filterAuthor ? { author: filterAuthor } : 'all',
+  );
 
   const { state: auth } = useAuth();
   const { following } = useFollowing(
@@ -63,7 +65,7 @@ export default function FeedPage() {
             {videos.length === 0 ? (
               <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />
             ) : (
-              <Feed items={videos} />
+              <Feed items={videos} loadMore={loadMore} />
             )}
           </div>
         }

@@ -41,15 +41,22 @@ interface FeedResult {
   items: VideoCardProps[];
   tags: string[];
   prepend: (item: VideoCardProps) => void;
+  loadMore: () => void;
 }
-
-export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
+export function useFeed(
+  mode: FeedMode,
+  authors: string[] = [],
+  cursor: { since?: number; until?: number; limit?: number } = {},
+): FeedResult {
   const [items, setItems] = useState<VideoCardProps[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const poolRef = useRef<SimplePool>();
-  const subRef = useRef<{ close: () => void } | null>(null);
+  const realtimeSubRef = useRef<{ close: () => void } | null>(null);
   const modqueue = useModqueue();
   const [extraHiddenIds, setExtraHiddenIds] = useState<Set<string>>(new Set());
+  const newestRef = useRef<number | undefined>(cursor.since);
+  const oldestRef = useRef<number | undefined>(cursor.until);
+  const tagCountsRef = useRef<Record<string, number>>({});
 
   const hiddenIds = useMemo(() => {
     const counts: Record<string, Set<string>> = {};
@@ -73,6 +80,64 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
     hiddenRef.current = hiddenIds;
   }, [hiddenIds]);
 
+  const addEvent = (event: NostrEvent) => {
+    if (hiddenRef.current.has(event.id)) return;
+    const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
+    if (!videoUrl && !manifestUrl) return;
+    const zapTags = event.tags.filter((t) => t[0] === 'zap');
+    const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+    tTags.forEach((t) => {
+      tagCountsRef.current[t] = (tagCountsRef.current[t] || 0) + 1;
+    });
+    const titleTag = event.tags.find((t) => t[0] === 'title');
+    const createdAt = event.created_at;
+
+    const item: VideoCardProps = {
+      videoUrl: videoUrl || manifestUrl || '',
+      posterUrl,
+      manifestUrl,
+      author: event.pubkey.slice(0, 8),
+      caption: titleTag ? titleTag[1] : event.content,
+      eventId: event.id,
+      lightningAddress: zapTags.length ? zapTags[0][1] : '',
+      pubkey: event.pubkey,
+      zapTotal: 0,
+      onLike: () => {},
+    };
+
+    const isNew = !newestRef.current || createdAt > newestRef.current;
+    const isOld = !oldestRef.current || createdAt < oldestRef.current;
+    if (isNew) newestRef.current = createdAt;
+    if (isOld) oldestRef.current = createdAt;
+
+    setItems((prev) => {
+      if (prev.some((p) => p.eventId === event.id)) return prev;
+      return isNew ? [item, ...prev] : [...prev, item];
+    });
+
+    if (mode === 'all') {
+      const sorted = Object.entries(tagCountsRef.current)
+        .sort((a, b) => b[1] - a[1])
+        .map(([t]) => t);
+      setTags(sorted);
+    }
+  };
+
+  function buildFilter(opts: { since?: number; until?: number; limit?: number } = {}): Filter {
+    const { since, until, limit = 20 } = opts;
+    const filter: Filter = { kinds: [21, 22], limit };
+    if (mode === 'following') {
+      if (authors.length > 0) filter.authors = authors;
+    } else if (typeof mode === 'object' && 'tag' in mode) {
+      filter['#t'] = [mode.tag];
+    } else if (typeof mode === 'object' && 'author' in mode) {
+      filter.authors = [mode.author];
+    }
+    if (since !== undefined) filter.since = since;
+    if (until !== undefined) filter.until = until;
+    return filter;
+  }
+
   useEffect(() => {
     const pool = (poolRef.current ||= new SimplePool());
     const relays = getRelays();
@@ -89,57 +154,16 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
 
   useEffect(() => {
     const pool = (poolRef.current ||= new SimplePool());
-    // clean previous subscription
-    subRef.current?.close();
+    realtimeSubRef.current?.close();
+    setItems([]);
+    setTags([]);
+    tagCountsRef.current = {};
+    newestRef.current = cursor.since;
+    oldestRef.current = cursor.until;
 
-    const filter: Filter = { kinds: [21, 22], limit: 1000 };
-    if (mode === 'following') {
-      if (authors.length === 0) {
-        setItems([]);
-        return;
-      }
-      filter.authors = authors;
-    } else if (typeof mode === 'object' && 'tag' in mode) {
-      filter['#t'] = [mode.tag];
-    } else if (typeof mode === 'object' && 'author' in mode) {
-      filter.authors = [mode.author];
+    if (mode === 'following' && authors.length === 0) {
+      return;
     }
-
-    const nextItems: VideoCardProps[] = [];
-    const tagCounts: Record<string, number> = {};
-
-    const addEvent = (event: NostrEvent, emit = true) => {
-      if (hiddenRef.current.has(event.id)) return;
-      const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
-      if (!videoUrl && !manifestUrl) return;
-      const zapTags = event.tags.filter((t) => t[0] === 'zap');
-      const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
-      tTags.forEach((t) => {
-        tagCounts[t] = (tagCounts[t] || 0) + 1;
-      });
-      const titleTag = event.tags.find((t) => t[0] === 'title');
-      nextItems.push({
-        videoUrl: videoUrl || manifestUrl || '',
-        posterUrl,
-        manifestUrl,
-        author: event.pubkey.slice(0, 8),
-        caption: titleTag ? titleTag[1] : event.content,
-        eventId: event.id,
-        lightningAddress: zapTags.length ? zapTags[0][1] : '',
-        pubkey: event.pubkey,
-        zapTotal: 0,
-        onLike: () => {},
-      });
-      if (emit) {
-        setItems([...nextItems]);
-        if (mode === 'all') {
-          const sorted = Object.entries(tagCounts)
-            .sort((a, b) => b[1] - a[1])
-            .map(([t]) => t);
-          setTags(sorted);
-        }
-      }
-    };
 
     (async () => {
       const cached = await getAllEvents();
@@ -153,32 +177,62 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
           return true;
         })
         .sort((a: any, b: any) => (b.created_at || 0) - (a.created_at || 0))
-        .forEach((ev: any) => addEvent(ev, false));
-      setItems([...nextItems]);
-      if (mode === 'all') {
-        const sorted = Object.entries(tagCounts)
-          .sort((a, b) => b[1] - a[1])
-          .map(([t]) => t);
-        setTags(sorted);
-      }
+        .forEach((ev: any) => addEvent(ev));
     })();
 
     const relays = getRelays();
+    const initialFilter = buildFilter({
+      since: cursor.since,
+      until: cursor.until,
+      limit: cursor.limit,
+    });
+
+    const sub = pool.subscribeMany(relays, [initialFilter], {
+      onevent: async (event: NostrEvent) => {
+        addEvent(event);
+        await saveEvent(event);
+      },
+      oneose: () => {
+        sub.close();
+        const since = newestRef.current ? newestRef.current + 1 : undefined;
+        const liveFilter = buildFilter({ since });
+        const liveSub = pool.subscribeMany(relays, [liveFilter], {
+          onevent: async (ev: NostrEvent) => {
+            addEvent(ev);
+            await saveEvent(ev);
+          },
+        });
+        realtimeSubRef.current = liveSub;
+      },
+    });
+
+    return () => {
+      sub.close();
+      realtimeSubRef.current?.close();
+    };
+  }, [JSON.stringify(mode), authors.join(','), cursor.since, cursor.until, cursor.limit]);
+
+  const loadMore = () => {
+    if (mode === 'following' && authors.length === 0) return;
+    if (!oldestRef.current) return;
+    const pool = (poolRef.current ||= new SimplePool());
+    const relays = getRelays();
+    const filter = buildFilter({
+      until: oldestRef.current - 1,
+      limit: cursor.limit,
+    });
     const sub = pool.subscribeMany(relays, [filter], {
       onevent: async (event: NostrEvent) => {
         addEvent(event);
         await saveEvent(event);
       },
-      oneose: () => {},
+      oneose: () => sub.close(),
     });
-
-    subRef.current = sub;
-    return () => sub.close();
-  }, [JSON.stringify(mode), authors.join(',')]);
+  };
 
   const prepend = (item: VideoCardProps) => setItems((prev) => [item, ...prev]);
 
-  return { items, tags, prepend };
+  return { items, tags, prepend, loadMore };
 }
 
 export default useFeed;
