@@ -1,5 +1,7 @@
 try {
-  importScripts('/workbox-sw.js');
+  // Use a relative path so the service worker can locate the bundled
+  // Workbox script regardless of the deployment base path.
+  importScripts('./workbox-sw.js');
 } catch (err) {
   importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 }
