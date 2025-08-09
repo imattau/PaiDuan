@@ -8,6 +8,18 @@ import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { getRelays } from '../../lib/nostr';
 
+const COPYRIGHT_OPTIONS = [
+  'All Rights Reserved',
+  'Creative Commons Attribution (CC BY)',
+  'Creative Commons Attribution-ShareAlike (CC BY-SA)',
+  'Creative Commons Attribution-NoDerivatives (CC BY-ND)',
+  'Creative Commons Attribution-NonCommercial (CC BY-NC)',
+  'Creative Commons Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)',
+  'Creative Commons Attribution-NonCommercial-NoDerivatives (CC BY-NC-ND)',
+  'Creative Commons Zero (CC0)',
+  'Public Domain',
+];
+
 export default function CreateVideoForm() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
@@ -19,9 +31,12 @@ export default function CreateVideoForm() {
   const [caption, setCaption] = useState('');
   const [topics, setTopics] = useState('');
   const [copyright, setCopyright] = useState('');
+  const [otherCopyright, setOtherCopyright] = useState('');
   const [nsfw, setNsfw] = useState(false);
   const [lightningAddress, setLightningAddress] = useState('');
   const [posting, setPosting] = useState(false);
+
+  const copyrightValue = copyright === 'Other' ? otherCopyright : copyright;
 
   const { state } = useAuth();
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
@@ -71,7 +86,6 @@ export default function CreateVideoForm() {
   }
 
   async function postVideo() {
-
     if (!outBlob) {
       alert('Please process a video first');
       return;
@@ -91,7 +105,7 @@ export default function CreateVideoForm() {
       form.append('file', outBlob, 'video.webm');
       form.append('caption', caption);
       form.append('topics', topics);
-      form.append('copyright', copyright);
+      form.append('copyright', copyrightValue);
       form.append('nsfw', nsfw ? 'true' : 'false');
       if (lightningAddress) form.append('zap', lightningAddress);
 
@@ -110,7 +124,7 @@ export default function CreateVideoForm() {
       ];
       if (lightningAddress) tags.push(['zap', lightningAddress]);
       if (nsfw) tags.push(['nsfw', 'true']);
-      if (copyright) tags.push(['copyright', copyright]);
+      if (copyrightValue) tags.push(['copyright', copyrightValue]);
 
       if (state.status !== 'ready') throw new Error('signer required');
       const event: any = {
@@ -139,7 +153,7 @@ export default function CreateVideoForm() {
         preview ||
         caption ||
         topics ||
-        copyright ||
+        copyrightValue ||
         nsfw ||
         lightningAddress) &&
       !confirm('Discard your progress?')
@@ -187,13 +201,34 @@ export default function CreateVideoForm() {
           className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         />
       </label>
-      <input
-        type="text"
-        value={copyright}
-        onChange={(e) => setCopyright(e.target.value)}
-        placeholder="Copyright information"
-        className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-      />
+      <label className="block text-sm">
+        <span className="mb-1 block">Copyright</span>
+        <select
+          value={copyright}
+          onChange={(e) => {
+            setCopyright(e.target.value);
+            if (e.target.value !== 'Other') setOtherCopyright('');
+          }}
+          className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        >
+          <option value="">Select licence</option>
+          {COPYRIGHT_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+          <option value="Other">Other</option>
+        </select>
+        {copyright === 'Other' && (
+          <input
+            type="text"
+            value={otherCopyright}
+            onChange={(e) => setOtherCopyright(e.target.value)}
+            placeholder="Custom licence"
+            className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          />
+        )}
+      </label>
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
         <span className="text-sm">NSFW</span>
@@ -224,25 +259,25 @@ export default function CreateVideoForm() {
             onChange={onPick}
             className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
-            {preview ? (
-              <div className="relative aspect-[9/16] w-full max-w-sm max-h-screen overflow-hidden rounded-xl bg-black">
-                <video
-                  controls
-                  src={preview}
-                  className="absolute inset-0 h-full w-full object-cover"
+          {preview ? (
+            <div className="relative aspect-[9/16] w-full max-w-sm max-h-screen overflow-hidden rounded-xl bg-black">
+              <video
+                controls
+                src={preview}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {progress > 0 && progress < 100 && (
+                <div
+                  className="absolute left-0 bottom-0 h-1 bg-blue-500"
+                  style={{ width: `${progress}%` }}
                 />
-                {progress > 0 && progress < 100 && (
-                  <div
-                    className="absolute left-0 bottom-0 h-1 bg-blue-500"
-                    style={{ width: `${progress}%` }}
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="relative aspect-[9/16] w-full max-w-sm max-h-screen overflow-hidden rounded-xl bg-black">
-                <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
-              </div>
-            )}
+              )}
+            </div>
+          ) : (
+            <div className="relative aspect-[9/16] w-full max-w-sm max-h-screen overflow-hidden rounded-xl bg-black">
+              <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
+            </div>
+          )}
           {err && <p className="text-sm text-red-500">{err}</p>}
         </div>
         <div className="space-y-4">{form}</div>
