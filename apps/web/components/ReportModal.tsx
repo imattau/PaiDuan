@@ -28,7 +28,15 @@ const ReportModal: React.FC<Props> = ({ targetId, targetKind, open, onClose }) =
       const event = { kind: 30041, created_at: ts, content: JSON.stringify(report), pubkey: reporterPubKey };
       const signed = await state.signer.signEvent(event);
       const pool: any = new SimplePool();
-      await pool.publish(getRelays(), signed);
+      const relays = getRelays();
+      try {
+        await pool.publish(relays, signed);
+      } catch (err) {
+        console.error('Failed to publish report', err);
+        throw err;
+      } finally {
+        pool.close(relays);
+      }
       await fetch('/api/modqueue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
