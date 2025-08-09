@@ -6,6 +6,8 @@ import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
 import Link from 'next/link';
 import { useFeedSelection } from '@/store/feedSelection';
 
+export const FEED_SPRING_CONFIG = { tension: 170, friction: 26 };
+
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
 
@@ -24,11 +26,17 @@ interface FeedProps {
   items: VideoCardProps[];
   loading?: boolean;
   loadMore?: () => void;
+  springConfig?: typeof FEED_SPRING_CONFIG;
 }
 
-export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
+export const Feed: React.FC<FeedProps> = ({
+  items,
+  loading,
+  loadMore,
+  springConfig = FEED_SPRING_CONFIG,
+}) => {
   const [index, setIndex] = useState(0);
-  const [{ y }, api] = useSpring(() => ({ y: 0 }));
+  const [{ y }, api] = useSpring(() => ({ y: 0, config: springConfig }));
 
   const wheelOffset = useRef(0);
   const isTransitioning = useRef(false);
@@ -104,8 +112,6 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   }, [next, prev]);
 
   useEffect(() => {
-    api.start({ y: -index * 100, onRest: () => (isTransitioning.current = false) });
-  }, [index, api]);
 
   useEffect(() => {
     if (index >= items.length - 2) {
