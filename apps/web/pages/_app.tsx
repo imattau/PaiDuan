@@ -2,7 +2,7 @@ import type { AppProps, AppContext } from 'next/app';
 import App from 'next/app';
 import '../styles/globals.css';
 import { GestureProvider } from '@paiduan/ui';
-import { Toaster } from 'react-hot-toast';
+import * as Toast from '@radix-ui/react-toast';
 import { NotificationsProvider } from '../hooks/useNotifications';
 import NotificationDrawer from '../components/NotificationDrawer';
 import NavBar from '../components/NavBar';
@@ -45,38 +45,45 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => analytics.enableAutoPageviews(), []);
 
   return (
-    <NextIntlClientProvider
-      locale={locale}
-      messages={pageProps.messages}
-      timeZone={timeZone}
-      onError={(err) => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn(err);
-        }
-      }}
-    >
-      <ThemeProvider>
+    <Toast.Provider swipeDirection="right">
+      <NextIntlClientProvider
+        locale={locale}
+        messages={pageProps.messages}
+        timeZone={timeZone}
+        onError={(err) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn(err);
+          }
+        }}
+      >
+        <ThemeProvider>
           <GestureProvider>
             <NotificationsProvider>
               <QueryClientProvider client={queryClient}>
-              <Sentry.ErrorBoundary
-                fallback={
-                  <div className="p-4 text-center" onClick={() => window.location.reload()}>
-                    Something went wrong – tap to reload
-                  </div>
-                }
-              >
-                <Component {...pageProps} />
-              </Sentry.ErrorBoundary>
-              <NotificationDrawer />
-              {router.pathname.startsWith('/en/feed') || router.pathname.startsWith('/en/create') || router.pathname.startsWith('/en/profile') || router.pathname.startsWith('/en/settings') ? <NavBar /> : null}
-              <InstallBanner />
-              <Toaster />
+                <Sentry.ErrorBoundary
+                  fallback={
+                    <div className="p-4 text-center" onClick={() => window.location.reload()}>
+                      Something went wrong – tap to reload
+                    </div>
+                  }
+                >
+                  <Component {...pageProps} />
+                </Sentry.ErrorBoundary>
+                <NotificationDrawer />
+                {router.pathname.startsWith('/en/feed') ||
+                router.pathname.startsWith('/en/create') ||
+                router.pathname.startsWith('/en/profile') ||
+                router.pathname.startsWith('/en/settings') ? (
+                  <NavBar />
+                ) : null}
+                <InstallBanner />
               </QueryClientProvider>
             </NotificationsProvider>
           </GestureProvider>
         </ThemeProvider>
-    </NextIntlClientProvider>
+      </NextIntlClientProvider>
+      <Toast.Viewport className="fixed bottom-0 right-0 flex w-80 max-w-[100vw] flex-col gap-2 p-4 outline-none" />
+    </Toast.Provider>
   );
 }
 

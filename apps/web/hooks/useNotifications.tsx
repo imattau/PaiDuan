@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import pool from '@/lib/relayPool';
-import { toast } from 'react-hot-toast';
+import * as Toast from '@radix-ui/react-toast';
 import { getRelays } from '@/lib/nostr';
 
 export interface Notification {
@@ -21,6 +21,7 @@ interface NotificationContextValue {
   markAsRead: (id: string) => void;
   open: boolean;
   setOpen: (open: boolean) => void;
+  notify: (message: string) => void;
 }
 
 const NotificationsContext = createContext<NotificationContextValue | null>(null);
@@ -88,6 +89,14 @@ export async function requestNotificationPermission() {
 export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>(readStorage);
   const [open, setOpen] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const notify = (message: string) => {
+    setToastOpen(false);
+    setToastMessage(message);
+    setToastOpen(true);
+  };
 
   // keep refs to avoid stale closures
   const openRef = useRef(open);
@@ -105,17 +114,7 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
           n.type === 'zap'
             ? `⚡ ${n.from.slice(0, 8)} zapped you ${n.amount ?? 0} sats`
             : `💬 ${n.from.slice(0, 8)} replied: ${n.text ?? ''}`;
-        toast.custom((t) => (
-          <div
-            onClick={() => {
-              setOpen(true);
-              toast.dismiss(t.id);
-            }}
-            className="cursor-pointer px-2"
-          >
-            {summary}
-          </div>
-        ));
+        notify(summary);
       }
       if (typeof window !== 'undefined') {
         fetch('/api/push', {
@@ -227,11 +226,21 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     markAsRead,
     open,
     setOpen,
+    notify,
   };
 
   return (
     <NotificationsContext.Provider value={value}>
       {children}
+      <Toast.Root
+        open={toastOpen}
+        onOpenChange={setToastOpen}
+        duration={5000}
+        onClick={() => setOpen(true)}
+        className="cursor-pointer rounded-md bg-gray-800 px-3 py-2 text-sm text-white shadow"
+      >
+        <Toast.Title>{toastMessage}</Toast.Title>
+      </Toast.Root>
     </NotificationsContext.Provider>
   );
 };
