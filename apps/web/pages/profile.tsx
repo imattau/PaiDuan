@@ -51,6 +51,7 @@ export default function Profile() {
                 alt="avatar"
                 width={96}
                 height={96}
+                priority
                 className="h-24 w-24 rounded-full object-cover"
               />
               <div className="text-lg font-semibold">{meta?.name || 'Anonymous'}</div>

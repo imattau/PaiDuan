@@ -50,6 +50,7 @@ export default function VideoInfoPane() {
           alt={meta?.name || ''}
           width={48}
           height={48}
+          priority
           className="h-12 w-12 rounded-full"
         />
         <div>
