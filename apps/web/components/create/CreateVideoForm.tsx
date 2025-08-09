@@ -6,7 +6,17 @@ import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
 import { SimplePool } from 'nostr-tools/pool';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
+import useFollowing from '../../hooks/useFollowing';
 import { getRelays } from '../../lib/nostr';
+
+function LnAddrOption({ pubkey }: { pubkey: string }) {
+  const profile = useProfile(pubkey);
+  const addr = Array.isArray(profile?.wallets)
+    ? profile.wallets.find((w: any) => w?.default)?.lnaddr
+    : profile?.lud16;
+  if (!addr) return null;
+  return <option value={addr}>{addr}</option>;
+}
 
 export default function CreateVideoForm() {
   const router = useRouter();
@@ -31,10 +41,12 @@ export default function CreateVideoForm() {
   const [customLicense, setCustomLicense] = useState('');
   const [nsfw, setNsfw] = useState(false);
   const [lightningAddress, setLightningAddress] = useState('');
+  const [zapSplits, setZapSplits] = useState<{ lnaddr: string; pct: number }[]>([]);
   const [posting, setPosting] = useState(false);
 
   const { state } = useAuth();
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
+  const { following } = useFollowing(state.status === 'ready' ? state.pubkey : undefined);
 
   const walletAddrs = Array.isArray(profile?.wallets)
     ? [
@@ -65,11 +77,24 @@ export default function CreateVideoForm() {
     }
   }, [profile, lightningAddress]);
 
+  useEffect(() => {
+    if (Array.isArray(profile?.zapSplits)) {
+      setZapSplits(
+        profile.zapSplits
+          .filter((s: any) => typeof s.lnaddr === 'string' && typeof s.pct === 'number')
+          .slice(0, 4),
+      );
+    }
+  }, [profile]);
+
   const topicList = topics
     .split(',')
     .map((t) => t.trim())
     .filter(Boolean);
-  const formValid = !!outBlob && !!lightningAddress.trim() && topicList.length > 0;
+  const totalPct = zapSplits.reduce((sum, s) => sum + s.pct, 0);
+  const splitsValid = totalPct <= 95 && zapSplits.every((s) => s.lnaddr && s.pct > 0);
+  const formValid =
+    !!outBlob && !!lightningAddress.trim() && topicList.length > 0 && splitsValid;
 
   useEffect(() => {
     if (videoRef.current && preview) {
@@ -128,6 +153,7 @@ export default function CreateVideoForm() {
       form.append('copyright', licenseValue);
       form.append('nsfw', nsfw ? 'true' : 'false');
       if (lightningAddress) form.append('zap', lightningAddress);
+      if (zapSplits.length) form.append('zapSplits', JSON.stringify(zapSplits));
 
       const res = await fetch('https://nostr.media/api/upload', {
         method: 'POST',
@@ -143,6 +169,9 @@ export default function CreateVideoForm() {
         ...topicList.map((t) => ['t', t]),
       ];
       if (lightningAddress) tags.push(['zap', lightningAddress]);
+      zapSplits.forEach((s) => {
+        if (s.lnaddr && s.pct > 0) tags.push(['zap', s.lnaddr, s.pct.toString()]);
+      });
       if (nsfw) tags.push(['nsfw', 'true']);
       if (licenseValue) tags.push(['copyright', licenseValue]);
 
@@ -166,6 +195,27 @@ export default function CreateVideoForm() {
     }
   }
 
+  const addSplit = () => {
+    if (zapSplits.length >= 4) return;
+    setZapSplits([...zapSplits, { lnaddr: '', pct: 0 }]);
+  };
+
+  const updateSplit = (idx: number, key: 'lnaddr' | 'pct', value: string) => {
+    const next = [...zapSplits];
+    if (key === 'pct') {
+      next[idx].pct = Number(value);
+    } else {
+      next[idx].lnaddr = value;
+    }
+    setZapSplits(next);
+  };
+
+  const removeSplit = (idx: number) => {
+    const next = [...zapSplits];
+    next.splice(idx, 1);
+    setZapSplits(next);
+  };
+
   function handleCancel() {
     if (
       (file ||
@@ -176,7 +226,8 @@ export default function CreateVideoForm() {
         license !== 'All Rights Reserved' ||
         customLicense ||
         nsfw ||
-        lightningAddress) &&
+        lightningAddress ||
+        zapSplits.length > 0) &&
       !confirm('Discard your progress?')
     )
       return;
@@ -222,6 +273,49 @@ export default function CreateVideoForm() {
           className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         />
       </label>
+      {zapSplits.map((s, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <input
+            list="lnaddr-options"
+            value={s.lnaddr}
+            onChange={(e) => updateSplit(i, 'lnaddr', e.target.value)}
+            placeholder="ln@addr"
+            className="flex-1 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          />
+          <input
+            type="number"
+            min={0}
+            max={95}
+            value={s.pct}
+            onChange={(e) => updateSplit(i, 'pct', e.target.value)}
+            className="w-20 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          />
+          <button
+            type="button"
+            className="text-xs underline"
+            onClick={() => removeSplit(i)}
+          >
+            remove
+          </button>
+        </div>
+      ))}
+      {zapSplits.length < 4 && totalPct < 95 && (
+        <button
+          type="button"
+          onClick={addSplit}
+          className="rounded border px-2 py-1 text-sm"
+        >
+          Add collaborator
+        </button>
+      )}
+      {zapSplits.length > 0 && (
+        <div className="text-sm">Total {totalPct}% / 95%</div>
+      )}
+      <datalist id="lnaddr-options">
+        {following.map((pk) => (
+          <LnAddrOption key={pk} pubkey={pk} />
+        ))}
+      </datalist>
       <label className="block text-sm">
         <span className="mb-1 block">License</span>
         <select
