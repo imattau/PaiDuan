@@ -1,11 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
-import { getRelays } from '@/lib/nostr';
 import { saveEvent } from '@/lib/db';
 import { VideoCardProps } from '../components/VideoCard';
 import { queryClient } from '@/lib/queryClient';
-import pool from '@/lib/relayPool';
+import { register } from '@/lib/subRegistry';
 
 function parseImeta(tags: string[][]) {
   let videoUrl: string | undefined;
@@ -54,7 +53,6 @@ async function fetchFeedPage({
   authors: string[];
   limit: number;
 }) {
-    const relays = getRelays();
     const filter: Filter = { kinds: [21, 22], limit };
   if (pageParam) filter.until = pageParam;
   if (mode === 'following') {
@@ -67,7 +65,7 @@ async function fetchFeedPage({
   return await new Promise<{ items: VideoCardProps[]; tags: string[]; nextCursor?: number }>((resolve) => {
     const items: { data: VideoCardProps; created: number }[] = [];
     const tagCounts: Record<string, number> = {};
-    const sub = pool.subscribeMany(relays, [filter], {
+    const sub = register([filter], {
       onevent: async (event: NostrEvent) => {
         const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
         if (!videoUrl && !manifestUrl) return;
@@ -92,7 +90,6 @@ async function fetchFeedPage({
         await saveEvent(event);
       },
       oneose: () => {
-        sub.close();
         items.sort((a, b) => b.created - a.created);
         const nextCursor = items.length ? items[items.length - 1].created - 1 : undefined;
         resolve({
