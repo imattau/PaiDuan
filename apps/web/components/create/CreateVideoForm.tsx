@@ -168,7 +168,9 @@ export default function CreateVideoForm() {
         ['vman', manifest],
         ...topicList.map((t) => ['t', t]),
       ];
-      if (lightningAddress) tags.push(['zap', lightningAddress]);
+      const creatorPct = Math.max(0, 100 - totalPct);
+      if (lightningAddress)
+        tags.push(['zap', lightningAddress, creatorPct.toString()]);
       zapSplits.forEach((s) => {
         if (s.lnaddr && s.pct > 0) tags.push(['zap', s.lnaddr, s.pct.toString()]);
       });
