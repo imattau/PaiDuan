@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Zap } from 'lucide-react';
 import ZapModal from './ZapModal';
-import { trackEvent } from '../utils/analytics';
+import analytics from '../utils/analytics';
 
 interface ZapButtonProps {
   lightningAddress: string;
@@ -28,7 +28,7 @@ export const ZapButton: React.FC<ZapButtonProps> = ({
       <button
         onClick={() => {
           if (disabled) return;
-          trackEvent('zap_click');
+          analytics.trackEvent('zap_click');
           setOpen(true);
         }}
         className="flex flex-col items-center text-primary hover:text-accent-primary disabled:opacity-50"

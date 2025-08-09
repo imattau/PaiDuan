@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 import { NextIntlClientProvider } from 'next-intl';
-import { trackPageview, consentGiven } from '../utils/analytics';
+import analytics from '../utils/analytics';
 import { useAuth } from '@/hooks/useAuth';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -25,7 +25,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const locale = (router.query.locale as string) || 'en';
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_SENTRY_DSN && consentGiven()) {
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
       Sentry.init({ dsn: process.env.NEXT_PUBLIC_SENTRY_DSN });
     }
   }, []);
@@ -42,12 +42,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     }
   }, [router, hasKeys, hasProfile]);
 
-  useEffect(() => {
-    const handleRoute = (url: string) => trackPageview(url);
-    handleRoute(window.location.pathname);
-    router.events.on('routeChangeComplete', handleRoute);
-    return () => router.events.off('routeChangeComplete', handleRoute);
-  }, [router]);
+  useEffect(() => analytics.enableAutoPageviews(), []);
 
   return (
     <NextIntlClientProvider

@@ -2,17 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
 
 export function PrivacyCard() {
-  const [analytics, setAnalytics] = useState(false);
+  const [analytics, setAnalytics] = useState(true);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    setAnalytics(localStorage.getItem('analytics-consent') === '1');
+    setAnalytics(localStorage.getItem('plausible_ignore') !== 'true');
   }, []);
 
   const toggleAnalytics = (next: boolean) => {
     setAnalytics(next);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('analytics-consent', next ? '1' : '0');
+      if (next) {
+        localStorage.removeItem('plausible_ignore');
+      } else {
+        localStorage.setItem('plausible_ignore', 'true');
+      }
       window.location.reload();
     }
   };
