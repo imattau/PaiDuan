@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
-import { getRelays } from '@/lib/nostr';
+import { getRelays, parseRelays } from '@/lib/nostr';
+import relaysConfig from '@/relays.json';
 
 export function NetworkCard() {
-  const [relays, setRelays] = useState<string[]>(getRelays);
+  const [relays, setRelays] = useState<string[]>(() => parseRelays(relaysConfig) ?? []);
   const [input, setInput] = useState('');
 
   // persist relays to localStorage whenever they change
@@ -16,6 +17,10 @@ export function NetworkCard() {
       /* ignore */
     }
   }, [relays]);
+
+  useEffect(() => {
+    setRelays(getRelays());
+  }, []);
 
   const addRelay = () => {
     const url = input.trim();
