@@ -6,9 +6,17 @@ function detectCodec(blobType?: string, trackCodec?: string): string | null {
     if (!c) continue;
     const codec = c.toLowerCase();
     if (codec.includes('avc1') || codec.includes('h264')) return 'avc1';
+    if (
+      codec.includes('hvc1') ||
+      codec.includes('hev1') ||
+      codec.includes('hevc') ||
+      codec.includes('h265')
+    )
+      return 'hvc1';
     if (codec.includes('vp8')) return 'vp8';
     if (codec.includes('vp9') || codec.includes('vp09')) return 'vp9';
     if (codec.includes('av01') || codec.includes('av1')) return 'av01';
+    if (codec.includes('mp4v') || codec.includes('mpeg4')) return 'mp4v';
   }
   return null;
 }
