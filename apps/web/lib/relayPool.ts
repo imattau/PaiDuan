@@ -9,7 +9,7 @@ const simplePool = new SimplePool();
 // SimplePool is used directly, otherwise the shared NDK instance
 // handles routing.
 
-export default {
+const relayPool = {
   subscribeMany(relays: (string | Relay)[] = [], filters: any[], handlers: any) {
     if (relays.length > 0) return simplePool.subscribeMany(relays, filters, handlers);
 
@@ -47,3 +47,5 @@ export default {
     await ndk.publish(ndkEvent);
   },
 };
+
+export default relayPool;
