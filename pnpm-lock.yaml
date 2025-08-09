@@ -189,6 +189,12 @@ importers:
       web-push:
         specifier: ^3.6.0
         version: 3.6.7
+      workbox-background-sync:
+        specifier: ^7.3.0
+        version: 7.3.0
+      workbox-window:
+        specifier: ^7.3.0
+        version: 7.3.0
       zod:
         specifier: ^4.0.16
         version: 4.0.16
@@ -5705,6 +5711,9 @@ packages:
 
   workbox-background-sync@6.6.0:
     resolution: {integrity: sha512-jkf4ZdgOJxC9u2vztxLuPT/UjlH7m/nWRQ/MgGL0v8BJHoZdVGJd18Kck+a0e55wGXdqyHO+4IQTk0685g4MUw==}
+
+  workbox-background-sync@7.3.0:
+    resolution: {integrity: sha512-PCSk3eK7Mxeuyatb22pcSx9dlgWNv3+M8PqPaYDokks8Y5/FX4soaOqj3yhAZr5k6Q5JWTOMYgaJBpbw11G9Eg==}
 
   workbox-broadcast-update@6.6.0:
     resolution: {integrity: sha512-nm+v6QmrIFaB/yokJmQ/93qIJ7n72NICxIwQwe5xsZiV2aI93MGGyEyzOzDPVz5THEr5rC3FJSsO3346cId64Q==}
@@ -11928,6 +11937,11 @@ snapshots:
     dependencies:
       idb: 7.1.1
       workbox-core: 6.6.0
+
+  workbox-background-sync@7.3.0:
+    dependencies:
+      idb: 7.1.1
+      workbox-core: 7.3.0
 
   workbox-broadcast-update@6.6.0:
     dependencies:

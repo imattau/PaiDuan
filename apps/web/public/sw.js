@@ -6,12 +6,38 @@ try {
   importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 }
 
+workbox.loadModule('workbox-routing');
+workbox.loadModule('workbox-strategies');
+workbox.loadModule('workbox-background-sync');
+
 self.addEventListener('install', () => {
   const manifest = (self.__WB_MANIFEST || []).filter(
     (entry) => !/app-build-manifest\.json$/.test(entry.url),
   );
   workbox.precaching.precacheAndRoute(manifest);
 });
+
+const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('apiQueue', {
+  maxRetentionTime: 24 * 60,
+});
+
+workbox.routing.registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/'),
+  new workbox.strategies.NetworkFirst({ cacheName: 'api-runtime' }),
+);
+
+['POST', 'PUT'].forEach((method) => {
+  workbox.routing.registerRoute(
+    ({ url }) => url.pathname.startsWith('/api/'),
+    new workbox.strategies.NetworkOnly({ plugins: [bgSyncPlugin] }),
+    method,
+  );
+});
+
+workbox.routing.registerRoute(
+  ({ url }) => /\.(?:mp4|webm)$/.test(url.pathname),
+  new workbox.strategies.CacheFirst({ cacheName: 'video-cache' }),
+);
 
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};

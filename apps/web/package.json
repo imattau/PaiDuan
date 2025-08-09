@@ -54,6 +54,8 @@
     "tailwindcss-plugin-rtl": "^1.2.0",
     "video.js": "^8.23.4",
     "web-push": "^3.6.0",
+    "workbox-background-sync": "^7.3.0",
+    "workbox-window": "^7.3.0",
     "zod": "^4.0.16",
     "zustand": "^4.5.2"
   },
