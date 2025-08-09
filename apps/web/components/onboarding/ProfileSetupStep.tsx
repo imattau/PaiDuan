@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import type { EventTemplate } from 'nostr-tools/pure';
@@ -44,9 +44,9 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     setCroppedArea(cropped);
   }, []);
 
-  function createImage(url: string) {
+  function createImage(url: string): Promise<HTMLImageElement> {
     return new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = () => resolve(img);
       img.onerror = (err) => reject(err);
       img.src = url;
@@ -157,7 +157,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
             className="rounded-lg p-[2px]"
             style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
           >
-            <Image
+            <NextImage
               src={picture}
               alt="avatar"
               width={80}
