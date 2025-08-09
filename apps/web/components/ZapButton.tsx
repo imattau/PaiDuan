@@ -31,7 +31,7 @@ export const ZapButton: React.FC<ZapButtonProps> = ({
           trackEvent('zap_click');
           setOpen(true);
         }}
-        className="flex flex-col items-center text-foreground hover:text-accent disabled:opacity-50"
+        className="flex flex-col items-center text-primary hover:text-accent-primary disabled:opacity-50"
         disabled={disabled}
         title={title}
       >

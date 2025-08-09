@@ -58,13 +58,13 @@ export function ProfileCard() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name"
-            className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
+            className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
           <textarea
             value={about}
             onChange={(e) => setAbout(e.target.value)}
             placeholder="Bio"
-            className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
+            className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
           <input type="file" accept="image/*" onChange={handleFile} />
           {picture && (

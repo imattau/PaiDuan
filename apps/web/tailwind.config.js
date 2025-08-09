@@ -12,13 +12,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: 'hsl(var(--background-primary))',
-        foreground: 'hsl(var(--text-primary))',
+        'background-primary': 'hsl(var(--background-primary))',
+        'background-secondary': 'hsl(var(--background-secondary))',
+        'text-primary': 'hsl(var(--text-primary))',
         card: 'hsl(var(--card))',
         surface: 'hsl(var(--surface))',
-        panel: 'hsl(var(--panel))',
-        accent: 'hsl(var(--accent-primary))',
-        border: 'hsl(var(--border))',
+        'accent-primary': 'hsl(var(--accent-primary))',
+        'accent-hover': 'hsl(var(--accent-hover))',
+        'accent-active': 'hsl(var(--accent-active))',
+        'border-primary': 'hsl(var(--border-primary))',
         brand: {
           DEFAULT: '#9d4edd',
         },

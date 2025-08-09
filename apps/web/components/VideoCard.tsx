@@ -186,13 +186,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       />
 
       <div className="absolute right-4 top-4">
-        <button onClick={() => setMenuOpen((o) => !o)} className="hover:text-accent">
+        <button onClick={() => setMenuOpen((o) => !o)} className="hover:text-accent-primary">
           <MoreVertical />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 mt-2 w-24 rounded bg-background p-1 shadow">
+          <div className="absolute right-0 mt-2 w-24 rounded bg-background-primary p-1 shadow">
             <button
-              className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-foreground/10"
+              className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
               onClick={() => {
                 setMenuOpen(false);
                 setReportOpen(true);
@@ -205,18 +205,18 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       </div>
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
-        <button onClick={onLike} className="hover:text-accent">
+        <button onClick={onLike} className="hover:text-accent-primary">
           <Heart />
         </button>
         <button
-          className="relative hover:text-accent disabled:opacity-50"
+          className="relative hover:text-accent-primary disabled:opacity-50"
           onClick={() => online && setCommentsOpen(true)}
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         >
           <MessageCircle />
           {commentCount > 0 && (
-            <span className="absolute -right-2 -top-2 text-xs text-foreground">{commentCount}</span>
+            <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
           )}
         </button>
         <ZapButton
@@ -229,7 +229,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         />
         <button
           onClick={handleShare}
-          className="hover:text-accent disabled:opacity-50"
+          className="hover:text-accent-primary disabled:opacity-50"
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         >
@@ -256,7 +256,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         {!isFollowing && (
           <button
             onClick={() => follow(pubkey)}
-            className="mt-2 rounded bg-accent px-2 py-1 text-sm text-white"
+            className="mt-2 rounded bg-accent-primary px-2 py-1 text-sm text-white"
           >
             Follow
           </button>
@@ -266,10 +266,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
       <animated.div
         style={{ opacity }}
-        className="absolute bottom-1/4 left-0 right-0 h-1 bg-foreground/50"
+        className="absolute bottom-1/4 left-0 right-0 h-1 bg-text-primary/50"
       >
-        <div className="absolute left-1/2 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground" />
-        <div className="absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-background/50 px-1 text-xs">
+        <div className="absolute left-1/2 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-text-primary" />
+        <div className="absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-background-primary/50 px-1 text-xs">
           {seekPreview.toFixed(1)}s
         </div>
       </animated.div>

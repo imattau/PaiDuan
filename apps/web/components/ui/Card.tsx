@@ -19,7 +19,7 @@ export function Card({
     <section className={clsx(cardStyle, 'p-6 space-y-4', className)}>
       <header>
         <h2 className="text-lg font-semibold">{title}</h2>
-        {desc && <p className="text-sm text-muted-foreground">{desc}</p>}
+        {desc && <p className="text-sm text-muted">{desc}</p>}
       </header>
       {children}
     </section>

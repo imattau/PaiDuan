@@ -43,7 +43,7 @@ export function NetworkCard() {
               }
             }}
             placeholder="wss://relay.example.com"
-            className="flex-1 rounded bg-foreground/10 p-2 text-sm outline-none"
+            className="flex-1 rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
           <button type="button" onClick={addRelay} className="btn btn-secondary">
             Add
@@ -54,7 +54,7 @@ export function NetworkCard() {
             {relays.map((r) => (
               <li
                 key={r}
-                className="flex items-center justify-between rounded bg-foreground/5 px-2 py-1 text-sm"
+                className="flex items-center justify-between rounded bg-text-primary/5 px-2 py-1 text-sm"
               >
                 <span className="break-all">{r}</span>
                 <button
@@ -67,7 +67,7 @@ export function NetworkCard() {
             ))}
           </ul>
         ) : (
-          <div className="text-sm text-muted-foreground">No relays configured.</div>
+          <div className="text-sm text-muted">No relays configured.</div>
         )}
       </div>
     </Card>

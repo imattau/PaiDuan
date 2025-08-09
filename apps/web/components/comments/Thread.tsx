@@ -28,7 +28,7 @@ export default function Thread({
   return (
     <div className="p-4">
       <h3 className="font-semibold mb-1">Comments</h3>
-      <p className="text-xs text-muted-foreground mb-4">
+      <p className="text-xs text-muted mb-4">
         {author?.name ? `Discuss with ${author.name}` : 'Join the discussion'}
       </p>
 
@@ -51,7 +51,7 @@ export default function Thread({
 
       <div className="mt-4 flex gap-2">
         <input
-          className="flex-1 rounded-lg bg-foreground/20 px-3 py-2 text-sm"
+          className="flex-1 rounded-lg bg-text-primary/20 px-3 py-2 text-sm"
           placeholder="Share your thoughts…"
           value={text}
           onChange={(e) => setText(e.target.value)}

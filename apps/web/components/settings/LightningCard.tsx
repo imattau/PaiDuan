@@ -164,14 +164,14 @@ export function LightningCard() {
               value={w.label}
               onChange={(e) => updateWallet(i, { label: e.target.value })}
               placeholder="Label"
-              className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
+              className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
             />
             <input
               type="text"
               value={w.lnaddr}
               onChange={(e) => updateWallet(i, { lnaddr: e.target.value })}
               placeholder="name@example.com"
-              className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
+              className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
             />
             <div className="flex items-center gap-2">
               <input
@@ -183,7 +183,7 @@ export function LightningCard() {
               <button
                 type="button"
                 onClick={() => verifyWallet(i)}
-                className="text-sm text-accent"
+                className="text-sm text-accent-primary"
               >
                 {w.verified ? 'Verified' : 'Verify ownership'}
               </button>

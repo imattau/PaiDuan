@@ -25,7 +25,7 @@ export function LanguageCard() {
       <select
         value={locale}
         onChange={handleLocaleChange}
-        className="rounded border border-white/30 bg-panel px-3 py-1"
+        className="rounded border border-white/30 bg-background-secondary px-3 py-1"
       >
         <option value="en">{t('language_english')}</option>
         <option value="zh">{t('language_chinese')}</option>

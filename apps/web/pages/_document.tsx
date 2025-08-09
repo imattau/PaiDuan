@@ -47,7 +47,7 @@ if (localStorage.getItem('analytics-consent') === '1') {
           />
         )}
       </Head>
-      <body dir={dir} className="font-sans bg-background text-foreground">
+      <body dir={dir} className="font-sans bg-background-primary text-primary">
         <Main />
         <NextScript />
       </body>

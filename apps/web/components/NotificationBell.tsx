@@ -15,12 +15,12 @@ const NotificationBell: React.FC = () => {
   return (
     <button
       onClick={() => setOpen(true)}
-      className="relative text-foreground hover:text-accent"
+      className="relative text-primary hover:text-accent-primary"
       aria-label="Notifications"
     >
       <Bell className="h-5 w-5" />
       <span
-        className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-xs text-white  ${
+        className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent-primary text-xs text-white  ${
           count > 0 ? '' : 'hidden'
         }`}
       >

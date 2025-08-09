@@ -59,7 +59,7 @@ export default function FeedPage() {
         <div className="h-full">
           {/* tabs bar you already have can stay on top */}
           {videos.length === 0 ? (
-            <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-foreground" />
+            <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />
           ) : (
             <Feed items={videos} />
           )}

@@ -47,7 +47,7 @@ const ReportModal: React.FC<Props> = ({ targetId, targetKind, open, onClose }) =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-80 rounded bg-background p-4 text-foreground">
+      <div className="w-80 rounded bg-background-primary p-4 text-primary">
         <h2 className="mb-2 font-semibold">Report</h2>
         <select
           value={reason}
@@ -69,7 +69,7 @@ const ReportModal: React.FC<Props> = ({ targetId, targetKind, open, onClose }) =
           <button className="px-3 py-1" onClick={onClose}>
             Cancel
           </button>
-          <button className="rounded bg-accent px-3 py-1 text-white" onClick={submit}>
+          <button className="rounded bg-accent-primary px-3 py-1 text-white" onClick={submit}>
             Submit
           </button>
         </div>

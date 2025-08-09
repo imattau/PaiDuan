@@ -24,14 +24,14 @@ const NotificationDrawer: React.FC = () => {
       role="dialog"
       aria-modal="true"
       aria-label="Notifications"
-      className={`fixed top-12 left-0 right-0 z-30 max-h-1/2 transform overflow-y-auto bg-background text-foreground transition-transform duration-300 ${
+      className={`fixed top-12 left-0 right-0 z-30 max-h-1/2 transform overflow-y-auto bg-background-primary text-primary transition-transform duration-300 ${
         open ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
       <div className="flex items-center justify-between border-b divider p-2">
         <span className="font-semibold">Notifications</span>
         <button
-          className="text-sm text-accent"
+          className="text-sm text-accent-primary"
           onClick={() => {
             markAllAsRead();
             setOpen(false);
@@ -47,14 +47,14 @@ const NotificationDrawer: React.FC = () => {
           onClick={() => handleClick(n.id, n.noteId)}
         >
           <div className="flex items-start space-x-3">
-            <div className="h-8 w-8 rounded-full bg-foreground/20" />
+            <div className="h-8 w-8 rounded-full bg-text-primary/20" />
             <div>
               <div className="text-sm">
                 {n.type === 'zap'
                   ? `${n.from.slice(0, 8)} zapped you ${n.amount ?? 0} sats`
                   : `${n.from.slice(0, 8)} replied: ${n.text}`}
               </div>
-              <div className="text-xs text-foreground/50">
+              <div className="text-xs text-primary/50">
                 {new Date(n.created_at * 1000).toLocaleString()}
               </div>
             </div>

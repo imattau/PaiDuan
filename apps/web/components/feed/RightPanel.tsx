@@ -21,8 +21,8 @@ export default function RightPanel({
             <img src={author.avatar} className="w-12 h-12 rounded-full object-cover" alt="" />
             <div>
               <div className="font-semibold">{author.name}</div>
-              <div className="text-sm text-muted-foreground">@{author.username}</div>
-              <div className="text-[0.9rem] font-light text-muted-foreground mt-1">
+              <div className="text-sm text-muted">@{author.username}</div>
+              <div className="text-[0.9rem] font-light text-muted mt-1">
                 {author.followers.toLocaleString()} followers
               </div>
               <div className="mt-3 flex gap-2">
