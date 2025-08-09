@@ -11,6 +11,19 @@ const baseConfig = {
   images: {
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)\\.(png|jpg|jpeg|gif|svg|webp|webm)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {
