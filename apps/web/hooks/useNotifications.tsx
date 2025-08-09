@@ -1,8 +1,16 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import pool from '@/lib/relayPool';
 import * as Toast from '@radix-ui/react-toast';
 import { getRelays } from '@/lib/nostr';
+import { Workbox } from 'workbox-window';
 
 export interface Notification {
   id: string;
@@ -61,7 +69,7 @@ export async function requestNotificationPermission() {
   if (process.env.NODE_ENV !== 'production') return;
   if (!('serviceWorker' in navigator)) return;
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js');
+    const reg = await navigator.serviceWorker.ready;
     const permission =
       Notification.permission === 'default'
         ? await Notification.requestPermission()
@@ -92,11 +100,28 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const notify = (message: string) => {
+  const notify = useCallback((message: string) => {
     setToastOpen(false);
     setToastMessage(message);
     setToastOpen(true);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (process.env.NODE_ENV !== 'production') return;
+    if (!('serviceWorker' in navigator)) return;
+
+    const wb = new Workbox('/sw.js');
+    wb.addEventListener('waiting', () => {
+      notify('A new version is available. Click to reload.');
+      const handler = () => {
+        wb.addEventListener('controlling', () => window.location.reload());
+        wb.messageSkipWaiting();
+      };
+      window.addEventListener('click', handler, { once: true });
+    });
+    wb.register();
+  }, [notify]);
 
   // keep refs to avoid stale closures
   const openRef = useRef(open);
