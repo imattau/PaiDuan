@@ -11,7 +11,7 @@ export function AccountCard() {
 
   return (
     <Card title="Account">
-      <button onClick={handleLogout} className="btn btn-secondary">
+      <button onClick={handleLogout} className="btn btn-outline">
         🔓 Logout / Reset Identity
       </button>
     </Card>

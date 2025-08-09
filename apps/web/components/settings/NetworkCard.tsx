@@ -50,7 +50,7 @@ export function NetworkCard() {
             placeholder="wss://relay.example.com"
             className="flex-1 rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
-          <button type="button" onClick={addRelay} className="btn btn-secondary">
+          <button type="button" onClick={addRelay} className="btn btn-outline">
             Add
           </button>
         </div>

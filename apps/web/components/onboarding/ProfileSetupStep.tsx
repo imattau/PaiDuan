@@ -147,7 +147,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
             />
-            <Button className="btn-secondary" onClick={finishCrop}>
+            <Button className="btn-outline" onClick={finishCrop}>
               Done
             </Button>
           </div>
@@ -169,7 +169,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
         <Button
           onClick={saveProfile}
           disabled={loading}
-          className="btn btn-primary disabled:opacity-50"
+          className="btn-primary disabled:opacity-50"
         >
           {loading ? 'Saving…' : 'Save'}
         </Button>

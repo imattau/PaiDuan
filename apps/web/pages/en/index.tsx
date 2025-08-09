@@ -21,7 +21,7 @@ export default function LandingPage() {
           <Link href="/onboarding/key" className="btn btn-primary" prefetch>
             Get Started
           </Link>
-          <Link href="/en/feed" className="btn btn-secondary" prefetch>
+          <Link href="/en/feed" className="btn btn-outline" prefetch>
             Explore Feed
           </Link>
         </div>

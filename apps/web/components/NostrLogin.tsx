@@ -79,7 +79,7 @@ export function NostrLogin() {
           className="input w-full"
         />
         <button
-          className="btn btn-secondary w-full"
+          className="btn btn-outline w-full"
           onClick={connectRemote}
           disabled={!uri.trim()}
         >
@@ -87,10 +87,10 @@ export function NostrLogin() {
         </button>
       </div>
 
-      <button className="btn btn-secondary w-full" onClick={importKey}>
+      <button className="btn btn-outline w-full" onClick={importKey}>
         Import nsec / hex
       </button>
-      <button className="btn btn-secondary w-full" onClick={generateKey}>
+      <button className="btn btn-outline w-full" onClick={generateKey}>
         Generate new key
       </button>
     </div>

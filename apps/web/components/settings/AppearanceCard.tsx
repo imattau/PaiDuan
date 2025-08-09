@@ -15,7 +15,7 @@ export function AppearanceCard() {
     <Card title="Appearance" desc="Theme and accent colour.">
       <button
         onClick={() => setMode(isDark ? 'light' : 'dark')}
-        className="btn btn-secondary"
+        className="btn btn-outline"
       >
         {isDark ? t('switch_to_light') : t('switch_to_dark')}
       </button>

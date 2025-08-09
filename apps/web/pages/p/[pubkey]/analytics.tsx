@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import useCreatorAnalytics from '../../../hooks/useCreatorAnalytics';
-import { StatCard, TimeSeriesChart } from '@paiduan/ui';
+import { Button, StatCard, TimeSeriesChart } from '@paiduan/ui';
 
 export default function CreatorAnalytics() {
   const router = useRouter();
@@ -37,12 +37,9 @@ export default function CreatorAnalytics() {
         <StatCard label="Follower Δ" total={totals.followerDelta} />
         <StatCard label="Revenue A$" total={totals.revenueAud.toFixed(2)} />
       </div>
-      <button
-        onClick={downloadCsv}
-        className="px-4 py-2 bg-blue-500 text-white rounded"
-      >
+      <Button onClick={downloadCsv} className="btn-primary">
         Download CSV
-      </button>
+      </Button>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <TimeSeriesChart
           data={data.dailySeries}

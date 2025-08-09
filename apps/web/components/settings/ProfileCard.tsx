@@ -80,7 +80,7 @@ export function ProfileCard() {
           <button
             type="button"
             onClick={save}
-            className="btn btn-secondary"
+            className="btn btn-outline"
             disabled={saving || state.status !== 'ready'}
           >
             {saving ? 'Saving…' : 'Save'}
