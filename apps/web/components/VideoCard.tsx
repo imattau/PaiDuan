@@ -208,7 +208,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
         <button
-          className="relative hover:text-accent-primary disabled:opacity-50"
+          className="relative hover:text-accent-primary disabled:opacity-50 lg:hidden"
           onClick={() => online && setCommentsOpen(true)}
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
