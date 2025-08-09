@@ -62,7 +62,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
   const adaptiveUrl = useAdaptiveSource(manifestUrl, playerRef);
-  const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const [reposted, setReposted] = useState(false);
   const holdTimer = useRef<number>();
@@ -75,7 +74,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const isFollowing = following.includes(pubkey);
   const { online } = useNetworkState();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
@@ -231,7 +229,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
                 className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
                 onClick={() => {
                   setMenuOpen(false);
-                  setReportOpen(true);
+                  ReportModal({ targetId: eventId, targetKind: 'video' });
                 }}
               >
                 Report
@@ -258,7 +256,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </button>
         <button
           className="relative hover:text-accent-primary disabled:opacity-50 lg:hidden"
-          onClick={() => online && setCommentsOpen(true)}
+          onClick={() =>
+            online &&
+            CommentDrawer({
+              videoId: eventId,
+              onCountChange: setCommentCount,
+            })
+          }
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         >
@@ -334,20 +338,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           {seekPreview.toFixed(1)}s
         </div>
       </animated.div>
-      {commentsOpen && (
-        <CommentDrawer
-          videoId={eventId}
-          open={commentsOpen}
-          onClose={() => setCommentsOpen(false)}
-          onCountChange={setCommentCount}
-        />
-      )}
-      <ReportModal
-        targetId={eventId}
-        targetKind="video"
-        open={reportOpen}
-        onClose={() => setReportOpen(false)}
-      />
     </motion.div>
   );
 };
