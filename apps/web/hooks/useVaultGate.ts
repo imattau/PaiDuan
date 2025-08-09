@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 
+const LS_KEY = 'pd.auth.v1';
+
 export function useVaultGate(nextHrefWhenHasKeys = '/en/feed') {
   useEffect(() => {
     try {
-      const vault = localStorage.getItem('nostrVault');
-      if (vault) window.location.replace(nextHrefWhenHasKeys);
+      const auth = localStorage.getItem(LS_KEY);
+      if (auth) window.location.replace(nextHrefWhenHasKeys);
     } catch {}
   }, [nextHrefWhenHasKeys]);
 }
