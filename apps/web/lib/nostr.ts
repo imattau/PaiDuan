@@ -10,47 +10,36 @@ export function getPool() {
   return _pool;
 }
 
-export interface KeyVault {
-  getPrivateKey(): string | undefined;
-  getPublicKey(): string | undefined;
-}
+const LS_KEY = 'pd.auth.v1';
 
-export class LocalStorageKeyVault implements KeyVault {
-  getPrivateKey(): string | undefined {
-    try {
-      return localStorage.getItem('nostr:privkey') ?? undefined;
-    } catch {
-      return undefined;
-    }
-  }
-
-  getPublicKey(): string | undefined {
-    const sk = this.getPrivateKey();
-    if (!sk) return undefined;
-    try {
-      return getPublicKey(sk);
-    } catch {
-      return undefined;
-    }
+function loadAuth(): any | undefined {
+  if (typeof localStorage === 'undefined') return undefined;
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
   }
 }
-
-/** TODO: replace with your real key vault */
-export let keyVault: KeyVault = new LocalStorageKeyVault();
 
 export function getMyPrivkey(): string | undefined {
-  return keyVault.getPrivateKey();
+  const saved = loadAuth();
+  if (saved?.method === 'local') return saved.data?.privkeyHex;
+  return undefined;
 }
+
 export function getMyPubkey(): string | undefined {
-  return keyVault.getPublicKey();
+  const sk = getMyPrivkey();
+  if (!sk) return undefined;
+  try {
+    return getPublicKey(sk);
+  } catch {
+    return undefined;
+  }
 }
 
 /** Relays you want to hit – tweak as needed */
-const DEFAULT_RELAYS = [
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.snort.social',
-];
+const DEFAULT_RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.snort.social'];
 
 function parseRelays(input: unknown): string[] | undefined {
   if (Array.isArray(input)) {
