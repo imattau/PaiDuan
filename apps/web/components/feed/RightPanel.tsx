@@ -39,7 +39,7 @@ export default function RightPanel({
               <div className="mt-3 flex gap-2">
                 <Link
                   href={`/p/${author.pubkey}`}
-                  className="btn btn-secondary px-3 py-1.5 text-sm"
+                  className="btn btn-outline px-3 py-1.5 text-sm"
                   prefetch={false}
                   onMouseEnter={() => router.prefetch(`/p/${author.pubkey}`)}
                 >

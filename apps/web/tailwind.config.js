@@ -42,5 +42,6 @@ module.exports = {
   plugins: [
     plugin(require('tailwindcss-plugin-rtl')),
     require('@tailwindcss/typography'),
+    require('daisyui'),
   ],
 };

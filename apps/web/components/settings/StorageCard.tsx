@@ -17,7 +17,7 @@ export function StorageCard() {
 
   return (
     <Card title="Storage" desc="Local caches and data.">
-      <button onClick={clearStorage} className="btn btn-secondary">
+      <button onClick={clearStorage} className="btn btn-outline">
         {t('clear_cached_data')}
       </button>
     </Card>

@@ -57,11 +57,11 @@ export default function Profile() {
               <div className="text-lg font-semibold">{meta?.name || 'Anonymous'}</div>
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <button className="btn-secondary" onClick={() => router.push('/onboarding/profile')}>
+              <button className="btn btn-outline" onClick={() => router.push('/onboarding/profile')}>
                 Edit
               </button>
               {state.method === 'local' && (
-                <button className="btn-secondary" onClick={exportKey}>
+                <button className="btn btn-outline" onClick={exportKey}>
                   Export key
                 </button>
               )}

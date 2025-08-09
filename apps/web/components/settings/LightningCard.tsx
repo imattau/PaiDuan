@@ -228,7 +228,7 @@ export function LightningCard() {
             </div>
           </div>
         ))}
-        <button type="button" onClick={addWallet} className="btn btn-secondary">
+        <button type="button" onClick={addWallet} className="btn btn-outline">
           Add wallet
         </button>
         {qr && (
@@ -255,7 +255,7 @@ export function LightningCard() {
           <button
             type="button"
             onClick={exportConfig}
-            className="btn btn-secondary"
+            className="btn btn-outline"
             disabled={state.status !== 'ready'}
           >
             Export wallet config
@@ -263,7 +263,7 @@ export function LightningCard() {
           <button
             type="button"
             onClick={triggerImport}
-            className="btn btn-secondary"
+            className="btn btn-outline"
             disabled={state.status !== 'ready'}
           >
             Import wallet config
@@ -273,7 +273,7 @@ export function LightningCard() {
         <button
           type="button"
           onClick={save}
-          className="btn btn-secondary"
+          className="btn btn-outline"
           disabled={saving || state.status !== 'ready' || wallets.length === 0}
         >
           {saving ? 'Saving…' : 'Save'}

@@ -41,11 +41,11 @@ export function KeysCard() {
       </div>
       <div className="flex flex-wrap gap-3 pt-2">
         {state.method === 'local' && (
-          <button className="btn-secondary" onClick={exportNsec}>
+          <button className="btn btn-outline" onClick={exportNsec}>
             Export nsec
           </button>
         )}
-        <button className="btn-secondary" onClick={signOut}>
+        <button className="btn btn-outline" onClick={signOut}>
           Disconnect
         </button>
       </div>
