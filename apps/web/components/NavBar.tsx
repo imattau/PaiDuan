@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Home, Users, Plus, Settings } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
+import { prefetchFeed } from '@/hooks/useFeed';
 
 export default function NavBar() {
   const router = useRouter();
@@ -31,7 +32,14 @@ export default function NavBar() {
             }`}
             aria-current={active ? 'page' : undefined}
             prefetch={false}
-            onMouseEnter={() => router.prefetch(href)}
+            onMouseEnter={() => {
+              router.prefetch(href);
+              if (href.includes('/feed?tab=following')) {
+                prefetchFeed('following');
+              } else if (href.includes('/feed')) {
+                prefetchFeed('all');
+              }
+            }}
           >
             <motion.div
               animate={{ scale: active ? 1.2 : 1 }}

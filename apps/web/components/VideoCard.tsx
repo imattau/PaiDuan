@@ -10,7 +10,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { Skeleton } from './ui/Skeleton';
-import { SimplePool } from 'nostr-tools/pool';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
 import useOffline from '../utils/useOffline';
@@ -19,8 +18,9 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFeedSelection } from '@/store/feedSelection';
-import { getRelays } from '@/lib/nostr';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { prefetchProfile } from '@/hooks/useProfiles';
 
 const MoreVertical = dynamic(() => import('lucide-react').then((mod) => mod.MoreVertical), {
   ssr: false,
@@ -64,8 +64,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
   const { state: auth } = useAuth();
   const { following, follow } = useFollowing(auth.status === 'ready' ? auth.pubkey : undefined);
-  const [avatar, setAvatar] = useState('');
-  const [displayName, setDisplayName] = useState(author);
+  const profile = useProfile(pubkey);
+  const avatar = profile?.picture || '';
+  const displayName = profile?.name || author;
   const isFollowing = following.includes(pubkey);
   const online = useOffline();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -79,25 +80,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     navigator.clipboard.writeText(url);
     toast.success('Link copied');
   };
-
-  useEffect(() => {
-    const pool: any = new SimplePool();
-    const relays = getRelays();
-    const sub = pool.subscribeMany(relays, [{ kinds: [0], authors: [pubkey], limit: 1 }], {
-      onevent: (ev: any) => {
-        try {
-          const content = JSON.parse(ev.content);
-          if (content.picture) setAvatar(content.picture);
-          if (content.name) setDisplayName(content.name);
-        } catch {
-          /* ignore */
-        }
-      },
-    });
-    return () => {
-      sub.close();
-    };
-  }, [pubkey]);
 
   useEffect(() => {
     if (inView) {
@@ -244,7 +226,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           href={`/p/${pubkey}`}
           className="flex items-center space-x-3"
           prefetch={false}
-          onMouseEnter={() => router.prefetch(`/p/${pubkey}`)}
+          onMouseEnter={() => {
+            router.prefetch(`/p/${pubkey}`);
+            prefetchProfile(pubkey);
+          }}
         >
           {avatar ? (
             <Image
