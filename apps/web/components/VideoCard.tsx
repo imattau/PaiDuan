@@ -170,7 +170,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       api.start({ opacity: 0 });
       setSeekPreview(0);
     }
-    player?.play();
+    if (player && typeof (player as any).play === 'function') {
+      player.play();
+    } else if (player && typeof (player as any).el === 'function') {
+      const videoEl = (player as any).el().querySelector('video');
+      if (videoEl && typeof (videoEl as any).play === 'function') {
+        (videoEl as HTMLVideoElement).play();
+      }
+    }
   };
 
   return (
