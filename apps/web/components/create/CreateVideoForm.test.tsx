@@ -145,6 +145,7 @@ describe('CreateVideoForm', () => {
 
     expect(mockFetch).toHaveBeenCalledWith('https://nostr.media/api/upload', expect.any(Object));
     const tags = mockSignEvent.mock.calls[0][0].tags;
+    expect(tags).toContainEqual(['zap', 'addr', '100']);
     expect(tags).toContainEqual(['copyright', 'CC BY']);
   });
 
@@ -216,6 +217,7 @@ describe('CreateVideoForm', () => {
     const body = mockFetch.mock.calls[0][1].body as FormData;
     expect(body.get('zapSplits')).toBe(JSON.stringify([{ lnaddr: 'col@example.com', pct: 10 }]));
     const tags = mockSignEvent.mock.calls[0][0].tags;
+    expect(tags).toContainEqual(['zap', 'addr', '90']);
     expect(tags).toContainEqual(['zap', 'col@example.com', '10']);
   });
 

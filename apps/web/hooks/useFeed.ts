@@ -94,7 +94,7 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
         if (!videoTag) return;
         const posterTag = event.tags.find((t) => t[0] === 'image');
         const manifestTag = event.tags.find((t) => t[0] === 'vman');
-        const zapTag = event.tags.find((t) => t[0] === 'zap');
+        const zapTags = event.tags.filter((t) => t[0] === 'zap');
         const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
         tTags.forEach((t) => {
           tagCounts[t] = (tagCounts[t] || 0) + 1;
@@ -106,7 +106,7 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
           author: event.pubkey.slice(0, 8),
           caption: tTags.join(' '),
           eventId: event.id,
-          lightningAddress: zapTag ? zapTag[1] : '',
+          lightningAddress: zapTags.length ? zapTags[0][1] : '',
           pubkey: event.pubkey,
           zapTotal: 0,
           onLike: () => {},

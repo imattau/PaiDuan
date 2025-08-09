@@ -72,7 +72,7 @@ the browser is not supported—prepare clips ahead of time:
 2. Trim the clip and capture a poster frame
 3. Add a caption, upload the assets, and publish a NIP‑23 note
 
-Publishing now includes an optional `['zap', <lnaddr>]` tag when a Lightning address is available.
+Publishing now includes `['zap', <lnaddr>, <pct>]` tags for the creator and any collaborators when Lightning addresses are provided.
 
 For manual testing of the upload endpoint you can use cURL:
 
