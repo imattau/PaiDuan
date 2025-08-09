@@ -1,7 +1,10 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
 self.addEventListener('install', () => {
-  workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
+  const manifest = (self.__WB_MANIFEST || []).filter(
+    (entry) => !/app-build-manifest\.json$/.test(entry.url)
+  );
+  workbox.precaching.precacheAndRoute(manifest);
 });
 
 self.addEventListener('push', event => {
