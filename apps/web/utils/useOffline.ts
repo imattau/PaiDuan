@@ -7,7 +7,7 @@ export default function useOffline() {
   useEffect(() => {
     const update = () => {
       const status = navigator.onLine
-      if (!status && online) {
+      if (!status) {
         toast.info('You are offline')
       }
       setOnline(status)
@@ -19,7 +19,7 @@ export default function useOffline() {
       window.removeEventListener('online', update)
       window.removeEventListener('offline', update)
     }
-  }, [online])
+  }, [])
 
   return online
 }
