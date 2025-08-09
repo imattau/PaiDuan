@@ -1,6 +1,11 @@
 import { SimplePool } from 'nostr-tools/pool';
 import { normalizeURL } from 'nostr-tools/utils';
 
+const MAX_DELAY = 30_000; // 30s cap
+const MAX_RETRIES = 5;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Shared, reference-counted pool of relay connections.
  * Ensures only one WebSocket per relay URL is created and
@@ -9,9 +14,27 @@ import { normalizeURL } from 'nostr-tools/utils';
 class RelayPool extends SimplePool {
   private refs: Map<string, number> = new Map();
 
+  private async connectWithRetry(url: string, params?: any) {
+    let attempt = 0;
+    while (true) {
+      try {
+        return await super.ensureRelay(url, params);
+      } catch (err) {
+        attempt += 1;
+        if (attempt > MAX_RETRIES) {
+          super.close([url]);
+          throw err;
+        }
+        const backoff = Math.min(MAX_DELAY, 2 ** attempt * 1000);
+        const jitter = Math.random() * 1000;
+        await sleep(backoff + jitter);
+      }
+    }
+  }
+
   async ensureRelay(url: string, params?: any) {
     const norm = normalizeURL(url);
-    const relay = await super.ensureRelay(norm, params);
+    const relay = await this.connectWithRetry(norm, params);
     this.refs.set(norm, (this.refs.get(norm) ?? 0) + 1);
     return relay;
   }
