@@ -1,3 +1,10 @@
+const precacheManifest = [
+  { url: 'index.html', revision: null },
+  { url: 'feed.html', revision: null },
+  { url: 'main.js', revision: null },
+  { url: 'main.css', revision: null },
+];
+
 module.exports = {
   globDirectory: 'public/',
   globPatterns: ['**/*.{js,css,html,png,jpg,webm,json,svg}'],
@@ -5,9 +12,7 @@ module.exports = {
     { urlPattern: /^https?.*\.(webm|mp4)$/, handler: 'CacheFirst' },
     { urlPattern: /^https?.*\.(jpg|jpeg|png|gif|svg)$/, handler: 'StaleWhileRevalidate' },
     { urlPattern: /^https?.*nostr\.media.*$/, handler: 'NetworkFirst' },
-    {
-      urlPattern: /^(https|wss):.*(relay|nostr).*$/,
-      handler: 'StaleWhileRevalidate',
-    },
+    { urlPattern: /^(https|wss):.*(relay|nostr).*$/, handler: 'StaleWhileRevalidate' },
   ],
+  precacheManifest,
 };
