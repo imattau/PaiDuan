@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import dynamic from 'next/dynamic';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import { MessageCircle, Repeat2 } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
@@ -21,6 +21,8 @@ import { useFeedSelection } from '@/store/feedSelection';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
+import { SimplePool } from 'nostr-tools/pool';
+import { getRelays } from '@/lib/nostr';
 
 const MoreVertical = dynamic(() => import('lucide-react').then((mod) => mod.MoreVertical), {
   ssr: false,
@@ -36,7 +38,6 @@ export interface VideoCardProps {
   lightningAddress: string;
   pubkey: string;
   zapTotal?: number;
-  onLike: () => void;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({
@@ -49,7 +50,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   lightningAddress,
   pubkey,
   zapTotal,
-  onLike,
 }) => {
   const router = useRouter();
   const playerRef = useRef<ReactPlayer>(null);
@@ -75,18 +75,33 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
 
-  const handleShare = () => {
-    const url = `${window.location.origin}/v/${eventId}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Link copied');
-  };
-
   useEffect(() => {
     if (inView) {
       setCurrent({ eventId, pubkey, caption, posterUrl });
       setSelectedVideo(eventId, pubkey);
     }
   }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
+
+  const handleRepost = async () => {
+    if (auth.status !== 'ready') return;
+    try {
+      const event: any = {
+        kind: 6,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [
+          ['e', eventId],
+          ['p', pubkey],
+        ],
+        content: '',
+        pubkey: auth.pubkey,
+      };
+      const signed = await auth.signer.signEvent(event);
+      await new SimplePool().publish(getRelays(), signed);
+      toast.success('Reposted');
+    } catch {
+      toast.error('Repost failed');
+    }
+  };
 
   const bind = useGesture(
     {
@@ -149,7 +164,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
       className="relative w-full h-full max-h-full overflow-hidden rounded-2xl bg-card text-white shadow-card"
-      onDoubleClick={onLike}
       onClick={() => setSelectedVideo(eventId, pubkey)}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
@@ -189,9 +203,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       </div>
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
-        <button onClick={onLike} className="hover:text-accent-primary">
-          <Heart />
-        </button>
         <button
           className="relative hover:text-accent-primary disabled:opacity-50"
           onClick={() => online && setCommentsOpen(true)}
@@ -212,12 +223,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         />
         <button
-          onClick={handleShare}
+          onClick={handleRepost}
           className="hover:text-accent-primary disabled:opacity-50"
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         >
-          <Share2 />
+          <Repeat2 />
         </button>
       </div>
 
