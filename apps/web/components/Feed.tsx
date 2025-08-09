@@ -33,7 +33,7 @@ export const Feed: React.FC<FeedProps> = ({
   items,
   loading,
   loadMore,
-  springConfig = FEED_SPRING_CONFIG,
+  springConfig = FEED_SPRING_CONFIG
 }) => {
   const [index, setIndex] = useState(0);
   const [{ y }, api] = useSpring(() => ({ y: 0, config: springConfig }));
@@ -94,7 +94,7 @@ export const Feed: React.FC<FeedProps> = ({
         }
       },
     },
-    { drag: { axis: 'y' }, wheel: { eventOptions: { passive: false } } },
+    { drag: { axis: 'y' }, wheel: { eventOptions: { passive: false } } }
   );
 
   useEffect(() => {
