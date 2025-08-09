@@ -138,28 +138,37 @@ export default function CreateVideoForm() {
           updatePreview(URL.createObjectURL(blob));
           return;
         }
-        worker.onmessage = (ev: MessageEvent) => {
+        worker.onmessage = async (ev: MessageEvent) => {
           const msg = ev.data as any;
           if (msg?.type === 'progress') {
             setProgress(Math.round((msg.progress || 0) * 100));
           } else if (msg?.type === 'error') {
+            worker.terminate();
             setProgress(0);
             if (msg.error === 'unsupported-codec') {
               setErr('Unsupported video codec. Please convert your video and try again.');
-            } else if (msg.error === 'no-keyframe') {
+            } else if (msg.error === 'no-keyframe' || msg.error === 'demux-failed') {
               setErr(
-                'Cannot trim this video because it lacks a key frame. Using the original file.',
+                msg.error === 'no-keyframe'
+                  ? 'Cannot trim this video because it lacks a key frame. Re-encoding…'
+                  : 'Failed to read video file. Re-encoding…',
               );
-              setOutBlob(f);
-              updatePreview(URL.createObjectURL(f));
-            } else if (msg.error === 'demux-failed') {
-              setErr('Failed to read video file. Using the original file.');
-              setOutBlob(f);
-              updatePreview(URL.createObjectURL(f));
+              try {
+                const blob = await trimVideoFfmpeg(f, {
+                  start: 0,
+                  width,
+                  height,
+                  onProgress: (p) => setProgress(Math.round(p * 100)),
+                });
+                setOutBlob(blob);
+                updatePreview(URL.createObjectURL(blob));
+              } catch (err: any) {
+                console.error(err);
+                setErr('Conversion failed.');
+              }
             } else {
               setErr(msg.message || 'Conversion failed.');
             }
-            worker.terminate();
           } else if (msg?.type === 'done') {
             const blob: Blob = msg.blob;
             setOutBlob(blob);
