@@ -1,5 +1,5 @@
 'use client';
-import NDK from '@nostr-dev-kit/ndk';
+import NDK, { NDKRelayStatus } from '@nostr-dev-kit/ndk';
 import { getPublicKey } from 'nostr-tools/pure';
 import { hexToBytes } from 'nostr-tools/utils';
 import relaysConfig from '../relays.json';
@@ -9,14 +9,47 @@ import relaysConfig from '../relays.json';
  */
 export const ndk = new NDK({ explicitRelayUrls: getRelays() });
 
+export type NDKConnectionStatus = 'connecting' | 'connected' | 'error';
+
+export let ndkConnectionStatus: NDKConnectionStatus = 'connecting';
+
+export const NDK_STATUS_EVENT = 'pd.ndkstatus';
+
+function setStatus(status: NDKConnectionStatus) {
+  ndkConnectionStatus = status;
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(NDK_STATUS_EVENT, { detail: status }));
+  }
+}
+
+let retryTimeout: ReturnType<typeof setTimeout> | undefined;
+
+async function connectNDK(attempt = 0): Promise<void> {
+  clearTimeout(retryTimeout);
+  setStatus('connecting');
+  try {
+    await ndk.connect();
+    const statuses = ndk.pool.status ? Array.from(ndk.pool.status.values()) : [];
+    if (!statuses.some((s) => s === NDKRelayStatus.CONNECTED)) {
+      throw new Error('No relays connected');
+    }
+    setStatus('connected');
+  } catch (err) {
+    console.error('NDK connection failed', err);
+    setStatus('error');
+    const delay = Math.min(1000 * 2 ** attempt, 30000);
+    retryTimeout = setTimeout(() => connectNDK(attempt + 1), delay);
+  }
+}
+
 // establish connections eagerly so hooks/components can use it immediately
-ndk.connect();
+void connectNDK();
 
 // update relay connections when the list changes
 if (typeof window !== 'undefined') {
   window.addEventListener('pd.relays', () => {
     ndk.explicitRelayUrls = getRelays();
-    ndk.connect();
+    void connectNDK();
   });
 }
 
