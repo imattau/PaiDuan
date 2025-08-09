@@ -3,13 +3,16 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { navItems } from './nav';
+import { useLayout } from '@/context/LayoutContext';
 
 export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const layout = useLayout();
+  if (layout === 'desktop') return null;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 flex justify-around border-t bg-surface lg:hidden">
+    <nav className="fixed bottom-0 inset-x-0 flex justify-around border-t bg-surface">
       {navItems.map(({ href, label, icon: Icon }) => {
         const active = pathname.startsWith(href);
         return (

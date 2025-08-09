@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import BottomNav from './BottomNav';
+import { useLayout } from '@/context/LayoutContext';
 
 export default function AppShell({
   left,
@@ -11,20 +12,24 @@ export default function AppShell({
   center: React.ReactNode;
   right?: React.ReactNode;
 }) {
+  const layout = useLayout();
+  const isDesktop = layout === 'desktop';
   const hasRight = !!right;
+  const gridCols = isDesktop
+    ? hasRight
+      ? 'grid-cols-[300px_1fr_400px]'
+      : 'grid-cols-[300px_1fr]'
+    : 'grid-cols-1';
+
   return (
     <div className="min-h-screen bg-background-primary text-primary">
-      <div
-        className={`mx-auto w-full max-w-[1400px] bg-surface grid grid-cols-1 ${
-          hasRight
-            ? 'lg:grid-cols-[300px_1fr_400px]'
-            : 'lg:grid-cols-[300px_1fr]'
-        } gap-0`}
-      >
+      <div className={`mx-auto w-full max-w-[1400px] bg-surface grid ${gridCols} gap-0`}>
         {/* Left column: menu/search/profile summary (sticky on desktop) */}
-        <aside className="hidden lg:block border-r divider sticky top-0 h-screen overflow-y-auto">
-          <div className="p-4">{left}</div>
-        </aside>
+        {isDesktop && (
+          <aside className="border-r divider sticky top-0 h-screen overflow-y-auto">
+            <div className="p-4">{left}</div>
+          </aside>
+        )}
 
         {/* Middle column: main feed */}
         <main className="h-[100dvh] overflow-hidden">
@@ -32,13 +37,13 @@ export default function AppShell({
         </main>
 
         {/* Right column: author info & comments (sticky on desktop) */}
-        {hasRight && (
-          <aside className="sidebar-right hidden lg:block border-l divider sticky top-0 h-screen overflow-y-auto">
+        {hasRight && isDesktop && (
+          <aside className="sidebar-right border-l divider sticky top-0 h-screen overflow-y-auto">
             {right}
           </aside>
         )}
       </div>
-      <BottomNav />
+      {layout !== 'desktop' && <BottomNav />}
     </div>
   );
 }
