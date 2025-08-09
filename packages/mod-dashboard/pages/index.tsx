@@ -61,18 +61,24 @@ export default function Dashboard({ allowed }: Props) {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 text-primary">
       <h1 className="mb-4 text-xl font-bold">Moderation Queue</h1>
       <ul className="space-y-2">
         {reports.map((r) => (
-          <li key={r.targetId} className="rounded border p-2">
+          <li key={r.targetId} className="rounded border divider p-2">
             <div className="text-sm">{r.targetKind}: {r.targetId}</div>
             <div className="text-sm">Reason: {r.reason}</div>
             <div className="mt-2 space-x-2">
-              <button className="rounded bg-green-500 px-2 py-1 text-white" onClick={() => approve(r.targetId)}>
+              <button
+                className="rounded bg-accent-primary px-2 py-1 text-primary hover:bg-accent-hover active:bg-accent-active"
+                onClick={() => approve(r.targetId)}
+              >
                 Approve
               </button>
-              <button className="rounded bg-red-500 px-2 py-1 text-white" onClick={() => remove(r.targetId)}>
+              <button
+                className="rounded bg-destructive px-2 py-1 text-primary hover:bg-destructive-hover active:bg-destructive-active"
+                onClick={() => remove(r.targetId)}
+              >
                 Remove
               </button>
             </div>
