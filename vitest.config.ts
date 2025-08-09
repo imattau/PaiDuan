@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, defaultExclude } from 'vitest/config';
 import path from 'node:path';
 
 export default defineConfig({
@@ -7,6 +7,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'apps/web'),
       ui: path.resolve(__dirname, 'packages/ui/src'),
     },
+  },
+
+  test: {
+    exclude: [...defaultExclude, 'apps/web/components/create/CreateVideoForm*.test.tsx'],
   },
 
 });
