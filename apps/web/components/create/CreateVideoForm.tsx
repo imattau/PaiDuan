@@ -12,6 +12,9 @@ import { useProfiles } from '../../hooks/useProfiles';
 import useFollowing from '../../hooks/useFollowing';
 import { getRelays } from '../../lib/nostr';
 import pool from '../../lib/relayPool';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function CreateVideoForm() {
   const router = useRouter();
@@ -34,14 +37,50 @@ export default function CreateVideoForm() {
     });
   };
 
-  const [caption, setCaption] = useState('');
-  const [topics, setTopics] = useState('');
-  const [license, setLicense] = useState('All Rights Reserved');
   const [customLicense, setCustomLicense] = useState('');
   const [nsfw, setNsfw] = useState(false);
-  const [lightningAddress, setLightningAddress] = useState('');
-  const [zapSplits, setZapSplits] = useState<{ lnaddr: string; pct: number }[]>([]);
   const [posting, setPosting] = useState(false);
+
+  const splitSchema = z.object({
+    lnaddr: z.string().min(1, 'Lightning address required'),
+    pct: z.number().min(1).max(95),
+  });
+  const schema = z.object({
+    caption: z.string().min(1, 'Caption is required'),
+    topics: z.string().min(1, 'At least one topic'),
+    license: z.string().min(1, 'License is required'),
+    lightningAddress: z.string().min(1, 'Lightning address is required'),
+    zapSplits: z
+      .array(splitSchema)
+      .max(4)
+      .refine((arr) => arr.reduce((sum, s) => sum + s.pct, 0) <= 95, {
+        message: 'Total split percentage must be 95% or less',
+        path: ['zapSplits'],
+      }),
+  });
+  type FormValues = z.infer<typeof schema>;
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      caption: '',
+      topics: '',
+      license: 'All Rights Reserved',
+      lightningAddress: '',
+      zapSplits: [],
+    },
+  });
+  const { fields: zapFields, append, remove } = useFieldArray({
+    control,
+    name: 'zapSplits',
+  });
 
   const { state } = useAuth();
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
@@ -66,34 +105,33 @@ export default function CreateVideoForm() {
   );
   const showZapSelect =
     (profile?.zapSplits && profile.zapSplits.length > 0) || zapOptions.length > 1;
+  const caption = watch('caption');
+  const topics = watch('topics');
+  const lightningAddress = watch('lightningAddress');
+  const zapSplits = watch('zapSplits');
+  const license = watch('license');
   const selectedZapOption = zapOptions.includes(lightningAddress) ? lightningAddress : '';
+  const totalPct = zapSplits.reduce((sum, s) => sum + (s.pct || 0), 0);
 
   useEffect(() => {
     if (!lightningAddress) {
       const def = Array.isArray(profile?.wallets)
         ? profile.wallets.find((w: any) => w?.default)?.lnaddr
         : profile?.lud16;
-      if (def) setLightningAddress(def);
+      if (def) setValue('lightningAddress', def);
     }
-  }, [profile, lightningAddress]);
+  }, [profile, lightningAddress, setValue]);
 
   useEffect(() => {
     if (Array.isArray(profile?.zapSplits)) {
-      setZapSplits(
+      setValue(
+        'zapSplits',
         profile.zapSplits
           .filter((s: any) => typeof s.lnaddr === 'string' && typeof s.pct === 'number')
           .slice(0, 4),
       );
     }
-  }, [profile]);
-
-  const topicList = topics
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean);
-  const totalPct = zapSplits.reduce((sum, s) => sum + s.pct, 0);
-  const splitsValid = totalPct <= 95 && zapSplits.every((s) => s.lnaddr && s.pct > 0);
-  const formValid = !!outBlob && !!lightningAddress.trim() && topicList.length > 0 && splitsValid;
+  }, [profile, setValue]);
 
   useEffect(() => {
     if (videoRef.current && preview) {
@@ -241,17 +279,9 @@ export default function CreateVideoForm() {
     }
   }
 
-  async function postVideo() {
+  const onSubmit = async (values: FormValues) => {
     if (!outBlob) {
       alert('Please process a video first');
-      return;
-    }
-    if (!lightningAddress.trim()) {
-      alert('Lightning address is required');
-      return;
-    }
-    if (topicList.length === 0) {
-      alert('At least one topic is required');
       return;
     }
 
@@ -259,13 +289,13 @@ export default function CreateVideoForm() {
       setPosting(true);
       const form = new FormData();
       form.append('file', outBlob, 'video.webm');
-      form.append('caption', caption);
-      form.append('topics', topics);
-      const licenseValue = license === 'other' ? customLicense : license;
+      form.append('caption', values.caption);
+      form.append('topics', values.topics);
+      const licenseValue = values.license === 'other' ? customLicense : values.license;
       form.append('copyright', licenseValue);
       form.append('nsfw', nsfw ? 'true' : 'false');
-      if (lightningAddress) form.append('zap', lightningAddress);
-      if (zapSplits.length) form.append('zapSplits', JSON.stringify(zapSplits));
+      if (values.lightningAddress) form.append('zap', values.lightningAddress);
+      if (values.zapSplits.length) form.append('zapSplits', JSON.stringify(values.zapSplits));
 
       const res = await fetch('https://nostr.media/api/upload', {
         method: 'POST',
@@ -274,9 +304,14 @@ export default function CreateVideoForm() {
       if (!res.ok) throw new Error('Upload failed');
       const { video, poster, manifest } = await res.json();
 
+      const topicList = values.topics
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const totalPctSubmit = values.zapSplits.reduce((sum, s) => sum + s.pct, 0);
       const dim = `${dimensions.width}x${dimensions.height}`;
       const tags: string[][] = [
-        ['title', caption],
+        ['title', values.caption],
         ['published_at', Math.floor(Date.now() / 1000).toString()],
         ['imeta', `dim ${dim}`, `url ${video}`, 'm video/mp4', `image ${poster}`],
         ...topicList.map((t) => ['t', t]),
@@ -290,9 +325,10 @@ export default function CreateVideoForm() {
           `image ${poster}`,
         ]);
       }
-      const creatorPct = Math.max(0, 100 - totalPct);
-      if (lightningAddress) tags.push(['zap', lightningAddress, creatorPct.toString()]);
-      zapSplits.forEach((s) => {
+      const creatorPct = Math.max(0, 100 - totalPctSubmit);
+      if (values.lightningAddress)
+        tags.push(['zap', values.lightningAddress, creatorPct.toString()]);
+      values.zapSplits.forEach((s) => {
         if (s.lnaddr && s.pct > 0) tags.push(['zap', s.lnaddr, s.pct.toString()]);
       });
       if (nsfw) tags.push(['content-warning', 'nsfw']);
@@ -303,7 +339,7 @@ export default function CreateVideoForm() {
       const event: any = {
         kind,
         created_at: Math.floor(Date.now() / 1000),
-        content: caption,
+        content: values.caption,
         tags,
         pubkey: state.pubkey,
       };
@@ -316,27 +352,15 @@ export default function CreateVideoForm() {
     } finally {
       setPosting(false);
     }
-  }
-
-  const addSplit = () => {
-    if (zapSplits.length >= 4) return;
-    setZapSplits([...zapSplits, { lnaddr: '', pct: 0 }]);
   };
 
-  const updateSplit = (idx: number, key: 'lnaddr' | 'pct', value: string) => {
-    const next = [...zapSplits];
-    if (key === 'pct') {
-      next[idx].pct = Number(value);
-    } else {
-      next[idx].lnaddr = value;
-    }
-    setZapSplits(next);
+  const addSplit = () => {
+    if (zapFields.length >= 4 || totalPct >= 95) return;
+    append({ lnaddr: '', pct: 0 });
   };
 
   const removeSplit = (idx: number) => {
-    const next = [...zapSplits];
-    next.splice(idx, 1);
-    setZapSplits(next);
+    remove(idx);
   };
 
   function handleCancel() {
@@ -361,24 +385,28 @@ export default function CreateVideoForm() {
     <>
       <input
         type="text"
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
+        {...register('caption')}
         placeholder="Caption"
         className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       />
+      {errors.caption && (
+        <div className="text-sm text-red-500">{errors.caption.message}</div>
+      )}
       <input
         type="text"
-        value={topics}
-        onChange={(e) => setTopics(e.target.value)}
+        {...register('topics')}
         placeholder="Topic tags (comma separated)"
         className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       />
+      {errors.topics && (
+        <div className="text-sm text-red-500">{errors.topics.message}</div>
+      )}
       <label className="block text-sm">
         <span className="mb-1 block">Lightning address</span>
         {showZapSelect && (
           <select
             value={selectedZapOption}
-            onChange={(e) => setLightningAddress(e.target.value)}
+            onChange={(e) => setValue('lightningAddress', e.target.value)}
             className="block w-full rounded-md border border-border bg-transparent px-3 py-2 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {zapOptions.map((addr) => (
@@ -391,17 +419,18 @@ export default function CreateVideoForm() {
         )}
         <input
           type="text"
-          value={lightningAddress}
-          onChange={(e) => setLightningAddress(e.target.value)}
+          {...register('lightningAddress')}
           className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         />
+        {errors.lightningAddress && (
+          <div className="text-sm text-red-500">{errors.lightningAddress.message}</div>
+        )}
       </label>
-      {zapSplits.map((s, i) => (
-        <div key={i} className="flex items-center gap-2">
+      {zapFields.map((field, i) => (
+        <div key={field.id} className="flex items-center gap-2">
           <input
             list="lnaddr-options"
-            value={s.lnaddr}
-            onChange={(e) => updateSplit(i, 'lnaddr', e.target.value)}
+            {...register(`zapSplits.${i}.lnaddr` as const)}
             placeholder="ln@addr"
             className="flex-1 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
@@ -409,8 +438,7 @@ export default function CreateVideoForm() {
             type="number"
             min={0}
             max={95}
-            value={s.pct}
-            onChange={(e) => updateSplit(i, 'pct', e.target.value)}
+            {...register(`zapSplits.${i}.pct` as const, { valueAsNumber: true })}
             className="w-20 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
           <button type="button" className="text-xs underline" onClick={() => removeSplit(i)}>
@@ -418,7 +446,10 @@ export default function CreateVideoForm() {
           </button>
         </div>
       ))}
-      {zapSplits.length < 4 && totalPct < 95 && (
+      {errors.zapSplits?.message && (
+        <div className="text-sm text-red-500">{errors.zapSplits.message as string}</div>
+      )}
+      {zapFields.length < 4 && totalPct < 95 && (
         <button type="button" onClick={addSplit} className="rounded border px-2 py-1 text-sm">
           Add collaborator
         </button>
@@ -441,8 +472,7 @@ export default function CreateVideoForm() {
         <span className="mb-1 block">License</span>
         <select
           data-testid="license-select"
-          value={license}
-          onChange={(e) => setLicense(e.target.value)}
+          {...register('license')}
           className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           <option value="All Rights Reserved">All Rights Reserved</option>
@@ -465,6 +495,9 @@ export default function CreateVideoForm() {
             className="mt-2 block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
         )}
+        {errors.license && (
+          <div className="text-sm text-red-500">{errors.license.message}</div>
+        )}
       </label>
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
@@ -473,8 +506,8 @@ export default function CreateVideoForm() {
       <button
         className="btn btn-primary disabled:opacity-60"
         data-testid="publish-button"
-        disabled={!formValid || posting}
-        onClick={postVideo}
+        disabled={!outBlob || posting || !isValid}
+        onClick={handleSubmit(onSubmit)}
       >
         {posting ? 'Publishing…' : 'Publish'}
       </button>

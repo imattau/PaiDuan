@@ -6,35 +6,53 @@ import { useProfile } from '@/hooks/useProfile';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
 import { Card } from '../ui/Card';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export function ProfileCard() {
   const { state } = useAuth();
   const meta = useProfile(state.status === 'ready' ? state.pubkey : undefined);
-  const [name, setName] = useState('');
-  const [about, setAbout] = useState('');
-  const [picture, setPicture] = useState('');
+  const schema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    about: z.string().optional(),
+    picture: z.string().optional(),
+  });
+  type FormValues = z.infer<typeof schema>;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: { name: '', about: '', picture: '' },
+  });
+  const picture = watch('picture');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!meta) return;
-    setName(meta.name || '');
-    setAbout(meta.about || '');
-    setPicture(meta.picture || '');
-  }, [meta]);
+    setValue('name', meta.name || '');
+    setValue('about', meta.about || '');
+    setValue('picture', meta.picture || '');
+  }, [meta, setValue]);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setPicture(reader.result as string);
+    reader.onload = () => setValue('picture', reader.result as string);
     reader.readAsDataURL(file);
   }
 
-  async function save() {
+  const onSubmit = async (data: FormValues) => {
     if (state.status !== 'ready') return;
     try {
       setSaving(true);
-      const content = JSON.stringify({ ...(meta || {}), name, about, picture });
+      const content = JSON.stringify({ ...(meta || {}), ...data });
       const tmpl: EventTemplate = {
         kind: 0,
         created_at: Math.floor(Date.now() / 1000),
@@ -48,22 +66,21 @@ export function ProfileCard() {
       alert(e.message || 'Failed to save');
       setSaving(false);
     }
-  }
+  };
 
   return (
     <div id="profile">
       <Card title="Profile" desc="Update your public profile.">
-        <div className="space-y-3">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            {...register('name')}
             placeholder="Name"
             className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
+          {errors.name && <div className="text-sm text-red-500">{errors.name.message}</div>}
           <textarea
-            value={about}
-            onChange={(e) => setAbout(e.target.value)}
+            {...register('about')}
             placeholder="Bio"
             className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
@@ -78,14 +95,13 @@ export function ProfileCard() {
             />
           )}
           <button
-            type="button"
-            onClick={save}
+            type="submit"
             className="btn btn-outline"
-            disabled={saving || state.status !== 'ready'}
+            disabled={saving || state.status !== 'ready' || !isValid}
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
-        </div>
+        </form>
       </Card>
     </div>
   );
