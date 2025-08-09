@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { SimplePool } from 'nostr-tools/pool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { VideoCardProps } from '../components/VideoCard';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { getRelays } from '@/lib/nostr';
+import { useModqueue } from '@/context/modqueueContext';
 
 function parseImeta(tags: string[][]) {
   let videoUrl: string | undefined;
@@ -46,49 +47,41 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
   const [tags, setTags] = useState<string[]>([]);
   const poolRef = useRef<SimplePool>();
   const subRef = useRef<{ close: () => void } | null>(null);
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
-  const hiddenRef = useRef<Set<string>>(new Set());
+  const modqueue = useModqueue();
+  const [extraHiddenIds, setExtraHiddenIds] = useState<Set<string>>(new Set());
+
+  const hiddenIds = useMemo(() => {
+    const counts: Record<string, Set<string>> = {};
+    const hidden = new Set<string>();
+    modqueue
+      .filter((r) => r.targetKind === 'video')
+      .forEach((r) => {
+        counts[r.targetId] = counts[r.targetId] || new Set();
+        counts[r.targetId].add(r.reporterPubKey);
+        if (ADMIN_PUBKEYS.includes(r.reporterPubKey)) hidden.add(r.targetId);
+      });
+    Object.entries(counts).forEach(([id, set]) => {
+      if (set.size >= 3) hidden.add(id);
+    });
+    extraHiddenIds.forEach((id) => hidden.add(id));
+    return hidden;
+  }, [modqueue, extraHiddenIds]);
+
+  const hiddenRef = useRef(hiddenIds);
   useEffect(() => {
     hiddenRef.current = hiddenIds;
   }, [hiddenIds]);
 
-  const loadReports = () => {
-    fetch('/api/modqueue')
-      .then((r) => r.json())
-      .then((data: any[]) => {
-        const counts: Record<string, Set<string>> = {};
-        const hidden = new Set<string>();
-        data
-          .filter((r) => r.targetKind === 'video')
-          .forEach((r) => {
-            counts[r.targetId] = counts[r.targetId] || new Set();
-            counts[r.targetId].add(r.reporterPubKey);
-            if (ADMIN_PUBKEYS.includes(r.reporterPubKey)) hidden.add(r.targetId);
-          });
-        Object.entries(counts).forEach(([id, set]) => {
-          if (set.size >= 3) hidden.add(id);
-        });
-        setHiddenIds(hidden);
-      })
-      .catch(() => undefined);
-  };
-
-  // load reports & hide events
   useEffect(() => {
-    loadReports();
-    const listener = () => loadReports();
-    window.addEventListener('modqueue', listener);
-
     const pool = (poolRef.current ||= new SimplePool());
     const relays = getRelays();
     const sub = pool.subscribeMany(relays, [{ kinds: [9001] }], {
       onevent: (ev: any) => {
         const tag = ev.tags.find((t: string[]) => t[0] === 'e');
-        if (tag) setHiddenIds((prev) => new Set(prev).add(tag[1]));
+        if (tag) setExtraHiddenIds((prev) => new Set(prev).add(tag[1]));
       },
     });
     return () => {
-      window.removeEventListener('modqueue', listener);
       sub.close();
     };
   }, []);

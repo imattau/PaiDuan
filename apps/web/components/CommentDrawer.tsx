@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { SimplePool } from 'nostr-tools/pool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
@@ -9,6 +9,7 @@ import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
+import { useModqueue } from '@/context/modqueueContext';
 import useFocusTrap from '../hooks/useFocusTrap';
 
 interface CommentDrawerProps {
@@ -33,7 +34,24 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState<string>('');
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const modqueue = useModqueue();
+  const [extraHiddenIds, setExtraHiddenIds] = useState<Set<string>>(new Set());
+  const hiddenIds = useMemo(() => {
+    const counts: Record<string, Set<string>> = {};
+    const hidden = new Set<string>();
+    modqueue
+      .filter((r) => r.targetKind === 'comment')
+      .forEach((r) => {
+        counts[r.targetId] = counts[r.targetId] || new Set();
+        counts[r.targetId].add(r.reporterPubKey);
+        if (ADMIN_PUBKEYS.includes(r.reporterPubKey)) hidden.add(r.targetId);
+      });
+    Object.entries(counts).forEach(([id, set]) => {
+      if (set.size >= 3) hidden.add(id);
+    });
+    extraHiddenIds.forEach((id) => hidden.add(id));
+    return hidden;
+  }, [modqueue, extraHiddenIds]);
 
   const [{ y }, api] = useSpring(() => ({ y: 100 }));
 
@@ -80,40 +98,15 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   }, [videoId]);
 
   // fetch reports to hide comments
-  const loadReports = () => {
-    fetch('/api/modqueue')
-      .then((r) => r.json())
-      .then((data: any[]) => {
-        const counts: Record<string, Set<string>> = {};
-        const hidden = new Set<string>();
-        data
-          .filter((r) => r.targetKind === 'comment')
-          .forEach((r) => {
-            counts[r.targetId] = counts[r.targetId] || new Set();
-            counts[r.targetId].add(r.reporterPubKey);
-            if (ADMIN_PUBKEYS.includes(r.reporterPubKey)) hidden.add(r.targetId);
-          });
-        Object.entries(counts).forEach(([id, set]) => {
-          if (set.size >= 3) hidden.add(id);
-        });
-        setHiddenIds(hidden);
-      })
-      .catch(() => undefined);
-  };
-
   useEffect(() => {
-    loadReports();
-    const listener = () => loadReports();
-    window.addEventListener('modqueue', listener);
     const pool = poolRef.current as any;
     const sub = pool.subscribeMany(getRelays(), [{ kinds: [9001] }], {
       onevent: (ev: any) => {
         const tag = ev.tags.find((t: string[]) => t[0] === 'e');
-        if (tag) setHiddenIds((prev) => new Set(prev).add(tag[1]));
+        if (tag) setExtraHiddenIds((prev) => new Set(prev).add(tag[1]));
       },
     });
     return () => {
-      window.removeEventListener('modqueue', listener);
       sub.close();
     };
   }, []);
