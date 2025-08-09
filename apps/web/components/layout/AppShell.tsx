@@ -6,7 +6,11 @@ export default function AppShell({
   left,
   center,
   right,
-}: { left: React.ReactNode; center: React.ReactNode; right: React.ReactNode }) {
+}: {
+  left: React.ReactNode;
+  center: React.ReactNode;
+  right: React.ReactNode;
+}) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto w-full max-w-[1400px] bg-surface grid grid-cols-1 lg:grid-cols-[300px_1fr_400px] gap-0">
@@ -16,8 +20,8 @@ export default function AppShell({
         </aside>
 
         {/* Middle column: main feed */}
-        <main className="h-screen overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-4 py-4">{center}</div>
+        <main className="h-screen overflow-hidden">
+          <div className="max-w-2xl mx-auto h-full px-4">{center}</div>
         </main>
 
         {/* Right column: author info & comments (sticky on desktop) */}

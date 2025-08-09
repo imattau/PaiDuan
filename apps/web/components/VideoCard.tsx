@@ -61,9 +61,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const holdTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
   const { state: auth } = useAuth();
-  const { following, follow } = useFollowing(
-    auth.status === 'ready' ? auth.pubkey : undefined,
-  );
+  const { following, follow } = useFollowing(auth.status === 'ready' ? auth.pubkey : undefined);
   const [avatar, setAvatar] = useState('');
   const [displayName, setDisplayName] = useState(author);
   const isFollowing = following.includes(pubkey);
@@ -166,7 +164,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="relative w-full max-h-screen overflow-hidden rounded-2xl bg-card text-white shadow-card"
+      className="relative w-full h-full max-h-full overflow-hidden rounded-2xl bg-card text-white shadow-card"
       onDoubleClick={onLike}
       onClick={() => setSelectedVideo(eventId, pubkey)}
       onPointerDown={handlePointerDown}
