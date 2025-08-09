@@ -2,6 +2,15 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+vi.mock(
+  'qrcode',
+  () => ({
+    default: {
+      toDataURL: vi.fn(() => Promise.resolve('data:qr')),
+    },
+  }),
+  { virtual: true },
+);
 import LightningCard from '../LightningCard';
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -66,6 +75,28 @@ describe('LightningCard', () => {
     fireEvent.click(screen.getByText('Save'));
     await screen.findByText('bad');
     expect(publishMock).not.toHaveBeenCalled();
+  });
+
+  it('copies address to clipboard', async () => {
+    const writeText = vi.fn();
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<LightningCard />);
+    fireEvent.click(screen.getByText('Add wallet'));
+    fireEvent.change(screen.getByPlaceholderText('name@example.com'), {
+      target: { value: 'user@example.com' },
+    });
+    fireEvent.click(screen.getByText('Copy'));
+    expect(writeText).toHaveBeenCalledWith('user@example.com');
+  });
+
+  it('renders QR code when address present', async () => {
+    render(<LightningCard />);
+    fireEvent.click(screen.getByText('Add wallet'));
+    fireEvent.change(screen.getByPlaceholderText('name@example.com'), {
+      target: { value: 'user@example.com' },
+    });
+    const img = await screen.findByAltText('Lightning address QR code');
+    expect(img).toBeInTheDocument();
   });
 });
 

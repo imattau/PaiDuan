@@ -20,11 +20,24 @@ export function LightningCard() {
   const [zapSplits, setZapSplits] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [qrCode, setQrCode] = useState('');
 
   useEffect(() => {
     if (Array.isArray(meta?.wallets)) setWallets(meta.wallets);
     if (Array.isArray(meta?.zapSplits)) setZapSplits(meta.zapSplits);
   }, [meta]);
+
+  useEffect(() => {
+    const addr = wallets.find((w) => w.default)?.lnaddr;
+    if (!addr) {
+      setQrCode('');
+      return;
+    }
+    import('qrcode')
+      .then((qr) => qr.default.toDataURL(addr))
+      .then(setQrCode)
+      .catch(() => setQrCode(''));
+  }, [wallets]);
 
   const addWallet = () => {
     setWallets((w) => [...w, { label: '', lnaddr: '', default: w.length === 0 }]);
@@ -155,7 +168,22 @@ export function LightningCard() {
   }
 
   return (
-    <Card title="Lightning Wallets" desc="Manage your lightning wallets.">
+    <Card
+      title="Lightning Wallets"
+      desc={
+        <span>
+          Manage your lightning wallets.{' '}
+          <a
+            href="https://lightningaddress.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent"
+          >
+            What is a Lightning address?
+          </a>
+        </span>
+      }
+    >
       <div className="space-y-3">
         {wallets.map((w, i) => (
           <div key={i} className="space-y-2 rounded border border-border p-2">
@@ -166,13 +194,22 @@ export function LightningCard() {
               placeholder="Label"
               className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
             />
-            <input
-              type="text"
-              value={w.lnaddr}
-              onChange={(e) => updateWallet(i, { lnaddr: e.target.value })}
-              placeholder="name@example.com"
-              className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={w.lnaddr}
+                onChange={(e) => updateWallet(i, { lnaddr: e.target.value })}
+                placeholder="name@example.com"
+                className="flex-1 rounded bg-foreground/10 p-2 text-sm outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(w.lnaddr)}
+                className="btn btn-secondary text-sm"
+              >
+                Copy
+              </button>
+            </div>
             <div className="flex items-center gap-2">
               <input
                 type="radio"
@@ -200,6 +237,15 @@ export function LightningCard() {
         <button type="button" onClick={addWallet} className="btn btn-secondary">
           Add wallet
         </button>
+        {qrCode && (
+          <div className="flex justify-center">
+            <img
+              src={qrCode}
+              alt="Lightning address QR code"
+              className="h-32 w-32"
+            />
+          </div>
+        )}
         {error && <p className="text-sm text-red-500">{error}</p>}
         <div className="flex flex-wrap gap-2">
           <button
