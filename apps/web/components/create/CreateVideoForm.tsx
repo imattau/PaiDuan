@@ -540,7 +540,7 @@ export default function CreateVideoForm() {
                 ref={videoRef}
                 controls
                 src={preview}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover pointer-events-none"
               />
             ) : (
               <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
