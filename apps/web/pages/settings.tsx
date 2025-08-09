@@ -5,6 +5,7 @@ import { Accordion } from '../components/ui/Accordion';
 import { KeysCard } from '../components/settings/KeysCard';
 import { AccountCard } from '@/components/settings/AccountCard';
 import { LightningCard } from '../components/settings/LightningCard';
+import { LightningHistory } from '../components/settings/LightningHistory';
 import { NetworkCard } from '../components/settings/NetworkCard';
 import { AppearanceCard } from '../components/settings/AppearanceCard';
 import { LanguageCard } from '@/components/settings/LanguageCard';
@@ -53,7 +54,12 @@ export default function Settings() {
               },
               {
                 title: 'Wallet Management',
-                content: <LightningCard />,
+                content: (
+                  <div className="space-y-6">
+                    <LightningCard />
+                    <LightningHistory />
+                  </div>
+                ),
               },
               {
                 title: 'Network',

@@ -4,34 +4,36 @@
 
 /* semantic palette */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 220 14% 12%;
+  --background-primary: 0 0% 100%;
+  --text-primary: 220 14% 12%;
   --card: 0 0% 100%;
   --surface: 0 0% 100%;
   --panel: 0 0% 98%;
-  --muted: 220 9% 46%;
-  --accent: 273 68% 59%;
+  --accent-primary: 273 68% 59%;
+  --accent-hover: 273 68% 55%;
+  --accent-active: 273 68% 51%;
   --border: 220 13% 91%;
 }
 .dark {
-  --background: 220 14% 8%;
-  --foreground: 220 15% 92%;
+  --background-primary: 220 14% 8%;
+  --text-primary: 220 15% 92%;
   --card: 220 12% 12%;
   --surface: 220 12% 12%;
   --panel: 220 10% 16%;
-  --muted: 220 10% 70%;
-  --accent: 273 68% 59%;
+  --accent-primary: 273 68% 59%;
+  --accent-hover: 273 68% 63%;
+  --accent-active: 273 68% 58%;
   --border: 220 12% 20%;
 }
 
 body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: hsl(var(--background-primary));
+  color: hsl(var(--text-primary));
 }
 
 @layer utilities {
   .text-foreground {
-    color: hsl(var(--foreground));
+    color: hsl(var(--text-primary));
   }
   .text-muted-foreground {
     @apply text-foreground opacity-60;
@@ -53,8 +55,14 @@ body {
     @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2;
   }
   .btn-primary {
-    background: hsl(var(--accent));
+    background: hsl(var(--accent-primary));
     color: white;
+  }
+  .btn-primary:hover {
+    background: hsl(var(--accent-hover));
+  }
+  .btn-primary:active {
+    background: hsl(var(--accent-active));
   }
   .btn-secondary {
     @apply border border-current text-current bg-transparent;
@@ -65,24 +73,30 @@ body {
   }
   .btn-ghost {
     background: transparent;
-    color: hsl(var(--foreground));
+    color: hsl(var(--text-primary));
   }
 }
 
-:root {
-  --accent: #9d4edd;
-}
+/* Accent color options */
 [data-accent='violet'] {
-  --accent: #9d4edd;
+  --accent-primary: 273 68% 59%;
+  --accent-hover: 273 68% 55%;
+  --accent-active: 273 68% 51%;
 }
 [data-accent='blue'] {
-  --accent: #2563eb;
+  --accent-primary: 221 83% 53%;
+  --accent-hover: 221 83% 49%;
+  --accent-active: 221 83% 45%;
 }
 [data-accent='green'] {
-  --accent: #16a34a;
+  --accent-primary: 142 76% 36%;
+  --accent-hover: 142 76% 32%;
+  --accent-active: 142 76% 28%;
 }
 [data-accent='pink'] {
-  --accent: #db2777;
+  --accent-primary: 333 71% 51%;
+  --accent-hover: 333 71% 47%;
+  --accent-active: 333 71% 43%;
 }
 
 @keyframes shimmer {
