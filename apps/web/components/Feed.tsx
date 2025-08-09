@@ -42,7 +42,7 @@ export const Feed: React.FC<FeedProps> = ({
   const isTransitioning = useRef(false);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
-  const showControls = useMediaQuery('(orientation: landscape) and (min-width: 768px)');
+  const showControls = useMediaQuery('(min-width: 768px)');
 
   const next = useCallback(() => {
     setIndex((i) => {
