@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
-import pool from './pool';
+import pool from '@/lib/relayPool';
 import { toast } from 'react-hot-toast';
 import { getRelays } from '@/lib/nostr';
 
