@@ -1,16 +1,6 @@
 import type { FFmpeg } from '@ffmpeg/ffmpeg';
-import * as ffmpegModule from '@ffmpeg/ffmpeg';
 
-// Resolve `createFFmpeg` from both named and default exports
-const createFFmpegFn: any =
-  (ffmpegModule as any).createFFmpeg ??
-  (ffmpegModule as any).default?.createFFmpeg ??
-  (ffmpegModule as any).default;
-
-if (typeof createFFmpegFn !== 'function') {
-  throw new Error('@ffmpeg/ffmpeg does not provide a `createFFmpeg` export or default export');
-}
-
+let createFFmpegFn: any | null = null;
 let ffmpeg: FFmpeg | null = null;
 let loading: Promise<void> | null = null;
 
@@ -19,6 +9,17 @@ export interface GetFFmpegOptions {
 }
 
 export async function getFFmpeg(opts: GetFFmpegOptions = {}): Promise<FFmpeg> {
+  if (!createFFmpegFn) {
+    const ffmpegModule: any = await import('@ffmpeg/ffmpeg');
+    createFFmpegFn =
+      ffmpegModule.createFFmpeg ??
+      ffmpegModule.default?.createFFmpeg ??
+      ffmpegModule.default;
+    if (typeof createFFmpegFn !== 'function') {
+      throw new Error('@ffmpeg/ffmpeg does not provide a `createFFmpeg` export or default export');
+    }
+  }
+
   if (!ffmpeg) {
     ffmpeg = createFFmpegFn({
       corePath: '/ffmpeg/ffmpeg-core.js',
