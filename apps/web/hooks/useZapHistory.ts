@@ -49,6 +49,7 @@ export default function useZapHistory(): ZapHistory {
               return next;
             });
           },
+          oneose: () => sub?.close(),
         });
       } catch {
         /* ignore */

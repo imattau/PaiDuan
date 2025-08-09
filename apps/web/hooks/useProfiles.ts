@@ -37,6 +37,7 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
   }
   return await new Promise<Profile>((resolve) => {
     const pool = getPool();
+    let profile: Profile | null = null;
     const sub = pool.subscribeMany(
       getRelays(),
       [{ kinds: [nostrKinds.Metadata], authors: [pubkey], limit: 1 } as Filter],
@@ -52,19 +53,17 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
               }
             }
             await saveEvent(ev);
-            resolve(content);
+            profile = content;
           } catch {
-            resolve({});
-          } finally {
-            sub.close();
+            profile = {};
           }
+        },
+        oneose: () => {
+          sub.close();
+          resolve(profile || {});
         },
       },
     );
-    setTimeout(() => {
-      sub.close();
-      resolve({});
-    }, 5000);
   });
 }
 

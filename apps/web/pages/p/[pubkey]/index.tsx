@@ -61,6 +61,7 @@ export default function ProfilePage() {
             /* ignore */
           }
         },
+        oneose: () => metaSub.close(),
       },
     );
 
@@ -89,6 +90,7 @@ export default function ProfilePage() {
           });
           setVideos([...nextVideos]);
         },
+        oneose: () => videoSub.close(),
       },
     );
 

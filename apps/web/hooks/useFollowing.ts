@@ -24,6 +24,7 @@ export function useFollowing(pubkey?: string) {
             .map((t: any) => t[1]);
           setFollowing(Array.from(new Set(contacts)));
         },
+        oneose: () => sub.close(),
       },
     );
     return () => sub.close();
