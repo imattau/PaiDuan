@@ -39,8 +39,23 @@ export default function useLightning() {
   };
 
   const createZap = async ({ lightningAddress, amount, comment, eventId, pubkey }: ZapArgs) => {
-    let splits: Split[] = [];
-    if (pubkey) {
+    let eventSplits: Split[] = [];
+    if (eventId) {
+      try {
+        const ev = await pool.get(getRelays(), { ids: [eventId], limit: 1 } as Filter);
+        if (ev && Array.isArray(ev.tags)) {
+          eventSplits = ev.tags
+            .filter((t: any[]) => t[0] === 'zap' && t[1] && t[2])
+            .map((t: any[]) => ({ lnaddr: t[1], pct: Number(t[2]) }))
+            .filter((s: Split) => s.lnaddr && !isNaN(s.pct));
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    let splits: Split[] = eventSplits;
+    if (splits.length === 0 && pubkey) {
       try {
         const ev = await pool.get(getRelays(), {
           kinds: [0],
@@ -60,13 +75,19 @@ export default function useLightning() {
       }
     }
 
-    const collaboratorTotal = splits.reduce((sum, s) => sum + s.pct, 0);
-    const creatorPct = 95 - collaboratorTotal;
     const payouts: { lnaddr: string; pct: number; sats: number }[] = [];
-    for (const s of splits) {
-      payouts.push({ lnaddr: s.lnaddr, pct: s.pct, sats: Math.floor((amount * s.pct) / 100) });
+    if (eventSplits.length > 0) {
+      for (const s of splits) {
+        payouts.push({ lnaddr: s.lnaddr, pct: s.pct, sats: Math.floor((amount * s.pct) / 100) });
+      }
+    } else {
+      const collaboratorTotal = splits.reduce((sum, s) => sum + s.pct, 0);
+      const creatorPct = 95 - collaboratorTotal;
+      for (const s of splits) {
+        payouts.push({ lnaddr: s.lnaddr, pct: s.pct, sats: Math.floor((amount * s.pct) / 100) });
+      }
+      payouts.push({ lnaddr: lightningAddress, pct: creatorPct, sats: Math.floor((amount * creatorPct) / 100) });
     }
-    payouts.push({ lnaddr: lightningAddress, pct: creatorPct, sats: Math.floor((amount * creatorPct) / 100) });
     const treasury = process.env.NEXT_PUBLIC_TREASURY_LNADDR;
     if (treasury) {
       payouts.push({ lnaddr: treasury, pct: 5, sats: Math.floor((amount * 5) / 100) });
