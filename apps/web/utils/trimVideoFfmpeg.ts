@@ -51,7 +51,19 @@ export async function trimVideoFfmpeg(blob: Blob, opts: TrimFfmpegOptions): Prom
   if (filters.length) {
     args.push('-vf', filters.join(','));
   }
-  args.push('-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '30', '-c:a', 'libopus', 'out.webm');
+  args.push(
+    '-c:v',
+    'libvpx-vp9',
+    '-b:v',
+    '0',
+    '-crf',
+    '30',
+    '-c:a',
+    'libopus',
+    '-f',
+    'webm',
+    'out.webm',
+  );
 
   ffmpeg.setProgress(({ ratio }) => {
     opts.onProgress?.(ratio);

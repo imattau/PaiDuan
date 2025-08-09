@@ -179,8 +179,8 @@ self.onmessage = async (e: MessageEvent) => {
     }
     await encoder.flush();
 
-    const result = new Blob(outChunks, { type: 'video/webm' });
-    self.postMessage({ type: 'done', blob: result });
+    const webmBlob = new Blob(outChunks, { type: 'video/webm' });
+    self.postMessage({ type: 'done', blob: webmBlob });
     self.close();
   } catch (err: any) {
     postError('unknown', err?.message ?? String(err));
