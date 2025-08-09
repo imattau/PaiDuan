@@ -1,19 +1,24 @@
 import React from 'react';
-import ReportModal from './ReportModal';
-import { OverlayHost } from './ui/Overlay';
+import MainNav from './MainNav';
 import { LayoutContext, LayoutType } from '@/context/LayoutContext';
 
-const meta = { title: 'Overlays/ReportModal' };
+const meta = { title: 'Layout/MainNav' };
 export default meta;
+
+const me = {
+  avatar: '/offline.jpg',
+  name: 'Alice',
+  username: 'alice',
+  stats: { followers: 123, following: 45 },
+};
 
 const Template = (layout: LayoutType) => {
   const Story = () => (
     <LayoutContext.Provider value={layout}>
-      <OverlayHost />
-      <button onClick={() => ReportModal({ targetId: '123', targetKind: 'video' })}>Open</button>
+      <MainNav me={me} />
     </LayoutContext.Provider>
   );
-  Story.displayName = 'ReportModalStory';
+  Story.displayName = 'MainNavStory';
   return Story;
 };
 
