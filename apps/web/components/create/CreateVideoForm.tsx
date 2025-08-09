@@ -6,17 +6,9 @@ import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
 import { SimplePool } from 'nostr-tools/pool';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
+import { useProfiles } from '../../hooks/useProfiles';
 import useFollowing from '../../hooks/useFollowing';
 import { getRelays } from '../../lib/nostr';
-
-function LnAddrOption({ pubkey }: { pubkey: string }) {
-  const profile = useProfile(pubkey);
-  const addr = Array.isArray(profile?.wallets)
-    ? profile.wallets.find((w: any) => w?.default)?.lnaddr
-    : profile?.lud16;
-  if (!addr) return null;
-  return <option value={addr}>{addr}</option>;
-}
 
 export default function CreateVideoForm() {
   const router = useRouter();
@@ -47,6 +39,7 @@ export default function CreateVideoForm() {
   const { state } = useAuth();
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
   const { following } = useFollowing(state.status === 'ready' ? state.pubkey : undefined);
+  const profiles = useProfiles(following);
 
   const walletAddrs = Array.isArray(profile?.wallets)
     ? [
@@ -345,9 +338,17 @@ export default function CreateVideoForm() {
         <div className="text-sm">Total {totalPct}% / 95%</div>
       )}
       <datalist id="lnaddr-options">
-        {following.map((pk) => (
-          <LnAddrOption key={pk} pubkey={pk} />
-        ))}
+        {following.map((pk) => {
+          const p = profiles.get(pk);
+          const addr = Array.isArray(p?.wallets)
+            ? p.wallets.find((w: any) => w?.default)?.lnaddr
+            : p?.lud16;
+          return addr ? (
+            <option key={pk} value={addr}>
+              {addr}
+            </option>
+          ) : null;
+        })}
       </datalist>
       <label className="block text-sm">
         <span className="mb-1 block">License</span>
