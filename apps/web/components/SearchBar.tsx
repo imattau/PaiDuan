@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { X, Sun, Moon } from 'lucide-react';
 import useSearch from '../hooks/useSearch';
 import NotificationBell from './NotificationBell';
-import { useTheme } from '@/context/themeContext';
+import { useTheme } from 'next-themes';
 import useT from '../hooks/useT';
 
 const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) => {
@@ -12,7 +12,9 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
   const [query, setQuery] = useState('');
   const router = useRouter();
   const { videos, creators } = useSearch(query);
-  const { mode, toggleMode } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const toggleMode = () => setTheme(isDark ? 'light' : 'dark');
   const t = useT();
 
   useEffect(() => {
@@ -58,7 +60,7 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
               title={t('toggle_theme')}
               className="hover:text-accent-primary"
             >
-              {mode === 'dark' ? (
+              {isDark ? (
                 <Sun className="text-gray-900 dark:text-gray-100" />
               ) : (
                 <Moon className="text-gray-900 dark:text-gray-100" />

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import MiniProfileCard from '@/components/MiniProfileCard';
 import NotificationBell from '@/components/NotificationBell';
-import { useTheme } from '@/context/themeContext';
+import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { cardStyle } from '@/components/ui/Card';
@@ -26,7 +26,9 @@ export default function MainNav({
   showSearch = true,
   showProfile = true,
 }: MainNavProps) {
-  const { mode, toggleMode } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const toggleMode = () => setTheme(isDark ? 'light' : 'dark');
   const router = useRouter();
   const { asPath, locale } = router;
 
@@ -82,7 +84,7 @@ export default function MainNav({
           onClick={toggleMode}
           className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 focus-visible:bg-white/50 dark:focus-visible:bg-white/10"
         >
-          {mode === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
         <NotificationBell />
       </div>

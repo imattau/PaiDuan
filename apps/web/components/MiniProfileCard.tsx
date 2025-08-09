@@ -31,7 +31,7 @@ export default function MiniProfileCard({
       )}
       <Link
         href="/settings#profile"
-        className="text-xs text-[var(--accent-primary)]"
+        className="text-xs text-accent-primary"
         prefetch
       >
         Manage profile

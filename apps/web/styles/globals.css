@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '@radix-ui/colors/violet.css';
+@import '@radix-ui/colors/violet-dark.css';
+@import '@radix-ui/colors/blue.css';
+@import '@radix-ui/colors/blue-dark.css';
+@import '@radix-ui/colors/green.css';
+@import '@radix-ui/colors/green-dark.css';
+@import '@radix-ui/colors/pink.css';
+@import '@radix-ui/colors/pink-dark.css';
+
 /* semantic palette */
 :root {
   --background-primary: 0 0% 100%;
@@ -9,9 +18,9 @@
   --card: 0 0% 100%;
   --surface: 0 0% 100%;
   --background-secondary: 0 0% 98%;
-  --accent-primary: 273 68% 59%;
-  --accent-hover: 273 68% 55%;
-  --accent-active: 273 68% 51%;
+  --accent-primary: 252 56% 57%;
+  --accent-hover: 252 50% 54%;
+  --accent-active: 252 43% 52%;
   --border-primary: 220 13% 91%;
 }
 .dark {
@@ -20,9 +29,9 @@
   --card: 220 12% 12%;
   --surface: 220 12% 12%;
   --background-secondary: 220 10% 16%;
-  --accent-primary: 273 68% 59%;
-  --accent-hover: 273 68% 63%;
-  --accent-active: 273 68% 58%;
+  --accent-primary: 252 56% 57%;
+  --accent-hover: 252 60% 63%;
+  --accent-active: 253 100% 83%;
   --border-primary: 220 12% 20%;
 }
 
@@ -69,24 +78,44 @@ body {
 
 /* Accent color options */
 [data-accent='violet'] {
-  --accent-primary: 273 68% 59%;
-  --accent-hover: 273 68% 55%;
-  --accent-active: 273 68% 51%;
+  --accent-primary: 252 56% 57%;
+  --accent-hover: 252 50% 54%;
+  --accent-active: 252 43% 52%;
+}
+.dark[data-accent='violet'] {
+  --accent-primary: 252 56% 57%;
+  --accent-hover: 252 60% 63%;
+  --accent-active: 253 100% 83%;
 }
 [data-accent='blue'] {
-  --accent-primary: 221 83% 53%;
-  --accent-hover: 221 83% 49%;
-  --accent-active: 221 83% 45%;
+  --accent-primary: 206 100% 50%;
+  --accent-hover: 207 96% 48%;
+  --accent-active: 208 88% 43%;
+}
+.dark[data-accent='blue'] {
+  --accent-primary: 206 100% 50%;
+  --accent-hover: 210 100% 62%;
+  --accent-active: 210 100% 72%;
 }
 [data-accent='green'] {
-  --accent-primary: 142 76% 36%;
-  --accent-hover: 142 76% 32%;
-  --accent-active: 142 76% 28%;
+  --accent-primary: 151 55% 42%;
+  --accent-hover: 152 56% 39%;
+  --accent-active: 154 60% 32%;
+}
+.dark[data-accent='green'] {
+  --accent-primary: 151 55% 42%;
+  --accent-hover: 151 55% 45%;
+  --accent-active: 151 65% 54%;
 }
 [data-accent='pink'] {
-  --accent-primary: 333 71% 51%;
-  --accent-hover: 333 71% 47%;
-  --accent-active: 333 71% 43%;
+  --accent-primary: 322 65% 55%;
+  --accent-hover: 322 61% 52%;
+  --accent-active: 322 65% 46%;
+}
+.dark[data-accent='pink'] {
+  --accent-primary: 322 65% 55%;
+  --accent-hover: 323 68% 59%;
+  --accent-active: 327 100% 78%;
 }
 
 @keyframes shimmer {
