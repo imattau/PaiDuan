@@ -3,6 +3,8 @@ import runtimeCaching from 'next-pwa/cache.js';
 
 const isProd = process.env.NODE_ENV === 'production';
 
+const enableIsolation = process.env.ENABLE_ISOLATION !== 'false';
+
 const baseConfig = {
   experimental: { esmExternals: 'loose' },
   reactStrictMode: true,
@@ -12,24 +14,29 @@ const baseConfig = {
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
   async headers() {
-    return [
-      {
+    const headers = [];
+
+    if (enableIsolation) {
+      headers.push({
         source: '/:path*',
         headers: [
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
           { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
         ],
-      },
-      {
-        source: '/(.*)\\.(png|jpg|jpeg|gif|svg|webp|webm)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-    ];
+      });
+    }
+
+    headers.push({
+      source: '/(.*)\\.(png|jpg|jpeg|gif|svg|webp|webm)',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=31536000, immutable',
+        },
+      ],
+    });
+
+    return headers;
   },
   async redirects() {
     return [

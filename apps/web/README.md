@@ -18,4 +18,6 @@ The **Publish** button remains disabled until a converted video is available and
 
 ## Cross-origin headers
 
-The application sends `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` on all routes. These headers enable cross-origin isolation, which is required for future multi-threaded FFmpeg builds in the browser.
+By default, the application sends `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` on all routes. These headers enable cross-origin isolation, which is required for future multi-threaded FFmpeg builds in the browser.
+
+Set `ENABLE_ISOLATION=false` to disable these headers and allow loading third-party resources that do not provide COEP/CORP.
