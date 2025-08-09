@@ -21,8 +21,10 @@ vi.mock('@/lib/nostr', () => ({
 }));
 
 const fetchPayDataMock = vi.fn();
+const authenticateMock = vi.fn();
 vi.mock('@/utils/lnurl', () => ({
   fetchPayData: (...args: any[]) => fetchPayDataMock(...args),
+  authenticate: (...args: any[]) => authenticateMock(...args),
 }));
 
 describe('LightningCard', () => {
