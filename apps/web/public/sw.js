@@ -1,3 +1,9 @@
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
+
+self.addEventListener('install', () => {
+  workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
+});
+
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || 'PaiDuan';
