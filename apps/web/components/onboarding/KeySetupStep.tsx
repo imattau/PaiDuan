@@ -2,12 +2,9 @@
 
 import { useState } from 'react';
 import * as nip19 from 'nostr-tools/nip19';
-import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
+import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex } from '@noble/hashes/utils';
 import { useAuth } from '@/hooks/useAuth';
-import { cryptoVault } from '@/utils/cryptoVault';
-import { keyStore } from '@/utils/keyStorage';
-import { promptPassphrase } from '@/utils/promptPassphrase';
 import { Button } from '@paiduan/ui';
 
 function privHexFrom(input: string): string {
@@ -22,25 +19,12 @@ function privHexFrom(input: string): string {
 }
 
 export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
-  const { state, signInWithLocal, signInWithNip07, signInWithNip46 } = useAuth();
+  const { signInWithLocal, signInWithNip07, signInWithNip46 } = useAuth();
   const [uri, setUri] = useState('');
 
-  async function saveLocalKey(priv: string, method: 'manual' | 'generated') {
-    const pass = await promptPassphrase('Set a passphrase to encrypt your key');
-    if (!pass) return;
+  function saveLocalKey(priv: string) {
     try {
-      if (!globalThis.crypto?.subtle) {
-        alert('Your browser does not support the Web Crypto API');
-        return;
-      }
-      const encPriv = await cryptoVault.encryptPrivkeyHex(priv, pass);
-      const pubkey = getPublicKey(priv);
-      keyStore.save({ method, pubkey, encPriv });
       signInWithLocal(priv);
-      // remove plaintext storage from auth hook
-      try {
-        localStorage.removeItem('pd.auth.v1');
-      } catch {}
       onComplete();
     } catch (e: any) {
       alert(e.message || 'Failed to save key');
@@ -52,7 +36,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
     if (!input) return;
     try {
       const priv = privHexFrom(input);
-      await saveLocalKey(priv, 'manual');
+      saveLocalKey(priv);
     } catch (e: any) {
       alert(e.message || 'Invalid key');
     }
@@ -60,17 +44,12 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
 
   const generateKey = async () => {
     const priv = bytesToHex(generateSecretKey());
-    await saveLocalKey(priv, 'generated');
+    saveLocalKey(priv);
   };
 
   const connectRemote = async () => {
     try {
       await signInWithNip46(uri);
-      if (state.status === 'ready') {
-        try {
-          keyStore.save({ method: 'remote', pubkey: state.pubkey, relay: uri });
-        } catch {}
-      }
       onComplete();
     } catch (e: any) {
       alert(e.message || 'Failed to connect');
