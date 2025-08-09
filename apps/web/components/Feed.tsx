@@ -112,8 +112,6 @@ export const Feed: React.FC<FeedProps> = ({
   }, [next, prev]);
 
   useEffect(() => {
-
-  useEffect(() => {
     if (index >= items.length - 2) {
       loadMore?.();
     }
