@@ -280,15 +280,8 @@ export default function CreateVideoForm() {
   }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      'video/webm': [],
-      'video/mp4': [],
-      'video/quicktime': [],
-      'video/ogg': [],
-    },
-    onDrop: (accepted) => {
-      onPick(accepted[0] ?? null);
-    },
+    accept: { 'video/*': ['.mp4', '.webm', '.mov', '.ogg'] },
+    onDrop: (accepted) => onPick(accepted[0] ?? null),
   });
 
   const onSubmit = async (values: FormValues) => {
