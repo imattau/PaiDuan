@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import AppShell from '@/components/layout/AppShell';
 import MainNav from '@/components/layout/MainNav';
 import { Card } from '../components/ui/Card';
 import * as nip19 from 'nostr-tools/nip19';
@@ -20,45 +21,53 @@ export default function Profile() {
     alert('nsec copied to clipboard');
   };
 
+  const nav = <MainNav showSearch={false} showProfile={false} />;
+
   if (state.status !== 'ready') {
     return (
-      <>
-        <MainNav showSearch={false} showProfile={false} />
-        <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
-          <Card title="Profile" desc="Sign in to view your profile.">
-            <div>Not signed in.</div>
-          </Card>
-        </main>
-      </>
+      <AppShell
+        left={nav}
+        center={
+          <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
+            <Card title="Profile" desc="Sign in to view your profile.">
+              <div>Not signed in.</div>
+            </Card>
+          </div>
+        }
+        right={<></>}
+      />
     );
   }
 
   return (
-    <>
-      <MainNav showSearch={false} showProfile={false} />
-      <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
-        <Card title="Profile" desc="Your public profile information.">
-          <div className="flex items-center gap-4">
-            <img
-              src={meta?.picture || '/avatar.svg'}
-              alt="avatar"
-              className="h-24 w-24 rounded-full object-cover"
-            />
-            <div className="text-lg font-semibold">{meta?.name || 'Anonymous'}</div>
-          </div>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <button className="btn-secondary" onClick={() => router.push('/onboarding/profile')}>
-              Edit
-            </button>
-            {state.method === 'local' && (
-              <button className="btn-secondary" onClick={exportKey}>
-                Export key
+    <AppShell
+      left={nav}
+      center={
+        <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
+          <Card title="Profile" desc="Your public profile information.">
+            <div className="flex items-center gap-4">
+              <img
+                src={meta?.picture || '/avatar.svg'}
+                alt="avatar"
+                className="h-24 w-24 rounded-full object-cover"
+              />
+              <div className="text-lg font-semibold">{meta?.name || 'Anonymous'}</div>
+            </div>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button className="btn-secondary" onClick={() => router.push('/onboarding/profile')}>
+                Edit
               </button>
-            )}
-          </div>
-        </Card>
-      </main>
-    </>
+              {state.method === 'local' && (
+                <button className="btn-secondary" onClick={exportKey}>
+                  Export key
+                </button>
+              )}
+            </div>
+          </Card>
+        </div>
+      }
+      right={<></>}
+    />
   );
 }
 
