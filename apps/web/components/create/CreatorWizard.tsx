@@ -3,7 +3,7 @@ import CreateVideoForm from './CreateVideoForm';
 
 export default function CreatorWizard() {
   return (
-    <div className="mx-auto py-12 px-4 space-y-6 lg:py-4">
+    <div className="flex flex-col min-h-[calc(100vh-5rem)] px-4 gap-6 lg:flex-row">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Create Video</h1>
       </div>
