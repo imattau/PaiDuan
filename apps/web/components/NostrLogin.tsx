@@ -38,8 +38,13 @@ export function NostrLogin() {
   };
 
   const connectRemote = async () => {
+    const trimmed = uri.trim();
+    if (!trimmed || !/^nostrconnect:/i.test(trimmed)) {
+      alert('Invalid Nostr Connect URI');
+      return;
+    }
     try {
-      await signInWithNip46(uri);
+      await signInWithNip46(trimmed);
       window.location.href = '/onboarding/profile';
     } catch (e: any) {
       alert(e.message || 'Failed to connect');
@@ -73,7 +78,11 @@ export function NostrLogin() {
           placeholder="nostrconnect:..."
           className="input w-full"
         />
-        <button className="btn btn-secondary w-full" onClick={connectRemote}>
+        <button
+          className="btn btn-secondary w-full"
+          onClick={connectRemote}
+          disabled={!uri.trim()}
+        >
           Connect remote signer
         </button>
       </div>

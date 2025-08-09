@@ -25,8 +25,13 @@ export class Nip46Signer implements Signer {
     uri: string,
   ): { remotePubkey: string; relays: string[]; secret?: string } {
     const u = uri.replace('nostrconnect://', 'nostrconnect:');
-    const [, rest] = u.split('nostrconnect:');
-    const [remotePubkey, query = ''] = rest.split('?');
+    const parts = u.split('nostrconnect:');
+    const rest = parts[1];
+    if (!rest) throw new Error('Invalid Nostr Connect URI');
+    const pq = rest.split('?');
+    const remotePubkey = pq[0];
+    const query = pq[1] ?? '';
+    if (!remotePubkey) throw new Error('Invalid Nostr Connect URI');
     const params = new URLSearchParams(query.replace(/&wss/g, '&relay'));
     const relays: string[] = [];
     for (const [k, v] of params.entries()) if (k === 'relay') relays.push(v);
