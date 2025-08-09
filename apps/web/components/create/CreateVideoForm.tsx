@@ -147,41 +147,28 @@ export default function CreateVideoForm() {
           } else if (msg?.type === 'error') {
             worker.terminate();
             setProgress(0);
-            if (msg.error === 'unsupported-codec') {
-              try {
-                const blob = await trimVideoFfmpeg(f, {
-                  start: 0,
-                  width,
-                  height,
-                  onProgress: (p) => setProgress(Math.round(p * 100)),
-                });
-                setOutBlob(blob);
-                updatePreview(URL.createObjectURL(blob));
-              } catch (err: any) {
-                console.error(err);
-                setErr('Unsupported video codec. Please convert your video and try again.');
-              }
-            } else if (msg.error === 'no-keyframe' || msg.error === 'demux-failed') {
+            setErr(null);
+            try {
+              const blob = await trimVideoFfmpeg(f, {
+                start: 0,
+                width,
+                height,
+                onProgress: (p) => setProgress(Math.round(p * 100)),
+              });
+              setOutBlob(blob);
+              updatePreview(URL.createObjectURL(blob));
+            } catch (err: any) {
+              console.error(err);
               setErr(
-                msg.error === 'no-keyframe'
-                  ? 'Cannot trim this video because it lacks a key frame. Re-encoding…'
-                  : 'Failed to read video file. Re-encoding…',
+                msg.error === 'unsupported-codec'
+                  ? 'Unsupported video codec. Please convert your video and try again.'
+                  : msg.error === 'no-keyframe'
+                    ? 'Cannot trim this video because it lacks a key frame.'
+                    : msg.error === 'demux-failed'
+                      ? 'Failed to read video file.'
+                      : msg.message || 'Conversion failed.'
               );
-              try {
-                const blob = await trimVideoFfmpeg(f, {
-                  start: 0,
-                  width,
-                  height,
-                  onProgress: (p) => setProgress(Math.round(p * 100)),
-                });
-                setOutBlob(blob);
-                updatePreview(URL.createObjectURL(blob));
-              } catch (err: any) {
-                console.error(err);
-                setErr('Conversion failed.');
-              }
-            } else {
-              setErr(msg.message || 'Conversion failed.');
+              setProgress(0);
             }
           } else if (msg?.type === 'done') {
             const blob: Blob = msg.blob;
