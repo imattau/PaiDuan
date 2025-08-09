@@ -61,30 +61,25 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     const size = Math.min(croppedArea.width, croppedArea.height);
     canvas.width = size;
     canvas.height = size;
-    ctx.drawImage(
-      image,
-      croppedArea.x,
-      croppedArea.y,
-      size,
-      size,
-      0,
-      0,
-      size,
-      size
-    );
+    ctx.drawImage(image, croppedArea.x, croppedArea.y, size, size, 0, 0, size, size);
     const dataUrl = canvas.toDataURL('image/png');
     setPicture(dataUrl);
     setRawImage('');
   }, [rawImage, croppedArea]);
 
-  async function setMetadata(data: { name?: string; about?: string; picture?: string; lud16?: string }) {
+  async function setMetadata(data: {
+    name?: string;
+    about?: string;
+    picture?: string;
+    lud16?: string;
+  }) {
     if (state.status !== 'ready') throw new Error('Not signed in');
     const content = JSON.stringify(data);
     const tmpl: EventTemplate = {
       kind: 0,
       created_at: Math.floor(Date.now() / 1000),
       tags: [],
-      content
+      content,
     };
     const signed = await state.signer.signEvent({ ...tmpl });
     const pool = getPool();
@@ -167,7 +162,7 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
         <Button
           onClick={saveProfile}
           disabled={loading}
-          className="btn-primary disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {loading ? 'Saving…' : 'Save'}
         </Button>

@@ -55,14 +55,14 @@ body {
     @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2;
   }
   .btn-primary {
-    background: hsl(var(--accent-primary));
+    background-color: hsl(var(--accent-primary));
     color: white;
   }
   .btn-primary:hover {
-    background: hsl(var(--accent-hover));
+    background-color: hsl(var(--accent-hover));
   }
   .btn-primary:active {
-    background: hsl(var(--accent-active));
+    background-color: hsl(var(--accent-active));
   }
   .btn-secondary {
     @apply border border-current text-current bg-transparent;
