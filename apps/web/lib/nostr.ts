@@ -1,5 +1,5 @@
 'use client';
-import NDK, { NDKRelayStatus } from '@nostr-dev-kit/ndk';
+import NDK from '@nostr-dev-kit/ndk';
 import { getPublicKey } from 'nostr-tools/pure';
 import { hexToBytes } from 'nostr-tools/utils';
 import relaysConfig from '../relays.json';
@@ -29,8 +29,7 @@ async function connectNDK(attempt = 0): Promise<void> {
   setStatus('connecting');
   try {
     await ndk.connect();
-    const statuses = ndk.pool.status ? Array.from(ndk.pool.status.values()) : [];
-    if (!statuses.some((s) => s === NDKRelayStatus.CONNECTED)) {
+    if (ndk.pool.connectedRelays().length === 0) {
       throw new Error('No relays connected');
     }
     setStatus('connected');
