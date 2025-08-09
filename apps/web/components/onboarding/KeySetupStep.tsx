@@ -29,6 +29,10 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
     const pass = await promptPassphrase('Set a passphrase to encrypt your key');
     if (!pass) return;
     try {
+      if (!globalThis.crypto?.subtle) {
+        alert('Your browser does not support the Web Crypto API');
+        return;
+      }
       const encPriv = await cryptoVault.encryptPrivkeyHex(priv, pass);
       const pubkey = getPublicKey(priv);
       keyStore.save({ method, pubkey, encPriv });
