@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -21,9 +22,11 @@ export default function TopNavProfile() {
       className="cursor-pointer rounded-lg p-[2px]"
       style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
     >
-      <img
+      <Image
         src={profile?.picture || '/avatar.svg'}
         alt="Profile avatar"
+        width={80}
+        height={80}
         className="h-20 w-20 rounded-lg"
       />
     </div>

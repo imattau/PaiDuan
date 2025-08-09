@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import type { EventTemplate } from 'nostr-tools/pure';
@@ -156,7 +157,13 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
             className="rounded-lg p-[2px]"
             style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
           >
-            <img src={picture} alt="avatar" className="h-20 w-20 rounded-lg object-cover" />
+            <Image
+              src={picture}
+              alt="avatar"
+              width={80}
+              height={80}
+              className="h-20 w-20 rounded-lg object-cover"
+            />
           </div>
         )}
         <Button

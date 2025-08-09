@@ -59,7 +59,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
 
   useEffect(() => {
     api.start({ y: open ? 0 : 100 });
-  }, [open]);
+  }, [open, api]);
 
   const bind = useGesture(
     {

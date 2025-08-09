@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import QRCode from 'qrcode';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
@@ -232,7 +233,13 @@ export function LightningCard() {
         </button>
         {qr && (
           <div className="flex justify-center">
-            <img src={qr} alt="Lightning address QR code" className="h-32 w-32" />
+            <Image
+              src={qr}
+              alt="Lightning address QR code"
+              width={128}
+              height={128}
+              className="h-32 w-32"
+            />
           </div>
         )}
         <a

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { cardStyle } from '@/components/ui/Card';
@@ -14,9 +15,11 @@ export default function MiniProfileCard({
 
   return (
     <div className={`${cardStyle} p-3 text-center`}>
-      <img
+      <Image
         src={profile?.picture || '/avatar.svg'}
         alt="Profile avatar"
+        width={80}
+        height={80}
         className="mx-auto mb-2 h-20 w-20 rounded-full"
       />
       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">@{name}</div>

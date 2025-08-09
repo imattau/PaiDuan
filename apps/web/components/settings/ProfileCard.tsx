@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -68,7 +69,13 @@ export function ProfileCard() {
           />
           <input type="file" accept="image/*" onChange={handleFile} />
           {picture && (
-            <img src={picture} alt="avatar" className="h-20 w-20 rounded-full object-cover" />
+            <Image
+              src={picture}
+              alt="avatar"
+              width={80}
+              height={80}
+              className="h-20 w-20 rounded-full object-cover"
+            />
           )}
           <button
             type="button"

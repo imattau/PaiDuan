@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { SimplePool } from 'nostr-tools/pool';
 import type { Event } from 'nostr-tools/pure';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
@@ -44,7 +45,13 @@ export default function VideoInfoPane() {
   return (
     <aside className="hidden lg:block lg:w-64 lg:fixed lg:right-0 lg:inset-y-0 lg:pr-4 lg:pt-6 overflow-y-auto space-y-6 text-white">
       <div className="flex items-center space-x-3">
-        <img src={meta?.picture || '/avatar.svg'} className="h-12 w-12 rounded-full" />
+        <Image
+          src={meta?.picture || '/avatar.svg'}
+          alt={meta?.name || ''}
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-full"
+        />
         <div>
           <div className="font-semibold">{meta?.name || current.pubkey.slice(0, 8)}</div>
           <button
