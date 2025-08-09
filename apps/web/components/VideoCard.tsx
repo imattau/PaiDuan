@@ -289,12 +289,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           {seekPreview.toFixed(1)}s
         </div>
       </animated.div>
-      <CommentDrawer
-        videoId={eventId}
-        open={commentsOpen}
-        onClose={() => setCommentsOpen(false)}
-        onCountChange={setCommentCount}
-      />
+      {commentsOpen && (
+        <CommentDrawer
+          videoId={eventId}
+          open={commentsOpen}
+          onClose={() => setCommentsOpen(false)}
+          onCountChange={setCommentCount}
+        />
+      )}
       <ReportModal
         targetId={eventId}
         targetKind="video"
