@@ -15,6 +15,8 @@ import * as Sentry from '@sentry/nextjs';
 import { NextIntlClientProvider } from 'next-intl';
 import { trackPageview, consentGiven } from '../utils/analytics';
 import { useAuth } from '@/hooks/useAuth';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   useOffline();
@@ -61,6 +63,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       <ThemeProvider>
           <GestureProvider>
             <NotificationsProvider>
+              <QueryClientProvider client={queryClient}>
               <Sentry.ErrorBoundary
                 fallback={
                   <div className="p-4 text-center" onClick={() => window.location.reload()}>
@@ -74,6 +77,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
               {router.pathname.startsWith('/en/feed') || router.pathname.startsWith('/en/create') || router.pathname.startsWith('/en/profile') || router.pathname.startsWith('/en/settings') ? <NavBar /> : null}
               <InstallBanner />
               <Toaster />
+              </QueryClientProvider>
             </NotificationsProvider>
           </GestureProvider>
         </ThemeProvider>

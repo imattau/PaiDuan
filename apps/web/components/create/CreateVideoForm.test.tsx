@@ -4,6 +4,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import CreateVideoForm from './CreateVideoForm';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../../lib/queryClient';
 
 (globalThis as any).React = React;
 
@@ -60,6 +62,7 @@ describe('CreateVideoForm', () => {
       }
       return el;
     });
+    queryClient.clear();
   });
 
   it('auto converts selected file and keeps publish disabled until form complete', async () => {
@@ -72,7 +75,11 @@ describe('CreateVideoForm', () => {
     const container = document.createElement('div');
     const root = createRoot(container);
     act(() => {
-      root.render(<CreateVideoForm />);
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
@@ -134,7 +141,11 @@ describe('CreateVideoForm', () => {
     const container = document.createElement('div');
     const root = createRoot(container);
     await act(async () => {
-      root.render(<CreateVideoForm />);
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
@@ -198,7 +209,11 @@ describe('CreateVideoForm', () => {
     const container = document.createElement('div');
     const root = createRoot(container);
     await act(async () => {
-      root.render(<CreateVideoForm />);
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
@@ -272,7 +287,11 @@ describe('CreateVideoForm', () => {
     const container = document.createElement('div');
     const root = createRoot(container);
     await act(async () => {
-      root.render(<CreateVideoForm />);
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
