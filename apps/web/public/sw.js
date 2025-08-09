@@ -1,8 +1,4 @@
-// Use a locally hosted Workbox bundle to avoid CDN failures that broke the
-// service worker registration in some environments.
-// See https://github.com/GoogleChrome/workbox/issues/3000 for context.
-// The file is copied during build to `/workbox-sw.js` in the public folder.
-// Keep the version in sync with package.json (currently 7.3.0).
+
 importScripts('/workbox-sw.js');
 
 self.addEventListener('install', () => {
