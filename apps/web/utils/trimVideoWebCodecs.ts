@@ -1,81 +1,27 @@
-// Utility for trimming videos using WebCodecs
-// Falls back to a polyfill when VideoDecoder/VideoEncoder are unavailable
+// Utility to start a WebCodecs based trim worker
+// Returns the Worker instance or null if WebCodecs are unsupported
 
-export async function trimVideoWebCodecs(
-  blob: Blob,
-  start: number,
-  end?: number,
-  onProgress?: (progress: number) => void,
-): Promise<Blob> {
-  if (typeof window === 'undefined') {
-    throw new Error('trimVideoWebCodecs can only run in the browser')
-  }
-
-  if (!('VideoDecoder' in window) || !('VideoEncoder' in window)) {
-    await import('libavjs-webcodecs-polyfill')
-  }
-
-  const url = URL.createObjectURL(blob)
-  const video = document.createElement('video')
-  video.src = url
-  await video.play().catch(() => void 0)
-  video.pause()
-
-  const duration = video.duration
-  const endTime = end ?? duration
-  const width = video.videoWidth
-  const height = video.videoHeight
-
-  const canvas: OffscreenCanvas | HTMLCanvasElement =
-    typeof OffscreenCanvas !== 'undefined'
-      ? new OffscreenCanvas(width, height)
-      : Object.assign(document.createElement('canvas'), {
-          width,
-          height,
-        })
-
-  const ctx = canvas.getContext('2d')!
-
-  const fps = 30
-  const frameInterval = 1 / fps
-  const chunks: Uint8Array[] = []
-
-  const encoder = new VideoEncoder({
-    output: (chunk) => {
-      const data = new Uint8Array(chunk.byteLength)
-      chunk.copyTo(data)
-      chunks.push(data)
-    },
-    error: (e) => console.error(e),
-  })
-
-  encoder.configure({
-    codec: 'vp8',
-    width,
-    height,
-    bitrate: 1_000_000,
-    framerate: fps,
-  })
-
-  let current = start
-  const total = endTime - start
-  onProgress?.(0)
-  while (current < endTime) {
-    video.currentTime = current
-    await new Promise((r) => video.addEventListener('seeked', r, { once: true }))
-    ctx.drawImage(video, 0, 0, width, height)
-    const frame = new VideoFrame(canvas, {
-      timestamp: Math.round((current - start) * 1e6),
-    })
-    encoder.encode(frame)
-    frame.close()
-    current += frameInterval
-    onProgress?.(Math.min((current - start) / total, 1))
-  }
-
-  await encoder.flush()
-  onProgress?.(1)
-  URL.revokeObjectURL(url)
-  return new Blob(chunks, { type: 'video/webm' })
+export interface TrimWorkerOptions {
+  start: number;
+  end?: number;
+  width?: number;
+  height?: number;
+  bitrate?: number;
 }
 
+export function trimVideoWebCodecs(
+  blob: Blob,
+  options: TrimWorkerOptions,
+): Worker | null {
+  if (typeof window === 'undefined') {
+    throw new Error('trimVideoWebCodecs can only run in the browser');
+  }
+  if (!('VideoDecoder' in window) || !('VideoEncoder' in window)) {
+    return null;
+  }
+  const worker = new Worker(new URL('./trimVideoWorker.ts', import.meta.url), {
+    type: 'module',
+  });
+  worker.postMessage({ blob, ...options });
+  return worker;
+}

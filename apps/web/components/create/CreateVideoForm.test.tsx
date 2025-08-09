@@ -7,6 +7,19 @@ import CreateVideoForm from './CreateVideoForm';
 
 (globalThis as any).React = React;
 
+class MockWorker {
+  onmessage: ((ev: any) => void) | null = null;
+  constructor(private messages: any[]) {
+    setTimeout(() => {
+      for (const m of this.messages) {
+        this.onmessage?.({ data: m });
+      }
+    }, 0);
+  }
+  postMessage() {}
+  terminate() {}
+}
+
 const mockTrim = vi.fn();
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
   trimVideoWebCodecs: (...args: any[]) => mockTrim(...(args as any)),
@@ -39,10 +52,10 @@ describe('CreateVideoForm', () => {
 
   it('auto converts selected file and keeps publish disabled until form complete', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
-      onProgress(0.5);
-      return Promise.resolve(new Blob());
-    });
+    mockTrim.mockImplementation(() => new MockWorker([
+      { type: 'progress', progress: 0.5 },
+      { type: 'done', blob: new Blob() },
+    ]));
 
     const container = document.createElement('div');
     const root = createRoot(container);
@@ -58,8 +71,9 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await new Promise((r) => setTimeout(r));
 
-    expect(mockTrim).toHaveBeenCalledWith(file, 0, undefined, expect.any(Function));
+    expect(mockTrim).toHaveBeenCalledWith(file, { start: 0 });
     expect(container.querySelector('.bg-blue-500')).not.toBeNull();
     expect(publishButton.disabled).toBe(true);
 
@@ -89,10 +103,10 @@ describe('CreateVideoForm', () => {
 
   it('posts video when publish is clicked', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
-      onProgress(1);
-      return Promise.resolve(new Blob());
-    });
+    mockTrim.mockImplementation(() => new MockWorker([
+      { type: 'progress', progress: 1 },
+      { type: 'done', blob: new Blob() },
+    ]));
 
     const mockFetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
@@ -121,6 +135,7 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await new Promise((r) => setTimeout(r));
 
     const setValue = (el: HTMLInputElement, value: string) => {
       const proto = Object.getOwnPropertyDescriptor(
@@ -151,10 +166,10 @@ describe('CreateVideoForm', () => {
 
   it('saves zap splits for collaborators', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
-      onProgress(1);
-      return Promise.resolve(new Blob());
-    });
+    mockTrim.mockImplementation(() => new MockWorker([
+      { type: 'progress', progress: 1 },
+      { type: 'done', blob: new Blob() },
+    ]));
 
     const mockFetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
@@ -185,6 +200,7 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await new Promise((r) => setTimeout(r));
 
     const setValue = (el: HTMLInputElement, value: string) => {
       const proto = Object.getOwnPropertyDescriptor(
@@ -223,10 +239,10 @@ describe('CreateVideoForm', () => {
 
   it('uses custom license when Other is selected', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
-      onProgress(1);
-      return Promise.resolve(new Blob());
-    });
+    mockTrim.mockImplementation(() => new MockWorker([
+      { type: 'progress', progress: 1 },
+      { type: 'done', blob: new Blob() },
+    ]));
 
     const mockFetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
@@ -256,6 +272,7 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await new Promise((r) => setTimeout(r));
 
     const setValue = (el: HTMLInputElement, value: string) => {
       const proto = Object.getOwnPropertyDescriptor(
