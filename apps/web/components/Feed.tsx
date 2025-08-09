@@ -6,6 +6,20 @@ import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
 import Link from 'next/link';
 import { useFeedSelection } from '@/store/feedSelection';
 
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const listener = () => setMatches(media.matches);
+    listener();
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [query]);
+
+  return matches;
+};
+
 interface FeedProps {
   items: VideoCardProps[];
   loading?: boolean;
@@ -19,6 +33,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const wheelOffset = useRef(0);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
+  const showControls = useMediaQuery('(orientation: landscape) and (min-width: 768px)');
 
   const next = useCallback(() => {
     setIndex((i) => (i < items.length - 1 ? i + 1 : i));
@@ -122,24 +137,28 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
           </div>
         ))}
       </animated.div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          prev();
-        }}
-        className="btn btn-secondary absolute left-4 top-1/2 -translate-y-1/2"
-      >
-        Previous
-      </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          next();
-        }}
-        className="btn btn-secondary absolute right-4 top-1/2 -translate-y-1/2"
-      >
-        Next
-      </button>
+      {showControls && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              prev();
+            }}
+            className="btn btn-secondary absolute left-4 top-1/2 -translate-y-1/2"
+          >
+            Previous
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              next();
+            }}
+            className="btn btn-secondary absolute right-4 top-1/2 -translate-y-1/2"
+          >
+            Next
+          </button>
+        </>
+      )}
     </div>
   );
 };
