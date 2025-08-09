@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import ZapButton from './ZapButton';
-import useOffline from '../utils/useOffline';
+import { useNetworkState } from 'react-use';
 
 interface ProfileHeaderProps {
   avatarUrl: string;
@@ -12,7 +12,7 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ avatarUrl, name, lightningAddress, pubkey, zapTotal }) => {
-  const online = useOffline();
+  const { online } = useNetworkState();
   return (
     <div className="flex flex-col items-center space-y-3 p-4 text-center">
       <div
