@@ -1,4 +1,4 @@
-import MP4Box from 'mp4box';
+import * as MP4Box from 'mp4box';
 
 function detectCodec(blobType?: string, trackCodec?: string): string | null {
   const candidates = [trackCodec, blobType];
