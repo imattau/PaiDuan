@@ -11,7 +11,12 @@ export const useFeedSelection = create<S>((set) => ({
   selectedVideoId: undefined,
   selectedVideoAuthor: undefined,
   setSelectedVideo: (id, authorPubkey) =>
-    set({ selectedVideoId: id, selectedVideoAuthor: authorPubkey }),
+    set((state) => {
+      if (state.selectedVideoId === id && state.selectedVideoAuthor === authorPubkey) {
+        return state;
+      }
+      return { selectedVideoId: id, selectedVideoAuthor: authorPubkey };
+    }),
   filterAuthor: undefined,
   setFilterAuthor: (pubkey) => set({ filterAuthor: pubkey }),
 }));
