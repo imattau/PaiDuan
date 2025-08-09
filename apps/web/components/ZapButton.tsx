@@ -20,34 +20,27 @@ export const ZapButton: React.FC<ZapButtonProps> = ({
   disabled,
   title,
 }) => {
-  const [open, setOpen] = useState(false);
   const [count, setCount] = useState(total);
 
   return (
-    <>
-      <button
-        onClick={() => {
-          if (disabled) return;
-          analytics.trackEvent('zap_click');
-          setOpen(true);
-        }}
-        className="flex flex-col items-center text-primary hover:text-accent-primary disabled:opacity-50"
-        disabled={disabled}
-        title={title}
-      >
-        <Zap />
-        <span className="text-xs">{count}</span>
-      </button>
-      {open && (
-        <ZapModal
-          lightningAddress={lightningAddress}
-          eventId={eventId}
-          pubkey={pubkey}
-          onClose={() => setOpen(false)}
-          onSuccess={(amt) => setCount((c) => c + amt)}
-        />
-      )}
-    </>
+    <button
+      onClick={() => {
+        if (disabled) return;
+        analytics.trackEvent('zap_click');
+        ZapModal({
+          lightningAddress,
+          eventId,
+          pubkey,
+          onSuccess: (amt) => setCount((c) => c + amt),
+        });
+      }}
+      className="flex flex-col items-center text-primary hover:text-accent-primary disabled:opacity-50"
+      disabled={disabled}
+      title={title}
+    >
+      <Zap />
+      <span className="text-xs">{count}</span>
+    </button>
   );
 };
 

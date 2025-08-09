@@ -10,7 +10,7 @@ function getLayout(width: number): LayoutType {
   return 'mobile';
 }
 
-const LayoutContext = createContext<LayoutType>('desktop');
+export const LayoutContext = createContext<LayoutType>('desktop');
 
 export function LayoutProvider({ children }: { children: React.ReactNode }) {
   const [layout, setLayout] = useState<LayoutType>(() => {

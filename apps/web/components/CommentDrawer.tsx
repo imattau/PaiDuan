@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import * as Dialog from '@radix-ui/react-dialog';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import { X, MoreVertical } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -10,27 +9,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
 import { useModqueue } from '@/context/modqueueContext';
+import Overlay from './ui/Overlay';
 
 interface CommentDrawerProps {
   videoId: string;
-  open: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   onCountChange?: (count: number) => void;
 }
 
-export const CommentDrawer: React.FC<CommentDrawerProps> = ({
-  videoId,
-  open,
-  onClose,
-  onCountChange,
-}) => {
+function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawerProps) {
   const { state } = useAuth();
   const [events, setEvents] = useState<NostrEvent[]>([]);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState<NostrEvent | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [reportTarget, setReportTarget] = useState<string>('');
   const modqueue = useModqueue();
   const [extraHiddenIds, setExtraHiddenIds] = useState<Set<string>>(new Set());
   const hiddenIds = useMemo(() => {
@@ -50,9 +42,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
     return hidden;
   }, [modqueue, extraHiddenIds]);
 
-  // Subscribe to comments
   useEffect(() => {
-    if (!open) return;
     const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [1], '#e': [videoId] }], {
       onevent: (ev: any) => {
         setEvents((prev) => {
@@ -62,26 +52,19 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
         });
       },
     });
-    return () => {
-      sub.close();
-    };
-  }, [videoId, open]);
+    return () => sub.close();
+  }, [videoId]);
 
-  // fetch reports to hide comments
   useEffect(() => {
-    if (!open) return;
     const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [9001] }], {
       onevent: (ev: any) => {
         const tag = ev.tags.find((t: string[]) => t[0] === 'e');
         if (tag) setExtraHiddenIds((prev) => new Set(prev).add(tag[1]));
       },
     });
-    return () => {
-      sub.close();
-    };
-  }, [open]);
+    return () => sub.close();
+  }, []);
 
-  // Update count of top level comments
   useEffect(() => {
     const top = events.filter((e) => !e.tags.some((t) => t[0] === 'p'));
     const visible = top.filter((e) => !hiddenIds.has(e.id));
@@ -147,126 +130,119 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   });
 
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
-        <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 h-1/2 bg-background-primary text-primary focus:outline-none relative">
-          <div className="flex items-center justify-between border-b divider p-2">
-            <span className="font-semibold">Comments</span>
-            <Dialog.Close asChild>
-              <button className="p-1 hover:text-accent-primary" aria-label="Close comments">
-                <X />
-              </button>
-            </Dialog.Close>
-          </div>
-          <div className="h-[calc(50vh-88px)] overflow-y-auto p-4 space-y-4">
-            {visibleTop.map((c) => (
-              <div key={c.id}>
-                <div className="flex items-start space-x-2">
-                  <div className="h-8 w-8 rounded-full bg-text-primary/20" />
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold">@{c.pubkey.slice(0, 8)}</div>
-                    <div className="text-sm">{c.content}</div>
-                    <div className="text-xs text-primary/50">
-                      {new Date(c.created_at * 1000).toLocaleString()}
-                    </div>
-                    <button className="text-xs text-accent-primary mr-2" onClick={() => setReplyTo(c)}>
-                      Reply
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => setMenuFor(c.id)}
-                      className="p-1 text-primary/50"
-                      aria-label="Comment options"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                    {menuFor === c.id && (
-                      <div className="absolute right-0 mt-1 w-24 rounded bg-background-primary p-1 shadow">
-                        <button
-                          className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
-                          onClick={() => {
-                            setMenuFor(null);
-                            setReportTarget(c.id);
-                            setReportOpen(true);
-                          }}
-                        >
-                          Report
-                        </button>
-                      </div>
-                    )}
-                  </div>
+    <>
+      <div className="flex items-center justify-between border-b divider p-2">
+        <span className="font-semibold">Comments</span>
+        <button
+          className="p-1 hover:text-accent-primary"
+          aria-label="Close comments"
+          onClick={() => {
+            Overlay.close();
+            onClose?.();
+          }}
+        >
+          <X />
+        </button>
+      </div>
+      <div className="h-[calc(50vh-88px)] overflow-y-auto p-4 space-y-4">
+        {visibleTop.map((c) => (
+          <div key={c.id}>
+            <div className="flex items-start space-x-2">
+              <div className="h-8 w-8 rounded-full bg-text-primary/20" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold">@{c.pubkey.slice(0, 8)}</div>
+                <div className="text-sm">{c.content}</div>
+                <div className="text-xs text-primary/50">
+                  {new Date(c.created_at * 1000).toLocaleString()}
                 </div>
-                {visibleMap[c.id]?.map((r) => (
-                  <div key={r.id} className="mt-2 ml-8 flex items-start space-x-2">
-                    <div className="h-6 w-6 rounded-full bg-text-primary/20" />
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold">@{r.pubkey.slice(0, 8)}</div>
-                      <div className="text-sm">{r.content}</div>
-                      <div className="text-xs text-primary/50">
-                        {new Date(r.created_at * 1000).toLocaleString()}
-                      </div>
-                      <button className="text-xs text-accent-primary mr-2" onClick={() => setReplyTo(r)}>
-                        Reply
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <button
-                        onClick={() => setMenuFor(r.id)}
-                        className="p-1 text-primary/50"
-                        aria-label="Comment options"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                      {menuFor === r.id && (
-                        <div className="absolute right-0 mt-1 w-24 rounded bg-background-primary p-1 shadow">
-                          <button
-                            className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
-                            onClick={() => {
-                              setMenuFor(null);
-                              setReportTarget(r.id);
-                              setReportOpen(true);
-                            }}
-                          >
-                            Report
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                <button className="text-xs text-accent-primary mr-2" onClick={() => setReplyTo(c)}>
+                  Reply
+                </button>
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => setMenuFor(c.id)}
+                  className="p-1 text-primary/50"
+                  aria-label="Comment options"
+                >
+                  <MoreVertical size={16} />
+                </button>
+                {menuFor === c.id && (
+                  <div className="absolute right-0 mt-1 w-24 rounded bg-background-primary p-1 shadow">
+                    <button
+                      className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
+                      onClick={() => {
+                        setMenuFor(null);
+                        ReportModal({ targetId: c.id, targetKind: 'comment' });
+                      }}
+                    >
+                      Report
+                    </button>
                   </div>
-                ))}
+                )}
+              </div>
+            </div>
+            {visibleMap[c.id]?.map((r) => (
+              <div key={r.id} className="mt-2 ml-8 flex items-start space-x-2">
+                <div className="h-6 w-6 rounded-full bg-text-primary/20" />
+                <div className="flex-1">
+                  <div className="text-sm font-semibold">@{r.pubkey.slice(0, 8)}</div>
+                  <div className="text-sm">{r.content}</div>
+                  <div className="text-xs text-primary/50">
+                    {new Date(r.created_at * 1000).toLocaleString()}
+                  </div>
+                  <button className="text-xs text-accent-primary mr-2" onClick={() => setReplyTo(r)}>
+                    Reply
+                  </button>
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => setMenuFor(r.id)}
+                    className="p-1 text-primary/50"
+                    aria-label="Comment options"
+                  >
+                    <MoreVertical size={16} />
+                  </button>
+                  {menuFor === r.id && (
+                    <div className="absolute right-0 mt-1 w-24 rounded bg-background-primary p-1 shadow">
+                      <button
+                        className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
+                        onClick={() => {
+                          setMenuFor(null);
+                          ReportModal({ targetId: r.id, targetKind: 'comment' });
+                        }}
+                      >
+                        Report
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
-          <div className="absolute bottom-0 left-0 right-0 border-t divider p-2">
-            {replyTo && (
-              <div className="mb-1 text-xs text-primary/50">
-                Replying to @{replyTo.pubkey.slice(0, 8)}{' '}
-                <button onClick={() => setReplyTo(null)} className="underline hover:text-accent-primary">
-                  cancel
-                </button>
-              </div>
-            )}
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Add a comment"
-              className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
-              disabled={!open}
-            />
+        ))}
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 border-t divider p-2">
+        {replyTo && (
+          <div className="mb-1 text-xs text-primary/50">
+            Replying to @{replyTo.pubkey.slice(0, 8)}{' '}
+            <button onClick={() => setReplyTo(null)} className="underline hover:text-accent-primary">
+              cancel
+            </button>
           </div>
-          <ReportModal
-            targetId={reportTarget}
-            targetKind="comment"
-            open={reportOpen}
-            onClose={() => setReportOpen(false)}
-          />
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        )}
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add a comment"
+          className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
+        />
+      </div>
+    </>
   );
-};
+}
 
-export default CommentDrawer;
+export default function CommentDrawer(props: CommentDrawerProps) {
+  Overlay.open('drawer', { content: <CommentDrawerContent {...props} />, onClose: props.onClose });
+}
