@@ -41,7 +41,7 @@ export function getMyPubkey(): string | undefined {
 /** Relays you want to hit – tweak as needed */
 const DEFAULT_RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.snort.social'];
 
-function parseRelays(input: unknown): string[] | undefined {
+export function parseRelays(input: unknown): string[] | undefined {
   if (Array.isArray(input)) {
     return input.filter((r): r is string => typeof r === 'string' && r.length > 0);
   }
