@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
 import { trimVideoFfmpeg } from '../../utils/trimVideoFfmpeg';
+import { sniffCodec } from '../../utils/codec';
+import { canDecode } from '../../utils/canDecode';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useProfiles } from '../../hooks/useProfiles';
@@ -128,20 +130,26 @@ export default function CreateVideoForm() {
         URL.revokeObjectURL(url);
         video.remove();
 
-        try {
-          const blob = await trimVideoFfmpeg(f, {
-            start: 0,
-            width,
-            height,
-            onProgress: (p) => setProgress(Math.round(p * 100)),
-          });
-          setOutBlob(blob);
-          updatePreview(URL.createObjectURL(blob));
+        const codec = await sniffCodec(f);
+        const supported = codec ? await canDecode(codec) : false;
+        if (!supported) {
+          setErr('Unsupported codec; converting with FFmpeg.');
+          try {
+            const blob = await trimVideoFfmpeg(f, {
+              start: 0,
+              width,
+              height,
+              onProgress: (p) => setProgress(Math.round(p * 100)),
+            });
+            setErr(null);
+            setOutBlob(blob);
+            updatePreview(URL.createObjectURL(blob));
+          } catch (err: any) {
+            console.error(err);
+            setErr(err?.message || 'Conversion failed.');
+            setProgress(0);
+          }
           return;
-        } catch (err: any) {
-          console.error(err);
-          setErr(err?.message || 'Conversion failed.');
-          setProgress(0);
         }
 
         const worker = trimVideoWebCodecs(f, {
@@ -149,7 +157,23 @@ export default function CreateVideoForm() {
           width,
           height,
         });
-        if (!worker) return;
+        if (!worker) {
+          try {
+            const blob = await trimVideoFfmpeg(f, {
+              start: 0,
+              width,
+              height,
+              onProgress: (p) => setProgress(Math.round(p * 100)),
+            });
+            setOutBlob(blob);
+            updatePreview(URL.createObjectURL(blob));
+          } catch (err: any) {
+            console.error(err);
+            setErr(err?.message || 'Conversion failed.');
+            setProgress(0);
+          }
+          return;
+        }
         worker.onmessage = (ev: MessageEvent) => {
           const msg = ev.data as any;
           if (msg?.type === 'progress') {
