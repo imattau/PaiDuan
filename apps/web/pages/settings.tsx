@@ -31,7 +31,7 @@ export default function Settings() {
     <AppShell
       left={nav}
       center={
-        <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
+        <div className="max-w-3xl mx-auto px-4 py-10 space-y-6 min-h-full">
           <Accordion
             initialOpenIndex={initialOpenIndex}
             items={[
