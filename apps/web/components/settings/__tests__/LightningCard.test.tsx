@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
+vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn() } }));
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import QRCode from 'qrcode';
 import LightningCard from '../LightningCard';
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -27,10 +30,16 @@ vi.mock('@/utils/lnurl', () => ({
   authenticate: (...args: any[]) => authenticateMock(...args),
 }));
 
+const writeTextMock = vi.fn();
+Object.assign(navigator, { clipboard: { writeText: writeTextMock } });
+
 describe('LightningCard', () => {
   beforeEach(() => {
     fetchPayDataMock.mockReset();
     publishMock.mockReset();
+    writeTextMock.mockReset();
+    (QRCode.toDataURL as any).mockReset();
+    (QRCode.toDataURL as any).mockResolvedValue('data:image/png;base64,qr');
   });
 
   afterEach(() => {
@@ -66,6 +75,32 @@ describe('LightningCard', () => {
     fireEvent.click(screen.getByText('Save'));
     await screen.findByText('bad');
     expect(publishMock).not.toHaveBeenCalled();
+  });
+
+  it('copies address to clipboard', async () => {
+    render(<LightningCard />);
+    fireEvent.click(screen.getByText('Add wallet'));
+    fireEvent.change(screen.getByPlaceholderText('Label'), {
+      target: { value: 'Main' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('name@example.com'), {
+      target: { value: 'user@example.com' },
+    });
+    fireEvent.click(screen.getByText('Copy'));
+    await waitFor(() => expect(writeTextMock).toHaveBeenCalledWith('user@example.com'));
+  });
+
+  it('renders QR code when address present', async () => {
+    render(<LightningCard />);
+    fireEvent.click(screen.getByText('Add wallet'));
+    fireEvent.change(screen.getByPlaceholderText('Label'), {
+      target: { value: 'Main' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('name@example.com'), {
+      target: { value: 'user@example.com' },
+    });
+    await waitFor(() => expect(QRCode.toDataURL).toHaveBeenCalledWith('user@example.com'));
+    await screen.findByAltText('Lightning address QR code');
   });
 });
 
