@@ -18,6 +18,7 @@ vi.mock('../../hooks/useAuth', () => ({
 }));
 
 vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
+vi.mock('../../hooks/useFollowing', () => ({ default: () => ({ following: [] }) }));
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
 
 const mockPublish = vi.fn();
@@ -145,6 +146,77 @@ describe('CreateVideoForm', () => {
     expect(mockFetch).toHaveBeenCalledWith('https://nostr.media/api/upload', expect.any(Object));
     const tags = mockSignEvent.mock.calls[0][0].tags;
     expect(tags).toContainEqual(['copyright', 'CC BY']);
+  });
+
+  it('saves zap splits for collaborators', async () => {
+    (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
+      onProgress(1);
+      return Promise.resolve(new Blob());
+    });
+
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
+    );
+    (globalThis as any).fetch = mockFetch;
+    (globalThis as any).alert = vi.fn();
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<CreateVideoForm />);
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const topicsInput = container.querySelector(
+      'input[placeholder="Topic tags (comma separated)"]',
+    ) as HTMLInputElement;
+    const lightningInput = Array.from(container.querySelectorAll('label'))
+      .find((l) => l.textContent?.includes('Lightning address'))!
+      .querySelector('input') as HTMLInputElement;
+    const addButton = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Add collaborator'),
+    ) as HTMLButtonElement;
+
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
+
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    const setValue = (el: HTMLInputElement, value: string) => {
+      const proto = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        'value',
+      );
+      proto?.set?.call(el, value);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    await act(async () => {
+      setValue(topicsInput, 'topic');
+      setValue(lightningInput, 'addr');
+      addButton.click();
+    });
+
+    const lnInput = container.querySelector('input[placeholder="ln@addr"]') as HTMLInputElement;
+    const pctInput = container.querySelector('input[type="number"]') as HTMLInputElement;
+
+    await act(async () => {
+      setValue(lnInput, 'col@example.com');
+      setValue(pctInput, '10');
+    });
+
+    const publishBtn = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    await act(async () => {
+      publishBtn.click();
+    });
+
+    const body = mockFetch.mock.calls[0][1].body as FormData;
+    expect(body.get('zapSplits')).toBe(JSON.stringify([{ lnaddr: 'col@example.com', pct: 10 }]));
+    const tags = mockSignEvent.mock.calls[0][0].tags;
+    expect(tags).toContainEqual(['zap', 'col@example.com', '10']);
   });
 
   it('uses custom license when Other is selected', async () => {
