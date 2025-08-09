@@ -5,10 +5,14 @@ import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFollowing } from '../hooks/useFollowing';
 import ZapButton from './ZapButton';
 import { getRelays } from '@/lib/nostr';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function VideoInfoPane() {
   const { current } = useCurrentVideo();
-  const { following, follow, unfollow } = useFollowing();
+  const { state: auth } = useAuth();
+  const { following, follow, unfollow } = useFollowing(
+    auth.status === 'ready' ? auth.pubkey : undefined,
+  );
   const [meta, setMeta] = useState<any>(null);
   const [comments, setComments] = useState<Event[]>([]);
 

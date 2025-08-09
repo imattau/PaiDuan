@@ -14,7 +14,9 @@ export default function FeedPage() {
   const { items: videos } = useFeed(filterAuthor ? { author: filterAuthor } : 'all');
 
   const { state: auth } = useAuth();
-  const { following } = useFollowing();
+  const { following } = useFollowing(
+    auth.status === 'ready' ? auth.pubkey : undefined,
+  );
   const myFollowers = useFollowers(auth.status === 'ready' ? auth.pubkey : undefined);
   const authorFollowers = useFollowers(selectedVideoAuthor);
   const meProfile = useProfile(auth.status === 'ready' ? auth.pubkey : undefined);
