@@ -1,6 +1,5 @@
 import { generateSecretKey, getPublicKey, type EventTemplate } from 'nostr-tools/pure';
 import * as nip04 from 'nostr-tools/nip04';
-import { Relay } from 'nostr-tools/relay';
 import type { Signer } from './types';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
@@ -14,7 +13,7 @@ type Nip46Session = {
 export class Nip46Signer implements Signer {
   type: Signer['type'] = 'nip46';
   private session: Nip46Session;
-    private pool = pool;
+  private pool = pool;
 
   constructor(session: Nip46Session) {
     this.session = session;
@@ -70,18 +69,6 @@ export class Nip46Signer implements Signer {
   }
 
   private async rpc(method: string, params: any[]): Promise<any> {
-    const conns = await Promise.all(
-      this.session.relays.map(async (url) => {
-        try {
-          return await Relay.connect(url);
-        } catch {
-          return undefined;
-        }
-      }),
-    );
-    const validConns = conns.filter(Boolean) as Relay[];
-    if (validConns.length === 0) throw new Error('Failed to connect to any relays');
-
     const myPub = getPublicKey(this.session.myPrivkey);
     const id = Math.random().toString(36).slice(2);
     const payload = JSON.stringify({ id, method, params });
@@ -100,13 +87,20 @@ export class Nip46Signer implements Signer {
     };
 
     const pool = this.pool;
-    await pool.publish(validConns, ev as any);
+    const published = await pool.publish(this.session.relays, ev as any);
+    if (!published || published.length === 0)
+      throw new Error('Failed to connect to any relays');
 
     const reply = await new Promise<any>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('NIP-46 RPC timeout')), 8000);
       const sub = pool.subscribeMany(
-        validConns,
-        [{ kinds: [24133], authors: [this.session.remotePubkey], '#p': [myPub], since: ev.created_at }],
+        this.session.relays,
+        [{
+          kinds: [24133],
+          authors: [this.session.remotePubkey],
+          '#p': [myPub],
+          since: ev.created_at,
+        }],
         {
           onevent: async (msg) => {
             try {
@@ -130,13 +124,6 @@ export class Nip46Signer implements Signer {
       );
     });
 
-    validConns.forEach((r) => {
-      try {
-        r.close();
-      } catch {
-        /* ignore */
-      }
-    });
     return reply;
   }
 }
