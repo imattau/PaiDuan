@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
@@ -15,6 +15,15 @@ export default function CreateVideoForm() {
   const [preview, setPreview] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const updatePreview = (url: string | null) => {
+    setPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return url;
+    });
+  };
 
   const [caption, setCaption] = useState('');
   const [topics, setTopics] = useState('');
@@ -62,11 +71,21 @@ export default function CreateVideoForm() {
     .filter(Boolean);
   const formValid = !!outBlob && !!lightningAddress.trim() && topicList.length > 0;
 
+  useEffect(() => {
+    if (videoRef.current && preview) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
     setFile(f);
     setOutBlob(null);
-    setPreview(f ? URL.createObjectURL(f) : null);
+    updatePreview(f ? URL.createObjectURL(f) : null);
     setProgress(0);
     if (f) {
       setErr(null);
@@ -75,7 +94,7 @@ export default function CreateVideoForm() {
           setProgress(Math.round(p * 100)),
         );
         setOutBlob(blob);
-        setPreview(URL.createObjectURL(blob));
+        updatePreview(URL.createObjectURL(blob));
       } catch (e) {
         console.error(e);
         setErr('Conversion failed.');
@@ -265,6 +284,7 @@ export default function CreateVideoForm() {
             {preview ? (
               <div className="relative aspect-[9/16] h-[70vh] max-w-sm overflow-hidden rounded-xl">
                 <video
+                  ref={videoRef}
                   controls
                   src={preview}
                   className="absolute inset-0 h-full w-full object-cover"
