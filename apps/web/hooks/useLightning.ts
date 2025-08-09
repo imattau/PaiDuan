@@ -23,7 +23,19 @@ export default function useLightning() {
 
   const payLn = async (lnaddr: string, sats: number, comment?: string) => {
     const payData = await fetchPayData(lnaddr);
-    return requestInvoice(payData, sats, comment);
+    const res = await requestInvoice(payData, sats, comment);
+    if (typeof window !== 'undefined') {
+      try {
+        if (window.webln) {
+          await window.webln.sendPayment(res.invoice);
+        } else {
+          window.open(`lightning:${res.invoice}`);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return res;
   };
 
   const createZap = async ({ lightningAddress, amount, comment, eventId, pubkey }: ZapArgs) => {

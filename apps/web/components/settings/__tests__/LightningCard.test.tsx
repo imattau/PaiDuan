@@ -35,6 +35,8 @@ describe('LightningCard', () => {
 
   afterEach(() => {
     cleanup();
+    // @ts-ignore
+    delete window.webln;
   });
 
   it('enables save after successful test zap', async () => {
@@ -72,5 +74,19 @@ describe('LightningCard', () => {
     fireEvent.click(screen.getByText('Send test zap'));
     await screen.findByText('fail');
     expect((screen.getByText('Save') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('connects via WebLN and sets address', async () => {
+    // @ts-ignore
+    window.webln = {
+      getInfo: vi.fn().mockResolvedValue({ lightningAddress: 'user@example.com' }),
+    };
+    render(<LightningCard />);
+    const btn = await screen.findByText('Connect wallet');
+    fireEvent.click(btn);
+    await screen.findByDisplayValue('user@example.com');
+    // cleanup
+    // @ts-ignore
+    delete window.webln;
   });
 });
