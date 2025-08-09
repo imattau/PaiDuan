@@ -38,6 +38,7 @@ export interface VideoCardProps {
   lightningAddress: string;
   pubkey: string;
   zapTotal?: number;
+  showMenu?: boolean;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({
@@ -50,6 +51,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   lightningAddress,
   pubkey,
   zapTotal,
+  showMenu = false,
 }) => {
   const router = useRouter();
   const playerRef = useRef<ReactPlayer>(null);
@@ -183,24 +185,26 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         config={{ file: { attributes: { poster: posterUrl } } }}
       />
 
-      <div className="absolute right-4 top-4">
-        <button onClick={() => setMenuOpen((o) => !o)} className="hover:text-accent-primary">
-          <MoreVertical />
-        </button>
-        {menuOpen && (
-          <div className="absolute right-0 mt-2 w-24 rounded bg-background-primary p-1 shadow">
-            <button
-              className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
-              onClick={() => {
-                setMenuOpen(false);
-                setReportOpen(true);
-              }}
-            >
-              Report
-            </button>
-          </div>
-        )}
-      </div>
+      {showMenu && (
+        <div className="absolute right-4 top-4">
+          <button onClick={() => setMenuOpen((o) => !o)} className="hover:text-accent-primary">
+            <MoreVertical />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-24 rounded bg-background-primary p-1 shadow">
+              <button
+                className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setReportOpen(true);
+                }}
+              >
+                Report
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
         <button

@@ -253,7 +253,7 @@ export default function ProfilePage() {
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
           <div className="relative h-full w-full">
-            <VideoCard {...selected} />
+            <VideoCard {...selected} showMenu />
             <button
               className="absolute right-4 top-4 text-white"
               onClick={() => setSelected(null)}

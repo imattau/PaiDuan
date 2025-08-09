@@ -41,5 +41,5 @@ export default function VideoPage() {
   }, [eventId]);
 
   if (!video) return <div className="flex min-h-screen items-center justify-center bg-black text-white">Loading...</div>;
-  return <VideoCard {...video} />;
+  return <VideoCard {...video} showMenu />;
 }

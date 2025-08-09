@@ -118,7 +118,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
       >
         {items.map((item, i) => (
           <div key={i} className="h-full w-full">
-            <VideoCard {...item} />
+            <VideoCard {...item} showMenu />
           </div>
         ))}
       </animated.div>
