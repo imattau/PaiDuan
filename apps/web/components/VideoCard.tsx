@@ -212,6 +212,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           className="hover:text-accent-primary"
           onClick={() => setMuted((m) => !m)}
           title={muted ? 'Unmute' : 'Mute'}
+          aria-label={muted ? 'Unmute' : 'Mute'}
         >
           {muted ? <VolumeX /> : <Volume2 />}
         </button>
