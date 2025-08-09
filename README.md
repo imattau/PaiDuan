@@ -37,6 +37,15 @@ pnpm --filter @paiduan/web build:pwa
 
 Open the app and choose **Install** (or **Add to Home Screen**) to install it.
 
+## CDN configuration
+
+Static assets in `apps/web/public` are served with long-lived caching headers. When deploying:
+
+- **Vercel** respects `Cache-Control` by default, so no extra setup is required.
+- **Cloudflare** should be set to *Respect Existing Headers* or *Origin Cache Control* so the `Cache-Control: public, max-age=31536000, immutable` header is honored.
+
+Verify locally by running `pnpm --filter @paiduan/web dev` and inspecting network responses in your browser's developer tools to confirm the `Cache-Control` value.
+
 ## Tests
 
 ```bash
