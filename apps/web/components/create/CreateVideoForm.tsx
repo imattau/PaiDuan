@@ -26,9 +26,17 @@ export default function CreateVideoForm() {
   const { state } = useAuth();
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
 
+  const walletAddrs = Array.isArray(profile?.wallets)
+    ? [
+        ...profile.wallets.filter((w: any) => w?.default).map((w: any) => w.lnaddr),
+        ...profile.wallets.filter((w: any) => !w?.default).map((w: any) => w.lnaddr),
+      ]
+    : profile?.lud16
+      ? [profile.lud16]
+      : [];
   const zapOptions = Array.from(
     new Set([
-      ...(profile?.lud16 ? [profile.lud16] : []),
+      ...walletAddrs,
       ...(Array.isArray(profile?.zapSplits)
         ? profile.zapSplits.map((s: any) => s?.lnaddr).filter(Boolean)
         : []),
@@ -39,7 +47,12 @@ export default function CreateVideoForm() {
   const selectedZapOption = zapOptions.includes(lightningAddress) ? lightningAddress : '';
 
   useEffect(() => {
-    if (!lightningAddress && profile?.lud16) setLightningAddress(profile.lud16);
+    if (!lightningAddress) {
+      const def = Array.isArray(profile?.wallets)
+        ? profile.wallets.find((w: any) => w?.default)?.lnaddr
+        : profile?.lud16;
+      if (def) setLightningAddress(def);
+    }
   }, [profile, lightningAddress]);
 
   const topicList = topics
