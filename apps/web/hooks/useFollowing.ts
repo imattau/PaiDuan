@@ -2,7 +2,8 @@
 import { useEffect } from 'react';
 import * as nostrKinds from 'nostr-tools/kinds';
 import type { Filter } from 'nostr-tools/filter';
-import { getPool, getRelays } from '@/lib/nostr';
+import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 import { useFollowingStore, setFollowing } from '@/store/following';
 import { useAuth } from './useAuth';
 
@@ -13,7 +14,6 @@ export function useFollowing(pubkey?: string) {
 
   useEffect(() => {
     if (!actualPubkey) return;
-    const pool = getPool();
     const sub = pool.subscribeMany(
       getRelays(),
       [{ kinds: [nostrKinds.Contacts], authors: [actualPubkey] } as Filter],

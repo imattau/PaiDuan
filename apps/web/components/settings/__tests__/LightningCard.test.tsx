@@ -17,11 +17,12 @@ vi.mock('@/hooks/useProfile', () => ({
   useProfile: () => ({ wallets: [] }),
 }));
 
-const publishMock = vi.fn();
-vi.mock('@/lib/nostr', () => ({
-  getPool: () => ({ publish: publishMock }),
-  getRelays: () => [],
-}));
+var publishMock: any;
+vi.mock('@/lib/relayPool', () => {
+  publishMock = vi.fn();
+  return { default: { publish: (...args: any[]) => publishMock(...args) } };
+});
+vi.mock('@/lib/nostr', () => ({ getRelays: () => [] }));
 
 const fetchPayDataMock = vi.fn();
 const authenticateMock = vi.fn();

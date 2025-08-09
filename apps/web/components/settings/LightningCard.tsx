@@ -4,7 +4,8 @@ import QRCode from 'qrcode';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { getPool, getRelays } from '@/lib/nostr';
+import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 import { authenticate, fetchPayData } from '@/utils/lnurl';
 import { Card } from '../ui/Card';
 
@@ -167,7 +168,6 @@ export function LightningCard() {
         content,
       };
       const signed = await state.signer.signEvent({ ...tmpl });
-      const pool = getPool();
       await pool.publish(getRelays(), signed as any);
     } catch (e: any) {
       setError(e.message || 'Failed to save');

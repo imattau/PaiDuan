@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { VideoCardProps } from '../components/VideoCard';
-import { register } from '@/lib/subRegistry';
+import pool from '@/lib/relayPool';
+import { getRelays } from '@/lib/nostr';
 
 function parseImeta(tags: string[][]) {
   let videoUrl: string | undefined;
@@ -78,7 +79,7 @@ export function useSearch(query: string): SearchResults {
     const nextCreators: CreatorResult[] = [];
 
     debounceRef.current = setTimeout(() => {
-      const sub = register(filters, {
+      const sub = pool.subscribeMany(getRelays(), filters, {
         onevent: (ev: NostrEvent) => {
           if (ev.kind === 21 || ev.kind === 22) {
             const { videoUrl, manifestUrl, posterUrl } = parseImeta(ev.tags);

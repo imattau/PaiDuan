@@ -2,7 +2,8 @@
 import { useQueries } from '@tanstack/react-query';
 import * as nostrKinds from 'nostr-tools/kinds';
 import type { Filter } from 'nostr-tools/filter';
-import { getPool, getRelays } from '@/lib/nostr';
+import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 import { getEventsByPubkey, saveEvent } from '@/lib/db';
 import { queryClient } from '@/lib/queryClient';
 
@@ -36,7 +37,6 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
     }
   }
   return await new Promise<Profile>((resolve) => {
-    const pool = getPool();
     let profile: Profile | null = null;
     const sub = pool.subscribeMany(
       getRelays(),

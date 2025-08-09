@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import type { Event } from 'nostr-tools/pure';
-import { getPool, getRelays } from '@/lib/nostr';
+import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 
 export default function ThreadedComments({ noteId }: { noteId?: string }) {
   const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
     if (!noteId) return;
-    const pool = getPool();
     setEvents([]);
     const sub = pool.subscribeMany(getRelays(), [{ kinds: [1], '#e': [noteId] }], {
       onevent: (ev: Event) =>

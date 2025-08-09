@@ -22,10 +22,10 @@ describe('CreateVideoForm profiles', () => {
   vi.mock('../../hooks/useFollowing', () => ({
     default: () => ({ following }),
   }));
-  vi.mock('../../lib/nostr', () => ({
-    getPool: () => ({ subscribeMany }),
-    getRelays: () => [],
+  vi.mock('../../lib/relayPool', () => ({
+    default: { subscribeMany },
   }));
+  vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
   vi.mock('next/navigation', () => ({
     useRouter: () => ({ back: vi.fn() }),
   }));

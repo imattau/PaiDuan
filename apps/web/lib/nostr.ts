@@ -1,12 +1,16 @@
 'use client';
+import NDK from '@nostr-dev-kit/ndk';
 import { getPublicKey } from 'nostr-tools/pure';
 import { hexToBytes } from 'nostr-tools/utils';
 import relaysConfig from '../relays.json';
-import pool from './relayPool';
 
-export function getPool() {
-  return pool;
-}
+/**
+ * Shared NDK instance initialised with the application's relay list.
+ */
+export const ndk = new NDK({ explicitRelayUrls: getRelays() });
+
+// establish connections eagerly so hooks/components can use it immediately
+ndk.connect();
 
 const LS_KEY = 'pd.auth.v1';
 
@@ -72,3 +76,5 @@ export function getRelays(): string[] {
   }
   return parseRelays(relaysConfig) ?? DEFAULT_RELAYS;
 }
+
+export default ndk;
