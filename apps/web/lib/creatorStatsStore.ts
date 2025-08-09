@@ -33,7 +33,8 @@ export class CreatorStatsStore {
 
   read(): Record<string, AggregatedStats> {
     try {
-      return JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
+      const raw = fs.readFileSync(this.filePath);
+      return JSON.parse(raw.toString('utf8'));
     } catch {
       return {};
     }
