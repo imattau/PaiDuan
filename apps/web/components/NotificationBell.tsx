@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
-import { useNotifications } from '../hooks/useNotifications';
+import { useNotifications, requestNotificationPermission } from '../hooks/useNotifications';
 
 const NotificationBell: React.FC = () => {
   const { unreadCount, setOpen } = useNotifications();
@@ -12,9 +12,14 @@ const NotificationBell: React.FC = () => {
 
   const count = mounted ? unreadCount : 0;
 
+  const handleClick = () => {
+    requestNotificationPermission();
+    setOpen(true);
+  };
+
   return (
     <button
-      onClick={() => setOpen(true)}
+      onClick={handleClick}
       className="relative text-primary hover:text-accent-primary"
       aria-label="Notifications"
     >
