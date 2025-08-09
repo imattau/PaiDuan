@@ -9,6 +9,7 @@ import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigat
 import { cardStyle } from '@/components/ui/Card';
 import Logo from '@/components/branding/Logo';
 import { navItems } from './nav';
+import { useLayout } from '@/context/LayoutContext';
 
 interface MainNavProps {
   me?: {
@@ -34,6 +35,7 @@ export default function MainNav({
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params?.locale as string) || undefined;
+  const layout = useLayout();
 
   return (
     <div className="p-[1.2rem] space-y-4">
@@ -42,10 +44,10 @@ export default function MainNav({
       </Link>
 
       {/* Search */}
-      {showSearch && <SearchBar showActions={false} />}
+      {showSearch && layout !== 'mobile' && <SearchBar showActions={false} />}
 
       {/* Profile mini card */}
-      {showProfile && <MiniProfileCard stats={me?.stats} />}
+      {showProfile && layout === 'desktop' && <MiniProfileCard stats={me?.stats} />}
 
       {/* Nav */}
       <nav className={`${cardStyle} p-2`}>
