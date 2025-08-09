@@ -1,5 +1,18 @@
 import MP4Box from 'mp4box';
 
+function detectCodec(blobType?: string, trackCodec?: string): string | null {
+  const candidates = [trackCodec, blobType];
+  for (const c of candidates) {
+    if (!c) continue;
+    const codec = c.toLowerCase();
+    if (codec.includes('avc1') || codec.includes('h264')) return 'avc1';
+    if (codec.includes('vp8')) return 'vp8';
+    if (codec.includes('vp9') || codec.includes('vp09')) return 'vp9';
+    if (codec.includes('av01') || codec.includes('av1')) return 'av01';
+  }
+  return null;
+}
+
 self.onmessage = async (e: MessageEvent) => {
   const { blob, start, end, width, height, bitrate } = e.data || {};
   try {
@@ -37,6 +50,15 @@ self.onmessage = async (e: MessageEvent) => {
 
     if (!track) {
       throw new Error('No video track found');
+    }
+
+    const codec = detectCodec((blob as Blob).type, track.codec);
+    if (!codec) {
+      throw new Error(`Unsupported video codec: ${track.codec || (blob as Blob).type || 'unknown'}`);
+    }
+    const support = await (self as any).VideoDecoder.isConfigSupported({ codec });
+    if (!support?.supported) {
+      throw new Error(`Codec ${codec} not supported`);
     }
 
     const outChunks: Uint8Array[] = [];
@@ -101,7 +123,7 @@ self.onmessage = async (e: MessageEvent) => {
       },
     });
 
-    decoder.configure({ codec: track.codec });
+    decoder.configure({ codec });
 
     // Ensure the first chunk fed to the decoder is a key frame
     const firstKey = samples.findIndex((s) => s.type === 'key');
