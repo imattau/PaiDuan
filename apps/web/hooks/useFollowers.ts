@@ -2,16 +2,14 @@
 import { useEffect, useState } from 'react';
 import * as nostrKinds from 'nostr-tools/kinds';
 import type { Filter } from 'nostr-tools/filter';
-import { getPool, getRelays } from '@/lib/nostr';
+import { register } from '@/lib/subRegistry';
 
 export function useFollowers(pubkey?: string) {
   const [followers, setFollowers] = useState<string[]>([]);
   useEffect(() => {
     if (!pubkey) return;
-    const pool = getPool();
     const seen = new Set<string>();
-    const sub = pool.subscribeMany(
-      getRelays(),
+    const sub = register(
       [{ kinds: [nostrKinds.Contacts], '#p': [pubkey] } as Filter],
       {
         onevent: (ev) => {
