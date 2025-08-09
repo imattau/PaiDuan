@@ -41,6 +41,7 @@ interface FeedResult {
   tags: string[];
   prepend: (item: VideoCardProps) => void;
   loadMore: () => void;
+  error?: Error;
 }
 
 async function fetchFeedPage({
@@ -63,10 +64,31 @@ async function fetchFeedPage({
   } else if (typeof mode === 'object' && 'author' in mode) {
     filter.authors = [mode.author];
   }
-  return await new Promise<{ items: VideoCardProps[]; tags: string[]; nextCursor?: number }>((resolve) => {
+  return await new Promise<{ items: VideoCardProps[]; tags: string[]; nextCursor?: number; timedOut?: boolean }>((resolve) => {
     const items: { data: VideoCardProps; created: number }[] = [];
     const tagCounts: Record<string, number> = {};
-    const sub = pool.subscribeMany(getRelays(), [filter], {
+    let sub: { close: () => void };
+    let timer: ReturnType<typeof setTimeout>;
+    let settled = false;
+
+    const finalize = (timedOut: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      sub?.close();
+      items.sort((a, b) => b.created - a.created);
+      const nextCursor = items.length ? items[items.length - 1].created - 1 : undefined;
+      resolve({
+        items: items.map((i) => i.data),
+        tags: Object.entries(tagCounts)
+          .sort((a, b) => b[1] - a[1])
+          .map(([t]) => t),
+        nextCursor,
+        timedOut,
+      });
+    };
+
+    sub = pool.subscribeMany(getRelays(), [filter], {
       onevent: async (event: NostrEvent) => {
         const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
         if (!videoUrl && !manifestUrl) return;
@@ -90,18 +112,10 @@ async function fetchFeedPage({
         items.push({ data: item, created: event.created_at || 0 });
         await saveEvent(event);
       },
-      oneose: () => {
-        items.sort((a, b) => b.created - a.created);
-        const nextCursor = items.length ? items[items.length - 1].created - 1 : undefined;
-        resolve({
-          items: items.map((i) => i.data),
-          tags: Object.entries(tagCounts)
-            .sort((a, b) => b[1] - a[1])
-            .map(([t]) => t),
-          nextCursor,
-        });
-      },
+      oneose: () => finalize(false),
     });
+
+    timer = setTimeout(() => finalize(true), 10000);
   });
 }
 
@@ -120,6 +134,7 @@ export function useFeed(
   });
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
   const tags = query.data?.pages[0]?.tags ?? [];
+  const timedOut = query.data?.pages.some((p) => p.timedOut);
   const prepend = (item: VideoCardProps) => {
     queryClient.setQueryData(['feed', mode, authors.join(','), limit], (old: any) => {
       if (!old) return old;
@@ -129,7 +144,13 @@ export function useFeed(
       };
     });
   };
-  return { items, tags, prepend, loadMore: () => query.fetchNextPage() };
+  return {
+    items,
+    tags,
+    prepend,
+    loadMore: () => query.fetchNextPage(),
+    error: timedOut ? new Error('Relay connection timed out') : undefined,
+  };
 }
 
 export function prefetchFeed(mode: FeedMode, authors: string[] = [], limit = 20) {
