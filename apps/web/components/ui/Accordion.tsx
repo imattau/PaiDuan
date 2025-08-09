@@ -26,7 +26,7 @@ export function Accordion({ items, initialOpenIndex = null }: AccordionProps) {
       {items.map((item, index) => (
         <Disclosure key={index}>
           {() => (
-            <>
+            <div>
               <Disclosure.Button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="flex w-full items-center justify-between py-2 text-left"
@@ -44,7 +44,7 @@ export function Accordion({ items, initialOpenIndex = null }: AccordionProps) {
               >
                 {item.content}
               </Disclosure.Panel>
-            </>
+            </div>
           )}
         </Disclosure>
       ))}
