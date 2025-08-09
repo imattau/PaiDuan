@@ -3,8 +3,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import NavBar from './NavBar';
 
-vi.mock('next/router', () => ({
-  useRouter: () => ({ asPath: '/en/feed', query: { locale: 'en' } }),
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ prefetch: () => {} }),
+  usePathname: () => '/en/feed',
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({ locale: 'en' }),
 }));
 
 // Ensure React is available globally for components compiled with the classic JSX runtime

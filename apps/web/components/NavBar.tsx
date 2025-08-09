@@ -1,13 +1,16 @@
 import Link from 'next/link';
 import { Home, Users, Plus, Settings } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { prefetchFeed } from '@/hooks/useFeed';
 
 export default function NavBar() {
   const router = useRouter();
-  const { asPath, query } = router;
-  const locale = (query.locale as string) || 'en';
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = (params?.locale as string) || 'en';
+  const asPath = pathname + (searchParams.toString() ? `?${searchParams}` : '');
   const links = [
     { href: `/${locale}/feed`, icon: <Home />, label: 'Home' },
     { href: `/${locale}/feed?tab=following`, icon: <Users />, label: 'Following' },

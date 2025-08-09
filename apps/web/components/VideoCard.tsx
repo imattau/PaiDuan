@@ -10,7 +10,7 @@ import CommentDrawer from './CommentDrawer';
 import ReportModal from './ReportModal';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Skeleton } from './ui/Skeleton';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
