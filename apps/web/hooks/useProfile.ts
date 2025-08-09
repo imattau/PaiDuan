@@ -15,12 +15,28 @@ export function useProfile(pubkey?: string) {
       {
         onevent: (ev) => {
           try {
-            setMeta(JSON.parse(ev.content));
+            const content = JSON.parse(ev.content);
+            if (!Array.isArray(content.wallets)) {
+              if (typeof content.lud16 === 'string' && content.lud16) {
+                content.wallets = [
+                  { label: 'Default', lnaddr: content.lud16, default: true },
+                ];
+              } else {
+                content.wallets = [];
+              }
+            }
+            setMeta(content);
           } catch {}
         },
       },
     );
     return () => sub.close();
   }, [pubkey]);
-  return meta as { name?: string; picture?: string; about?: string; lud16?: string } | null;
+  return meta as {
+    name?: string;
+    picture?: string;
+    about?: string;
+    lud16?: string;
+    wallets?: { label: string; lnaddr: string; default?: boolean }[];
+  } | null;
 }

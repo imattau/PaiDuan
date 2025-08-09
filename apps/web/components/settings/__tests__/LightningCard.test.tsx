@@ -11,82 +11,59 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 vi.mock('@/hooks/useProfile', () => ({
-  useProfile: () => ({}),
+  useProfile: () => ({ wallets: [] }),
 }));
 
+const publishMock = vi.fn();
 vi.mock('@/lib/nostr', () => ({
-  getPool: () => ({ publish: vi.fn() }),
+  getPool: () => ({ publish: publishMock }),
   getRelays: () => [],
 }));
 
 const fetchPayDataMock = vi.fn();
-const requestInvoiceMock = vi.fn();
-
 vi.mock('@/utils/lnurl', () => ({
   fetchPayData: (...args: any[]) => fetchPayDataMock(...args),
-  requestInvoice: (...args: any[]) => requestInvoiceMock(...args),
 }));
 
 describe('LightningCard', () => {
   beforeEach(() => {
     fetchPayDataMock.mockReset();
-    requestInvoiceMock.mockReset();
+    publishMock.mockReset();
   });
 
   afterEach(() => {
     cleanup();
-    // @ts-ignore
-    delete window.webln;
   });
 
-  it('enables save after successful test zap', async () => {
-    fetchPayDataMock.mockResolvedValue({ callback: 'https://cb' });
-    requestInvoiceMock.mockResolvedValue({ invoice: 'inv', result: {} });
+  it('adds wallet and saves', async () => {
+    fetchPayDataMock.mockResolvedValue({});
     render(<LightningCard />);
-    const input = screen.getByPlaceholderText('name@example.com');
-    fireEvent.change(input, { target: { value: 'user@example.com' } });
-    fireEvent.click(screen.getByText('Send test zap'));
-    await waitFor(() => expect(requestInvoiceMock).toHaveBeenCalled());
-    const saveBtn = screen.getByText('Save') as HTMLButtonElement;
-    expect(saveBtn.disabled).toBe(false);
-    fireEvent.click(saveBtn);
-    await waitFor(() => expect(fetchPayDataMock).toHaveBeenCalledTimes(2));
-  });
-
-  it('shows error for invalid address', async () => {
-    fetchPayDataMock.mockRejectedValue(new Error('bad'));
-    render(<LightningCard />);
-    const input = screen.getByPlaceholderText('name@example.com');
-    fireEvent.change(input, { target: { value: 'badaddress' } });
-    fireEvent.click(screen.getByText('Send test zap'));
-    await screen.findByText('bad');
-    expect(requestInvoiceMock).not.toHaveBeenCalled();
-    expect((screen.getByText('Save') as HTMLButtonElement).disabled).toBe(true);
-  });
-
-  it('handles failed LNURL request', async () => {
-    fetchPayDataMock.mockResolvedValue({ callback: 'https://cb' });
-    requestInvoiceMock.mockRejectedValue(new Error('fail'));
-    render(<LightningCard />);
+    fireEvent.click(screen.getByText('Add wallet'));
+    fireEvent.change(screen.getByPlaceholderText('Label'), {
+      target: { value: 'Main' },
+    });
     fireEvent.change(screen.getByPlaceholderText('name@example.com'), {
       target: { value: 'user@example.com' },
     });
-    fireEvent.click(screen.getByText('Send test zap'));
-    await screen.findByText('fail');
-    expect((screen.getByText('Save') as HTMLButtonElement).disabled).toBe(true);
+    const saveBtn = screen.getByText('Save');
+    fireEvent.click(saveBtn);
+    await waitFor(() => expect(fetchPayDataMock).toHaveBeenCalledWith('user@example.com'));
+    await waitFor(() => expect(publishMock).toHaveBeenCalled());
   });
 
-  it('connects via WebLN and sets address', async () => {
-    // @ts-ignore
-    window.webln = {
-      getInfo: vi.fn().mockResolvedValue({ lightningAddress: 'user@example.com' }),
-    };
+  it('shows error for invalid wallet', async () => {
+    fetchPayDataMock.mockRejectedValue(new Error('bad'));
     render(<LightningCard />);
-    const btn = await screen.findByText('Connect wallet');
-    fireEvent.click(btn);
-    await screen.findByDisplayValue('user@example.com');
-    // cleanup
-    // @ts-ignore
-    delete window.webln;
+    fireEvent.click(screen.getByText('Add wallet'));
+    fireEvent.change(screen.getByPlaceholderText('Label'), {
+      target: { value: 'Main' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('name@example.com'), {
+      target: { value: 'bad' },
+    });
+    fireEvent.click(screen.getByText('Save'));
+    await screen.findByText('bad');
+    expect(publishMock).not.toHaveBeenCalled();
   });
 });
+
