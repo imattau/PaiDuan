@@ -131,9 +131,13 @@ export default function CreateVideoForm() {
         video.remove();
 
         const codec = await sniffCodec(f);
-        const supported = codec ? await canDecode(codec) : false;
+        const supported = codec && codec !== 'hvc1' ? await canDecode(codec) : false;
         if (!supported) {
-          setErr('Unsupported codec; converting with FFmpeg.');
+          setErr(
+            codec === 'hvc1'
+              ? 'HEVC/H.265 detected; converting with FFmpeg.'
+              : 'Unsupported codec; converting with FFmpeg.',
+          );
           try {
             const blob = await trimVideoFfmpeg(f, {
               start: 0,
@@ -488,7 +492,7 @@ export default function CreateVideoForm() {
         <div className="space-y-4">
           <input
             type="file"
-            accept="video/*"
+            accept="video/webm,video/mp4,video/mov,video/ogg"
             onChange={onPick}
             className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
