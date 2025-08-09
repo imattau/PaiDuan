@@ -13,7 +13,7 @@ The development server starts the Next.js web app at <http://localhost:3000>.
 The moderation dashboard runs on <http://localhost:3001>.
 Visit <http://localhost:3000/feed> for the swipeable video feed demo.
 
-Client-side video trimming now relies on the [WebCodecs API](https://developer.mozilla.org/docs/Web/API/WebCodecs_API) with a lightweight polyfill for browsers lacking native support, eliminating the previous `ffmpeg.wasm` dependency. Toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
+Client-side video trimming relies on the [WebCodecs API](https://developer.mozilla.org/docs/Web/API/WebCodecs_API) with a lightweight polyfill for browsers lacking native support. Toast notifications are provided by [`react-hot-toast`](https://react-hot-toast.com/).
 
 ## Relay configuration
 
@@ -77,8 +77,15 @@ The lightning zap flow can be tested with a wallet such as [Alby](https://getalb
 The feed includes a floating upload button that opens a three‑step wizard. Recording video directly in
 the browser is not supported—prepare clips ahead of time:
 
-1. Select a short clip (MP4/WebM, ≤3 min)
-2. Trim the clip and capture a poster frame
+### Requirements
+
+- Accepted formats: mp4 and webm
+- Maximum length: 5 minutes
+- Required aspect ratio: 9:16
+- Trimming performed via WebCodecs
+
+1. Select a 9:16 clip (MP4/WebM, ≤5 min)
+2. Trim the clip in the browser and capture a poster frame
 3. Add a caption, upload the assets, and publish a NIP‑71 event (kind 21 for normal videos, kind 22 for short clips)
 
 Publishing now includes `['zap', <lnaddr>, <pct>]` tags for the creator and any collaborators when Lightning addresses are provided. Video events are encoded using NIP‑71, which relies on `imeta` tags from NIP‑92 to describe the video and poster URLs.
@@ -123,19 +130,17 @@ Use **Export wallet config** to download an encrypted JSON backup of your `walle
 
 ## Transcoding & adaptive bitrate
 
-Uploaded videos are transcoded to multiple WebM resolutions and served adaptively.
-A worker in `packages/transcoder` downloads the source, runs FFmpeg to produce
+Uploaded videos are transcoded to multiple resolutions and served adaptively.
+A worker in `packages/transcoder` downloads the source, generates
 240p, 480p and 720p variants and uploads them to `/variants/<id>/`. A JSON
 manifest is written alongside the files and returned with the custom MIME type
 `application/paiduan+json`:
-
-This server-side process replaces the earlier client-side FFmpeg setup, so the web app no longer ships `ffmpeg.wasm` assets.
 
 ```json
 { "240": "https://.../240.webm", "480": "https://.../480.webm", "720": "https://.../720.webm" }
 ```
 
-Run the worker locally (requires Docker/FFmpeg) with:
+Run the worker locally (requires Docker) with:
 
 ```bash
 pnpm --filter transcoder start <srcUrl>
