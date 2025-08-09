@@ -29,9 +29,13 @@ export async function saveEvent(event: any): Promise<void> {
   if (!db) return;
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_EVENTS, 'readwrite');
-    tx.objectStore(STORE_EVENTS).put({ id: event.id, pubkey: event.pubkey, event });
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
+    const store = tx.objectStore(STORE_EVENTS);
+    const req = store.add({ id: event.id, pubkey: event.pubkey, event });
+    req.onsuccess = () => resolve();
+    req.onerror = () => {
+      if ((req.error as any)?.name === 'ConstraintError') resolve();
+      else reject(req.error);
+    };
   });
 }
 

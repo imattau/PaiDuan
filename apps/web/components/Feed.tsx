@@ -8,9 +8,10 @@ import Link from 'next/link';
 interface FeedProps {
   items: VideoCardProps[];
   loading?: boolean;
+  loadMore?: () => void;
 }
 
-export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
+export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const [index, setIndex] = useState(0);
   const [{ y }, api] = useSpring(() => ({ y: 0 }));
 
@@ -52,6 +53,12 @@ export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
   useEffect(() => {
     api.start({ y: -index * 100 });
   }, [index, api]);
+
+  useEffect(() => {
+    if (index >= items.length - 2) {
+      loadMore?.();
+    }
+  }, [index, items.length, loadMore]);
 
   if (loading) {
     return (
