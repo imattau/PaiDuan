@@ -1,6 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import NextImage from 'next/image';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
@@ -14,10 +17,28 @@ import { Button } from '@paiduan/ui';
 export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   const { state } = useAuth();
   const meta = useProfile(state.status === 'ready' ? state.pubkey : undefined);
-  const [name, setName] = useState('');
-  const [about, setAbout] = useState('');
-  const [picture, setPicture] = useState<string>('');
-  const [lud16, setLud16] = useState('');
+  const schema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    about: z.string().optional(),
+    picture: z.string().optional(),
+    lud16: z.string().optional(),
+  });
+  type FormValues = z.infer<typeof schema>;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: { name: '', about: '', picture: '', lud16: '' },
+  });
+  const name = watch('name');
+  const about = watch('about');
+  const picture = watch('picture');
+  const lud16 = watch('lud16');
   const [rawImage, setRawImage] = useState<string>('');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -26,12 +47,11 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
 
   useEffect(() => {
     if (!meta) return;
-    if (!name) setName(meta.name || '');
-    if (!about) setAbout(meta.about || '');
-    if (!picture) setPicture(meta.picture || '');
-    if (!lud16) setLud16(meta.lud16 || '');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meta]);
+    setValue('name', meta.name || '');
+    setValue('about', meta.about || '');
+    setValue('picture', meta.picture || '');
+    setValue('lud16', meta.lud16 || '');
+  }, [meta, setValue]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -65,9 +85,9 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     canvas.height = size;
     ctx.drawImage(image, croppedArea.x, croppedArea.y, size, size, 0, 0, size, size);
     const dataUrl = canvas.toDataURL('image/png');
-    setPicture(dataUrl);
+    setValue('picture', dataUrl);
     setRawImage('');
-  }, [rawImage, croppedArea]);
+  }, [rawImage, croppedArea, setValue]);
 
   async function setMetadata(data: {
     name?: string;
@@ -87,37 +107,38 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     await pool.publish(getRelays(), signed as any);
   }
 
-  async function saveProfile() {
+  const onSubmit = async (data: FormValues) => {
     try {
       setLoading(true);
-      await setMetadata({ name, about, picture, lud16 });
+      await setMetadata(data);
       setLoading(false);
       onComplete();
     } catch (e: any) {
       alert(e.message || 'Failed to save');
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background-primary flex flex-col items-center justify-center p-4">
       <h1 className="text-2xl mb-4">Set up your profile</h1>
-      <div className="w-full max-w-md space-y-3 flex flex-col items-center text-center">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-md space-y-3 flex flex-col items-center text-center"
+      >
         <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          {...register('name')}
           placeholder="Name"
           className="w-full rounded border-border-primary border p-2 bg-card text-primary"
         />
+        {errors.name && <span className="text-sm text-red-500">{errors.name.message}</span>}
         <textarea
-          value={about}
-          onChange={(e) => setAbout(e.target.value)}
+          {...register('about')}
           placeholder="Bio"
           className="w-full rounded border-border-primary border p-2 bg-card text-primary"
         />
         <input
-          value={lud16}
-          onChange={(e) => setLud16(e.target.value)}
+          {...register('lud16')}
           placeholder="Lightning Address"
           className="w-full rounded border-border-primary border p-2 bg-card text-primary"
         />
@@ -167,13 +188,13 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
           </div>
         )}
         <Button
-          onClick={saveProfile}
-          disabled={loading}
+          type="submit"
+          disabled={loading || !isValid}
           className="btn-primary disabled:opacity-50"
         >
           {loading ? 'Saving…' : 'Save'}
         </Button>
-      </div>
+      </form>
     </div>
   );
 }
