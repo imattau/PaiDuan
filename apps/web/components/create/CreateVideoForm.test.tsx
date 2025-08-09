@@ -48,6 +48,18 @@ describe('CreateVideoForm', () => {
     (HTMLMediaElement.prototype as any).load = vi.fn();
     (HTMLMediaElement.prototype as any).play = vi.fn(() => Promise.resolve());
     (globalThis as any).fetch = undefined;
+
+    (document.createElement as any).mockRestore?.();
+    const origCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tag: any, opts?: any) => {
+      const el = origCreateElement(tag, opts) as any;
+      if (tag === 'video') {
+        Object.defineProperty(el, 'videoWidth', { configurable: true, value: 640 });
+        Object.defineProperty(el, 'videoHeight', { configurable: true, value: 480 });
+        setTimeout(() => el.onloadedmetadata?.(new Event('loadedmetadata')));
+      }
+      return el;
+    });
   });
 
   it('auto converts selected file and keeps publish disabled until form complete', async () => {
@@ -72,8 +84,13 @@ describe('CreateVideoForm', () => {
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
     await new Promise((r) => setTimeout(r));
+    await new Promise((r) => setTimeout(r));
 
-    expect(mockTrim).toHaveBeenCalledWith(file, { start: 0 });
+    expect(mockTrim).toHaveBeenCalledWith(file, {
+      start: 0,
+      width: 640,
+      height: 480,
+    });
     expect(container.querySelector('.bg-blue-500')).not.toBeNull();
     expect(publishButton.disabled).toBe(true);
 
@@ -135,6 +152,7 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await new Promise((r) => setTimeout(r));
     await new Promise((r) => setTimeout(r));
 
     const setValue = (el: HTMLInputElement, value: string) => {
@@ -200,6 +218,7 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await new Promise((r) => setTimeout(r));
     await new Promise((r) => setTimeout(r));
 
     const setValue = (el: HTMLInputElement, value: string) => {
@@ -272,6 +291,7 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await new Promise((r) => setTimeout(r));
     await new Promise((r) => setTimeout(r));
 
     const setValue = (el: HTMLInputElement, value: string) => {
