@@ -19,6 +19,9 @@ export default withPWAConfig({
   reactStrictMode: true,
   typescript: { ignoreBuildErrors: true },
   transpilePackages: ['@paiduan/ui'],
+  images: {
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
+  },
   async redirects() {
     return [
       {
