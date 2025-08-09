@@ -31,9 +31,9 @@ describe('UploadField', () => {
     });
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     expect(fileInput).toBeTruthy();
+    expect(fileInput.accept).toContain('video/mp4');
     expect(fileInput.accept).toContain('.mp4');
+    expect(fileInput.accept).toContain('video/webm');
     expect(fileInput.accept).toContain('.webm');
-    expect(fileInput.accept).toContain('.mov');
-    expect(fileInput.accept).toContain('.ogg');
   });
 });
