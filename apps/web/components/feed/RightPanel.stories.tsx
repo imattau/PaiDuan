@@ -1,19 +1,25 @@
 import React from 'react';
-import ReportModal from './ReportModal';
-import { OverlayHost } from './ui/Overlay';
+import RightPanel from './RightPanel';
 import { LayoutContext, LayoutType } from '@/context/LayoutContext';
 
-const meta = { title: 'Overlays/ReportModal' };
+const meta = { title: 'Feed/RightPanel' };
 export default meta;
+
+const author = {
+  avatar: '/offline.jpg',
+  name: 'Alice',
+  username: 'alice',
+  pubkey: 'pubkey',
+  followers: 123,
+};
 
 const Template = (layout: LayoutType) => {
   const Story = () => (
     <LayoutContext.Provider value={layout}>
-      <OverlayHost />
-      <button onClick={() => ReportModal({ targetId: '123', targetKind: 'video' })}>Open</button>
+      <RightPanel author={author} onFilterByAuthor={() => {}} />
     </LayoutContext.Provider>
   );
-  Story.displayName = 'ReportModalStory';
+  Story.displayName = 'RightPanelStory';
   return Story;
 };
 

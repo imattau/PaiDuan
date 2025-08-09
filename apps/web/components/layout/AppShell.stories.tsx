@@ -1,19 +1,17 @@
 import React from 'react';
-import ReportModal from './ReportModal';
-import { OverlayHost } from './ui/Overlay';
+import AppShell from './AppShell';
 import { LayoutContext, LayoutType } from '@/context/LayoutContext';
 
-const meta = { title: 'Overlays/ReportModal' };
+const meta = { title: 'Layout/AppShell' };
 export default meta;
 
 const Template = (layout: LayoutType) => {
   const Story = () => (
     <LayoutContext.Provider value={layout}>
-      <OverlayHost />
-      <button onClick={() => ReportModal({ targetId: '123', targetKind: 'video' })}>Open</button>
+      <AppShell left={<div>Left</div>} center={<div>Center</div>} right={<div>Right</div>} />
     </LayoutContext.Provider>
   );
-  Story.displayName = 'ReportModalStory';
+  Story.displayName = 'AppShellStory';
   return Story;
 };
 
