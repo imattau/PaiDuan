@@ -6,7 +6,6 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     <AppShell
       left={<MainNav showSearch={false} showProfile={false} />}
       center={<div className="space-y-8">{children}</div>}
-      right={<></>}
     />
   );
 }

@@ -34,7 +34,6 @@ export default function Profile() {
             </Card>
           </div>
         }
-        right={<></>}
       />
     );
   }
@@ -66,7 +65,6 @@ export default function Profile() {
           </Card>
         </div>
       }
-      right={<></>}
     />
   );
 }

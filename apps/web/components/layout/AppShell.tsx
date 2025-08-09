@@ -9,11 +9,18 @@ export default function AppShell({
 }: {
   left: React.ReactNode;
   center: React.ReactNode;
-  right: React.ReactNode;
+  right?: React.ReactNode;
 }) {
+  const hasRight = !!right;
   return (
     <div className="min-h-screen bg-background-primary text-primary">
-      <div className="mx-auto w-full max-w-[1400px] bg-surface grid grid-cols-1 lg:grid-cols-[300px_1fr_400px] gap-0">
+      <div
+        className={`mx-auto w-full max-w-[1400px] bg-surface grid grid-cols-1 ${
+          hasRight
+            ? 'lg:grid-cols-[300px_1fr_400px]'
+            : 'lg:grid-cols-[300px_1fr]'
+        } gap-0`}
+      >
         {/* Left column: menu/search/profile summary (sticky on desktop) */}
         <aside className="hidden lg:block border-r divider sticky top-0 h-screen overflow-y-auto">
           <div className="p-4">{left}</div>
@@ -25,9 +32,11 @@ export default function AppShell({
         </main>
 
         {/* Right column: author info & comments (sticky on desktop) */}
-        <aside className="hidden lg:block border-l divider sticky top-0 h-screen overflow-y-auto">
-          <div className="p-4">{right}</div>
-        </aside>
+        {hasRight && (
+          <aside className="hidden lg:block border-l divider sticky top-0 h-screen overflow-y-auto">
+            <div className="p-4">{right}</div>
+          </aside>
+        )}
       </div>
       <BottomNav />
     </div>

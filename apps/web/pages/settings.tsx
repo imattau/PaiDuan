@@ -88,7 +88,6 @@ export default function Settings() {
           />
         </div>
       }
-      right={<></>}
     />
   );
 }
