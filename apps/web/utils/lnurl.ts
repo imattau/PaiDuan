@@ -31,8 +31,5 @@ export async function requestInvoice(
   }
   const invoiceData = await res.json();
   const invoice: string = invoiceData.pr;
-  if (typeof window !== 'undefined') {
-    window.open(`lightning:${invoice}`);
-  }
   return { invoice, result: invoiceData };
 }

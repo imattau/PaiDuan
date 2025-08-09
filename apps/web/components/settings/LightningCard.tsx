@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { getPool, getRelays } from '@/lib/nostr';
 import { fetchPayData, requestInvoice } from '@/utils/lnurl';
+import useWebLN from '@/hooks/useWebLN';
 import { Card } from '../ui/Card';
 
 export function LightningCard() {
@@ -14,6 +15,7 @@ export function LightningCard() {
   const [testing, setTesting] = useState(false);
   const [tested, setTested] = useState(false);
   const [error, setError] = useState('');
+  const { webln, getInfo } = useWebLN();
 
   useEffect(() => {
     if (meta?.lud16) setAddr(meta.lud16);
@@ -31,6 +33,20 @@ export function LightningCard() {
       setTested(false);
     } finally {
       setTesting(false);
+    }
+  }
+
+  async function connect() {
+    try {
+      const info = await getInfo();
+      const lightningAddress =
+        info?.lightningAddress || info?.node?.alias || info?.node?.lightning_address;
+      if (lightningAddress) {
+        setAddr(lightningAddress);
+        setTested(false);
+      }
+    } catch (e: any) {
+      setError(e.message || 'Failed to connect wallet');
     }
   }
 
@@ -71,6 +87,11 @@ export function LightningCard() {
           placeholder="name@example.com"
           className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
         />
+        {webln && (
+          <button type="button" onClick={connect} className="btn btn-secondary">
+            Connect wallet
+          </button>
+        )}
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button
           type="button"

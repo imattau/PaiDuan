@@ -35,8 +35,10 @@ describe('useLightning', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
     // @ts-ignore
     global.fetch = fetchMock;
+    const sendPaymentMock = vi.fn();
     // @ts-ignore
     global.window = {
+      webln: { sendPayment: sendPaymentMock },
       open: vi.fn(),
     };
 
@@ -50,6 +52,6 @@ describe('useLightning', () => {
 
     expect(invoices.length).toBe(3);
     expect(fetchMock).toHaveBeenCalledTimes(6);
-    expect((global as any).window.open).toHaveBeenCalledTimes(3);
+    expect(sendPaymentMock).toHaveBeenCalledTimes(3);
   });
 });
