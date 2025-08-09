@@ -56,8 +56,16 @@ export default function Dashboard({ allowed }: Props) {
     const event = { kind: 9001, created_at: ts, content: JSON.stringify(hide) };
     const signed = await nostr.signEvent(event);
     const pool: any = new SimplePool();
-    await pool.publish(getRelays(), signed);
-    await approve(id);
+    const relays = getRelays();
+    try {
+      await pool.publish(relays, signed);
+      await approve(id);
+    } catch (err) {
+      console.error('Failed to publish removal', err);
+      alert('Failed to publish removal');
+    } finally {
+      pool.close(relays);
+    }
   };
 
   return (
