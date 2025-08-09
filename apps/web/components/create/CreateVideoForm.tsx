@@ -115,11 +115,26 @@ export default function CreateVideoForm() {
     if (f) {
       setErr(null);
       try {
-        const blob = await trimVideoWebCodecs(f, 0, undefined, (p) =>
-          setProgress(Math.round(p * 100)),
-        );
-        setOutBlob(blob);
-        updatePreview(URL.createObjectURL(blob));
+        const worker = trimVideoWebCodecs(f, { start: 0 });
+        if (!worker) {
+          setErr('Video trimming not supported in this browser');
+          return;
+        }
+        worker.onmessage = (ev: MessageEvent) => {
+          const msg = ev.data as any;
+          if (msg?.type === 'progress') {
+            setProgress(Math.round((msg.progress || 0) * 100));
+          } else if (msg?.type === 'error') {
+            setErr(msg.message || 'Conversion failed.');
+            setProgress(0);
+            worker.terminate();
+          } else if (msg?.type === 'done') {
+            const blob: Blob = msg.blob;
+            setOutBlob(blob);
+            updatePreview(URL.createObjectURL(blob));
+            worker.terminate();
+          }
+        };
       } catch (e) {
         console.error(e);
         setErr('Conversion failed.');
