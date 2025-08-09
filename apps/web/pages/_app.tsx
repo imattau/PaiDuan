@@ -6,7 +6,7 @@ import * as Toast from '@radix-ui/react-toast';
 import { NotificationsProvider } from '../hooks/useNotifications';
 import NotificationDrawer from '../components/NotificationDrawer';
 import NavBar from '../components/NavBar';
-import { ThemeProvider } from '@/context/themeContext';
+import { ThemeProvider } from 'next-themes';
 import InstallBanner from '../components/InstallBanner';
 import useOffline from '../utils/useOffline';
 import { useEffect } from 'react';
@@ -56,7 +56,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           }
         }}
       >
-        <ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <GestureProvider>
             <NotificationsProvider>
               <QueryClientProvider client={queryClient}>
