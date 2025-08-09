@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import ReactPlayer from 'react-player';
+import type videojs from 'video.js';
 import useAlwaysSD from './useAlwaysSD';
 
 export default function useAdaptiveSource(
   manifestUrl: string | undefined,
-  playerRef: React.RefObject<ReactPlayer>,
+  playerRef: React.RefObject<videojs.Player | null>,
 ) {
   const { alwaysSD } = useAlwaysSD();
   const [src, setSrc] = useState<string>();
@@ -24,9 +24,11 @@ export default function useAdaptiveSource(
         let lastTotal = 0;
         let lastDropped = 0;
         const interval = setInterval(() => {
-          const video = playerRef.current?.getInternalPlayer() as HTMLVideoElement | undefined;
-          if (!video || !video.getVideoPlaybackQuality) return;
-          const q = video.getVideoPlaybackQuality();
+          const videoEl = playerRef.current?.el()?.getElementsByTagName('video')[0] as
+            | HTMLVideoElement
+            | undefined;
+          if (!videoEl || !videoEl.getVideoPlaybackQuality) return;
+          const q = videoEl.getVideoPlaybackQuality();
           const total = q.totalVideoFrames;
           const dropped = q.droppedVideoFrames;
           const deltaTotal = total - lastTotal;
@@ -35,24 +37,24 @@ export default function useAdaptiveSource(
           lastDropped = dropped;
           const rate = deltaTotal > 0 ? deltaDropped / deltaTotal : 0;
           if (rate > 0.05 && current > 0) {
-            const t = video.currentTime;
+            const t = videoEl.currentTime;
             current -= 1;
             setSrc(manifest[order[current]]);
             stable = 0;
             setTimeout(() => {
-              const v = playerRef.current?.getInternalPlayer() as HTMLVideoElement | undefined;
-              if (v) v.currentTime = t;
+              const player = playerRef.current;
+              if (player) player.currentTime(t);
             }, 500);
           } else if (rate <= 0.05) {
             stable += 5;
             if (stable >= 15 && current < order.length - 1) {
-              const t = video.currentTime;
+              const t = videoEl.currentTime;
               current += 1;
               setSrc(manifest[order[current]]);
               stable = 0;
               setTimeout(() => {
-                const v = playerRef.current?.getInternalPlayer() as HTMLVideoElement | undefined;
-                if (v) v.currentTime = t;
+                const player = playerRef.current;
+                if (player) player.currentTime(t);
               }, 500);
             }
           } else {

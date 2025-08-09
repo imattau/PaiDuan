@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import ReactPlayer from 'react-player';
+import { VideoPlayer as VideoJsPlayer } from '@videojs-player/react';
+import type videojs from 'video.js';
+import 'video.js/dist/video-js.css';
 import dynamic from 'next/dynamic';
 import { MessageCircle, Repeat2, Volume2, VolumeX } from 'lucide-react';
 import ZapButton from './ZapButton';
@@ -54,9 +56,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   showMenu = false,
 }) => {
   const router = useRouter();
-  const playerRef = useRef<ReactPlayer>(null);
+  const playerRef = useRef<videojs.Player | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
@@ -131,9 +132,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         const delta = (mx / 60) * 3;
         setSeekPreview(delta);
         if (!down) {
-          const video = playerRef.current?.getInternalPlayer() as HTMLVideoElement;
-          if (video) {
-            video.currentTime = Math.max(0, video.currentTime + delta);
+          const player = playerRef.current;
+          if (player) {
+            const newTime = Math.max(0, player.currentTime() + delta);
+            player.currentTime(newTime);
           }
           setSeekPreview(0);
           api.start({ opacity: 0 });
@@ -149,30 +151,26 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     const rect = containerRef.current?.getBoundingClientRect();
     const isBottom = rect ? e.clientY > rect.top + rect.height * 0.75 : false;
     holdTimer.current = window.setTimeout(() => {
+      const player = playerRef.current;
       if (isBottom) {
-        const video = playerRef.current?.getInternalPlayer() as HTMLVideoElement;
-        if (video) {
-          video.playbackRate = 2;
-        }
+        player?.playbackRate(2);
         setSpeedMode(true);
       } else {
-        setPlaying(false);
+        player?.pause();
       }
     }, 250);
   };
 
   const handlePointerUp = () => {
     clearTimeout(holdTimer.current);
+    const player = playerRef.current;
     if (speedMode) {
-      const video = playerRef.current?.getInternalPlayer() as HTMLVideoElement;
-      if (video) {
-        video.playbackRate = 1;
-      }
+      player?.playbackRate(1);
       setSpeedMode(false);
       api.start({ opacity: 0 });
       setSeekPreview(0);
     }
-    setPlaying(true);
+    player?.play();
   };
 
   return (
@@ -191,17 +189,18 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       onPointerLeave={handlePointerUp}
       {...bind()}
     >
-      <ReactPlayer
-        ref={playerRef}
-        url={manifestUrl ? adaptiveUrl || videoUrl : videoUrl}
-        playing={playing}
-        loop
-        muted={muted}
+      <VideoJsPlayer
+        className="video-js pointer-events-none absolute inset-0 h-full w-full object-cover"
+        sources={[{ src: manifestUrl ? adaptiveUrl || videoUrl : videoUrl }]}
+        poster={posterUrl}
+        controls={false}
         playsinline
-        width="100%"
-        height="100%"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        config={{ file: { attributes: { poster: posterUrl } } }}
+        onReady={(player) => {
+          playerRef.current = player;
+          player.loop(true);
+          player.muted(true);
+          player.play();
+        }}
         onError={() => setVideoError(true)}
       />
 
@@ -238,7 +237,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
         <button
           className="hover:text-accent-primary"
-          onClick={() => setMuted((m) => !m)}
+          onClick={() => {
+            const player = playerRef.current;
+            if (!player) return;
+            const next = !player.muted();
+            player.muted(next);
+            setMuted(next);
+          }}
           title={muted ? 'Unmute' : 'Mute'}
           aria-label={muted ? 'Unmute' : 'Mute'}
         >
