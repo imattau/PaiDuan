@@ -110,6 +110,7 @@ describe('CreateVideoForm', () => {
       .find((l) => l.textContent?.includes('Lightning address'))!
       .querySelector('input') as HTMLInputElement;
     const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    const licenseSelect = container.querySelector('[data-testid="license-select"]') as HTMLSelectElement;
     const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
 
     await act(async () => {
@@ -128,6 +129,8 @@ describe('CreateVideoForm', () => {
     await act(async () => {
       setValue(topicsInput, 'topic');
       setValue(lightningInput, 'addr');
+      licenseSelect.value = 'CC BY';
+      licenseSelect.dispatchEvent(new Event('change', { bubbles: true }));
     });
     await Promise.resolve();
     const publishBtn = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
@@ -137,6 +140,73 @@ describe('CreateVideoForm', () => {
     });
 
     expect(mockFetch).toHaveBeenCalledWith('https://nostr.media/api/upload', expect.any(Object));
+    const tags = mockSignEvent.mock.calls[0][0].tags;
+    expect(tags).toContainEqual(['copyright', 'CC BY']);
+  });
+
+  it('uses custom license when Other is selected', async () => {
+    (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    mockTrim.mockImplementation((_file, _s, _e, onProgress) => {
+      onProgress(1);
+      return Promise.resolve(new Blob());
+    });
+
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
+    );
+    (globalThis as any).fetch = mockFetch;
+    (globalThis as any).alert = vi.fn();
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<CreateVideoForm />);
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const topicsInput = container.querySelector(
+      'input[placeholder="Topic tags (comma separated)"]',
+    ) as HTMLInputElement;
+    const lightningInput = Array.from(container.querySelectorAll('label'))
+      .find((l) => l.textContent?.includes('Lightning address'))!
+      .querySelector('input') as HTMLInputElement;
+    const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    const licenseSelect = container.querySelector('[data-testid="license-select"]') as HTMLSelectElement;
+
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
+
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    const setValue = (el: HTMLInputElement, value: string) => {
+      const proto = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        'value',
+      );
+      proto?.set?.call(el, value);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    const customInput = () =>
+      container.querySelector('[data-testid="custom-license-input"]') as HTMLInputElement;
+    await act(async () => {
+      setValue(topicsInput, 'topic');
+      setValue(lightningInput, 'addr');
+      licenseSelect.value = 'other';
+      licenseSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await act(async () => {
+      setValue(customInput(), 'My License');
+    });
+    await Promise.resolve();
+
+    await act(async () => {
+      publishButton.click();
+    });
+
+    const tags = mockSignEvent.mock.calls[0][0].tags;
+    expect(tags).toContainEqual(['copyright', 'My License']);
   });
 });
 
