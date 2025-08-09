@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import useInstallPrompt from '../hooks/useInstallPrompt';
-import { trackEvent } from '../utils/analytics';
+import analytics from '../utils/analytics';
 import useT from '../hooks/useT';
 import useFocusTrap from '../hooks/useFocusTrap';
 
@@ -16,7 +16,7 @@ export default function InstallBanner() {
     const dismissed = localStorage.getItem('installDismissed');
     if (!dismissed && canInstall) {
       setVisible(true);
-      trackEvent('install_prompt_shown');
+      analytics.trackEvent('install_prompt_shown');
     }
   }, [canInstall]);
 
@@ -29,7 +29,7 @@ export default function InstallBanner() {
 
   const handleInstall = () => {
     showPrompt();
-    trackEvent('install_prompt_accepted');
+    analytics.trackEvent('install_prompt_accepted');
     handleDismiss();
   };
 

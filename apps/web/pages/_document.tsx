@@ -29,23 +29,6 @@ export default function Document({ dir }: Props) {
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        {process.env.NEXT_PUBLIC_ANALYTICS === 'enabled' && (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-if (localStorage.getItem('analytics-consent') === '1') {
-  window.plausible = window.plausible || function(){(window.plausible.q = window.plausible.q || []).push(arguments)};
-  var s=document.createElement('script');
-  s.src='https://stats.paiduan.app/js/script.js';
-  s.setAttribute('data-domain','paiduan.app');
-  s.setAttribute('data-api','/api/event');
-  s.defer=true;
-  document.head.appendChild(s);
-}
-`,
-            }}
-          />
-        )}
       </Head>
       <body dir={dir} className="font-sans bg-background-primary text-primary">
         <Main />

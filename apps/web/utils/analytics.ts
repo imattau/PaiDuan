@@ -1,18 +1,22 @@
-export const consentGiven = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem('analytics-consent') === '1';
+import Plausible from 'plausible-tracker';
+
+interface Tracker {
+  trackEvent: (eventName: string, options?: any, data?: any) => void;
+  trackPageview: (data?: any, options?: any) => void;
+  enableAutoPageviews: () => () => void;
+}
+
+let tracker: Tracker = {
+  trackEvent: () => {},
+  trackPageview: () => {},
+  enableAutoPageviews: () => () => {},
 };
 
-export const analyticsEnabled = (): boolean => {
-  return process.env.NEXT_PUBLIC_ANALYTICS === 'enabled' && consentGiven();
-};
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ANALYTICS === 'enabled') {
+  tracker = Plausible({
+    domain: 'paiduan.app',
+    apiHost: 'https://stats.paiduan.app',
+  });
+}
 
-export const trackEvent = (name: string, props?: Record<string, any>): void => {
-  if (!analyticsEnabled()) return;
-  (window as any).plausible?.(name, props ? { props } : undefined);
-};
-
-export const trackPageview = (url: string): void => {
-  if (!analyticsEnabled()) return;
-  (window as any).plausible?.('pageview', { u: url });
-};
+export default tracker;
