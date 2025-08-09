@@ -115,7 +115,23 @@ export default function CreateVideoForm() {
     if (f) {
       setErr(null);
       try {
-        const worker = trimVideoWebCodecs(f, { start: 0 });
+        // Load video metadata to obtain dimensions before trimming
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        const url = URL.createObjectURL(f);
+        await new Promise<void>((resolve, reject) => {
+          video.onloadedmetadata = () => resolve();
+          video.onerror = () => reject(new Error('Failed to load video metadata'));
+          video.src = url;
+        });
+
+        const worker = trimVideoWebCodecs(f, {
+          start: 0,
+          width: video.videoWidth,
+          height: video.videoHeight,
+        });
+        URL.revokeObjectURL(url);
+        video.remove();
         if (!worker) {
           setErr('Video trimming not supported in this browser');
           return;

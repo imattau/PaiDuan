@@ -22,25 +22,50 @@ self.onmessage = async (e: MessageEvent) => {
       },
     });
 
-    encoder.configure({
-      codec: 'vp8',
-      width: width ?? 0,
-      height: height ?? 0,
-      bitrate: bitrate ?? 1_000_000,
-      framerate: 30,
-    });
+    let encoderConfigured = false;
+    if (width && height) {
+      encoder.configure({
+        codec: 'vp8',
+        width,
+        height,
+        bitrate: bitrate ?? 1_000_000,
+        framerate: 30,
+      });
+      encoderConfigured = true;
+    }
 
     const total = (end ?? 0) - start;
 
     const decoder = new (self as any).VideoDecoder({
       output: (frame: VideoFrame) => {
-        const ts = frame.timestamp / 1e6; // microseconds -> seconds
-        if (ts >= start && (end === undefined || ts <= end)) {
-          encoder.encode(frame);
-          const progress = total > 0 ? (ts - start) / total : 1;
-          self.postMessage({ type: 'progress', progress: Math.max(0, Math.min(1, progress)) });
+        try {
+          if (!encoderConfigured) {
+            const w = frame.codedWidth;
+            const h = frame.codedHeight;
+            if (!w || !h) {
+              throw new Error('Unable to determine video dimensions');
+            }
+            encoder.configure({
+              codec: 'vp8',
+              width: w,
+              height: h,
+              bitrate: bitrate ?? 1_000_000,
+              framerate: 30,
+            });
+            encoderConfigured = true;
+          }
+
+          const ts = frame.timestamp / 1e6; // microseconds -> seconds
+          if (ts >= start && (end === undefined || ts <= end)) {
+            encoder.encode(frame);
+            const progress = total > 0 ? (ts - start) / total : 1;
+            self.postMessage({ type: 'progress', progress: Math.max(0, Math.min(1, progress)) });
+          }
+        } catch (err: any) {
+          self.postMessage({ type: 'error', message: err?.message ?? String(err) });
+        } finally {
+          frame.close();
         }
-        frame.close();
       },
       error: (err: any) => {
         self.postMessage({ type: 'error', message: String(err) });
@@ -63,6 +88,9 @@ self.onmessage = async (e: MessageEvent) => {
     }
 
     await decoder.flush();
+    if (!encoderConfigured) {
+      throw new Error('Failed to configure encoder due to missing dimensions');
+    }
     await encoder.flush();
 
     const result = new Blob(outChunks, { type: 'video/webm' });
