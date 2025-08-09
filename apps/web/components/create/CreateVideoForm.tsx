@@ -224,23 +224,25 @@ export default function CreateVideoForm() {
             onChange={onPick}
             className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
           />
-          {preview ? (
-            <div className="relative flex justify-center max-h-screen">
-              <video
-                controls
-                src={preview}
-                className="rounded-xl w-full max-h-screen object-contain bg-black"
-              />
-              {progress > 0 && progress < 100 && (
-                <div
-                  className="absolute left-0 bottom-0 h-1 bg-blue-500"
-                  style={{ width: `${progress}%` }}
+            {preview ? (
+              <div className="relative aspect-[9/16] w-full max-w-sm max-h-screen overflow-hidden rounded-xl bg-black">
+                <video
+                  controls
+                  src={preview}
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
-              )}
-            </div>
-          ) : (
-            <PlaceholderVideo className="rounded-xl w-full max-h-screen object-contain bg-black" />
-          )}
+                {progress > 0 && progress < 100 && (
+                  <div
+                    className="absolute left-0 bottom-0 h-1 bg-blue-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="relative aspect-[9/16] w-full max-w-sm max-h-screen overflow-hidden rounded-xl bg-black">
+                <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
+              </div>
+            )}
           {err && <p className="text-sm text-red-500">{err}</p>}
         </div>
         <div className="space-y-4">{form}</div>
