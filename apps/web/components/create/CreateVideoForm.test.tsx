@@ -30,6 +30,9 @@ describe('CreateVideoForm', () => {
     mockTrim.mockReset();
     mockSignEvent.mockReset();
     mockPublish.mockReset();
+    (URL as any).revokeObjectURL = vi.fn();
+    (HTMLMediaElement.prototype as any).load = vi.fn();
+    (HTMLMediaElement.prototype as any).play = vi.fn(() => Promise.resolve());
     (globalThis as any).fetch = undefined;
   });
 
