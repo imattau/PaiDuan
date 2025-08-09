@@ -33,3 +33,19 @@ export async function requestInvoice(
   const invoice: string = invoiceData.pr;
   return { invoice, result: invoiceData };
 }
+
+export async function authenticate(address: string): Promise<void> {
+  const [, domain] = address.split('@');
+  if (!domain) throw new Error('Invalid lightning address');
+  const res = await fetch(`https://${domain}/.well-known/lnurl-login`);
+  if (!res.ok) throw new Error('Failed to fetch LNURL-auth');
+  const lnurl = await res.text();
+  if (typeof window !== 'undefined') {
+    const w: any = window as any;
+    if (w.webln && typeof w.webln.lnurlAuth === 'function') {
+      await w.webln.lnurlAuth(lnurl);
+    } else {
+      w.open(lnurl);
+    }
+  }
+}

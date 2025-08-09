@@ -93,6 +93,13 @@ card when viewing your own profile at `/p/<pubkey>`. When a zap is sent, the app
 recipient and records the distribution in a public kind 9736 event. The treasury address is configured via the `NEXT_PUBLIC_TREASURY_LNADDR`
 environment variable.
 
+## Wallet management
+
+Verify that you control a Lightning address from **Settings → Lightning Wallets**.
+Click **Verify ownership** next to an entry to complete an LNURL-auth challenge against the address's domain. Successful verifications are stored with the wallet data when saving your profile.
+
+Use **Export wallet config** to download an encrypted JSON backup of your `wallets` and any `zapSplits`. Restore the data later with **Import wallet config**. Backups are encrypted with your current authentication keys so only you can decrypt them.
+
 ## Transcoding & adaptive bitrate
 
 Uploaded videos are transcoded to multiple WebM resolutions and served adaptively.
