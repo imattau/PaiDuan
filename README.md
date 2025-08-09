@@ -70,9 +70,9 @@ the browser is not supported—prepare clips ahead of time:
 
 1. Select a short clip (MP4/WebM, ≤3 min)
 2. Trim the clip and capture a poster frame
-3. Add a caption, upload the assets, and publish a NIP‑23 note
+3. Add a caption, upload the assets, and publish a NIP‑71 event (kind 21 for normal videos, kind 22 for short clips)
 
-Publishing now includes `['zap', <lnaddr>, <pct>]` tags for the creator and any collaborators when Lightning addresses are provided.
+Publishing now includes `['zap', <lnaddr>, <pct>]` tags for the creator and any collaborators when Lightning addresses are provided. Video events are encoded using NIP‑71, which relies on `imeta` tags from NIP‑92 to describe the video and poster URLs.
 
 For manual testing of the upload endpoint you can use cURL:
 
@@ -80,7 +80,18 @@ For manual testing of the upload endpoint you can use cURL:
 curl -F "file=@video.mp4" -F "poster=@poster.jpg" https://nostr.media/api/upload
 ```
 
-The response returns `video` and `poster` URLs that can be used in a kind 30023 event.
+The response returns `video`, `poster` and `manifest` URLs that can be referenced from an `imeta` tag when constructing a kind 21/22 event.
+
+### NIP‑71 video events
+
+PaiDuan uses [NIP‑71](https://github.com/nostr-protocol/nips/blob/master/71.md) for publishing video posts. Clients should:
+
+1. Upload media to obtain a primary video URL, an optional adaptive `manifest` URL and a poster image.
+2. Decide whether the clip is a **normal** (landscape) or **short** (portrait) video. Publish kind 21 for normal videos or kind 22 for shorts.
+3. Include at least one `imeta` tag per media variant. Each tag lists `dim`, `url`, `m` (MIME type) and one or more `image` fields for previews.
+4. Add optional metadata such as `title`, `published_at`, hashtag `t` tags and `zap` split tags.
+
+Consumers subscribe to kinds 21 and 22, parse the `imeta` tags to find playable URLs and preview images, and display the `title` or event `content` as the caption. Topic `t` tags can be aggregated to build hashtag feeds.
 
 ## Revenue share
 
