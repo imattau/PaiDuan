@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
-import { SimplePool } from 'nostr-tools/pool';
+import { useEffect, useState } from 'react';
+import pool from '@/lib/relayPool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { toast } from 'react-hot-toast';
@@ -15,7 +15,6 @@ import { getRelays } from '@/lib/nostr';
 export default function ProfilePage() {
   const router = useRouter();
   const { pubkey } = router.query as { pubkey?: string };
-  const poolRef = useRef<SimplePool>();
   const { state } = useAuth();
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
@@ -39,7 +38,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!pubkey) return;
-    const pool = (poolRef.current ||= new SimplePool());
     const relays = getRelays();
 
     const metaSub = pool.subscribeMany(
@@ -145,7 +143,6 @@ export default function ProfilePage() {
         pubkey: state.pubkey,
       };
       const signed = await state.signer.signEvent(event);
-      const pool = (poolRef.current ||= new SimplePool());
       await pool.publish(getRelays(), signed);
       toast.success('Revenue share updated');
     } catch (err) {

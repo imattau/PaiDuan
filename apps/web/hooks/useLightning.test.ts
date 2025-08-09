@@ -6,14 +6,10 @@ vi.mock('./useAuth', () => ({
 
 const poolGetMock = vi.fn();
 
-vi.mock('nostr-tools/pool', () => ({
-  SimplePool: class {
-    get(...args: any[]) {
-      return poolGetMock(...args);
-    }
-    publish() {
-      return {} as any;
-    }
+vi.mock('@/lib/relayPool', () => ({
+  default: {
+    get: (...args: any[]) => poolGetMock(...args),
+    publish: () => ({} as any),
   },
 }));
 

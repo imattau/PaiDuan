@@ -1,11 +1,11 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { SimplePool } from 'nostr-tools/pool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Filter } from 'nostr-tools/filter';
 import { getRelays } from '@/lib/nostr';
 import { saveEvent } from '@/lib/db';
 import { VideoCardProps } from '../components/VideoCard';
 import { queryClient } from '@/lib/queryClient';
+import pool from '@/lib/relayPool';
 
 function parseImeta(tags: string[][]) {
   let videoUrl: string | undefined;
@@ -54,9 +54,8 @@ async function fetchFeedPage({
   authors: string[];
   limit: number;
 }) {
-  const pool: any = new SimplePool();
-  const relays = getRelays();
-  const filter: Filter = { kinds: [21, 22], limit };
+    const relays = getRelays();
+    const filter: Filter = { kinds: [21, 22], limit };
   if (pageParam) filter.until = pageParam;
   if (mode === 'following') {
     if (authors.length > 0) filter.authors = authors;

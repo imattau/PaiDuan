@@ -1,13 +1,10 @@
 'use client';
-import { SimplePool } from 'nostr-tools/pool';
 import { getPublicKey } from 'nostr-tools/pure';
 import relaysConfig from '../relays.json';
-
-let _pool: SimplePool | null = null;
+import pool from './relayPool';
 
 export function getPool() {
-  if (!_pool) _pool = new SimplePool();
-  return _pool;
+  return pool;
 }
 
 const LS_KEY = 'pd.auth.v1';
