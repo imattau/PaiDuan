@@ -254,7 +254,7 @@ export default function CreateVideoForm() {
           Cancel
         </button>
       </div>
-      <div className="lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 space-y-4">
+      <div className="flex flex-1 flex-wrap gap-4 items-start">
         <div className="space-y-4">
           <input
             type="file"
@@ -263,7 +263,7 @@ export default function CreateVideoForm() {
             className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
             {preview ? (
-              <div className="relative aspect-[9/16] w-full max-w-sm max-h-[calc(100vh-9rem)] overflow-hidden rounded-xl bg-black">
+              <div className="relative aspect-[9/16] h-[70vh] max-w-sm overflow-hidden rounded-xl">
                 <video
                   controls
                   src={preview}
@@ -277,7 +277,7 @@ export default function CreateVideoForm() {
                 )}
               </div>
             ) : (
-              <div className="relative aspect-[9/16] w-full max-w-sm max-h-[calc(100vh-9rem)] overflow-hidden rounded-xl bg-black">
+              <div className="relative aspect-[9/16] h-[70vh] max-w-sm overflow-hidden rounded-xl">
                 <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
               </div>
             )}
