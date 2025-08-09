@@ -152,12 +152,7 @@ export default function CreateVideoForm() {
           return;
         }
 
-        const worker = trimVideoWebCodecs(f, {
-          start: 0,
-          width,
-          height,
-        });
-        if (!worker) {
+        const ffmpegFallback = async (clearErr = false) => {
           try {
             const blob = await trimVideoFfmpeg(f, {
               start: 0,
@@ -165,6 +160,7 @@ export default function CreateVideoForm() {
               height,
               onProgress: (p) => setProgress(Math.round(p * 100)),
             });
+            if (clearErr) setErr(null);
             setOutBlob(blob);
             updatePreview(URL.createObjectURL(blob));
           } catch (err: any) {
@@ -172,24 +168,60 @@ export default function CreateVideoForm() {
             setErr(err?.message || 'Conversion failed.');
             setProgress(0);
           }
+        };
+
+        let worker: Worker | null = null;
+        try {
+          worker = trimVideoWebCodecs(f, {
+            start: 0,
+            width,
+            height,
+          });
+        } catch (err: any) {
+          console.error(err);
+          setErr('Video processing blocked. Relax Shields or using FFmpeg fallback.');
+          await ffmpegFallback();
           return;
         }
-        worker.onmessage = (ev: MessageEvent) => {
+
+        if (!worker) {
+          setErr('WebCodecs unavailable. Using slower FFmpeg conversion.');
+          await ffmpegFallback();
+          return;
+        }
+
+        worker.onerror = async () => {
+          worker?.terminate();
+          setErr('Video processing failed. Relax Shields or using FFmpeg fallback.');
+          setProgress(0);
+          await ffmpegFallback();
+        };
+
+        worker.onmessage = async (ev: MessageEvent) => {
           const msg = ev.data as any;
           if (msg?.type === 'progress') {
             setProgress(Math.round((msg.progress || 0) * 100));
           } else if (msg?.type === 'error') {
             worker.terminate();
-            setErr(
-              msg.error === 'unsupported-codec'
-                ? 'Unsupported video codec. Please convert your video and try again.'
-                : msg.error === 'no-keyframe'
-                  ? 'Cannot trim this video because it lacks a key frame.'
-                  : msg.error === 'demux-failed'
-                    ? 'Failed to read video file.'
-                    : msg.message || 'Conversion failed.',
-            );
+            if (msg.error === 'unsupported-codec') {
+              setErr('Unsupported video codec. Converting with FFmpeg.');
+              setProgress(0);
+              await ffmpegFallback(true);
+              return;
+            }
+            if (msg.error === 'no-keyframe') {
+              setErr('Cannot trim this video because it lacks a key frame.');
+              setProgress(0);
+              return;
+            }
+            if (msg.error === 'demux-failed') {
+              setErr('Failed to read video file.');
+              setProgress(0);
+              return;
+            }
+            setErr(msg.message || 'Video processing failed. Relax Shields or try again.');
             setProgress(0);
+            await ffmpegFallback();
           } else if (msg?.type === 'done') {
             const blob: Blob = msg.blob;
             setOutBlob(blob);

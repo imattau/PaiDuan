@@ -19,9 +19,14 @@ export function trimVideoWebCodecs(
   if (!('VideoDecoder' in window) || !('VideoEncoder' in window)) {
     return null;
   }
-  const worker = new Worker(new URL('./trimVideoWorker.ts', import.meta.url), {
-    type: 'module',
-  });
-  worker.postMessage({ blob, ...options });
-  return worker;
+  try {
+    const worker = new Worker(new URL('./trimVideoWorker.ts', import.meta.url), {
+      type: 'module',
+    });
+    worker.postMessage({ blob, ...options });
+    return worker;
+  } catch (err) {
+    // Bubble up worker bootstrap failures so caller can fall back to FFmpeg
+    throw err instanceof Error ? err : new Error(String(err));
+  }
 }
