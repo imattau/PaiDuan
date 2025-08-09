@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSpring, animated, useGesture } from '@paiduan/ui';
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
@@ -14,9 +14,11 @@ export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
   const [index, setIndex] = useState(0);
   const [{ y }, api] = useSpring(() => ({ y: 0 }));
 
+  const wheelOffset = useRef(0);
+
   const bind = useGesture(
     {
-      onDrag: ({ down, movement: [, my], direction: [, dy], cancel }) => {
+      onDrag: ({ down, movement: [, my], cancel }) => {
         if (!down) return;
         if (my < -50 && index < items.length - 1) {
           setIndex((i) => i + 1);
@@ -27,8 +29,24 @@ export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
           cancel();
         }
       },
+      onWheel: ({ event, delta: [, dy] }) => {
+        event.preventDefault();
+        wheelOffset.current += dy;
+        if (wheelOffset.current > 50) {
+          if (index < items.length - 1) {
+            setIndex((i) => i + 1);
+          }
+          wheelOffset.current = 0;
+        }
+        if (wheelOffset.current < -50) {
+          if (index > 0) {
+            setIndex((i) => i - 1);
+          }
+          wheelOffset.current = 0;
+        }
+      },
     },
-    { drag: { axis: 'y' } },
+    { drag: { axis: 'y' }, wheel: { eventOptions: { passive: false } } },
   );
 
   useEffect(() => {
