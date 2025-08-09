@@ -65,7 +65,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading }) => {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center text-white">
         <EmptyState />
-        <Link href="/create" className="btn btn-primary mt-4">
+        <Link href="/create" className="btn btn-primary mt-4" prefetch>
           Upload your first video
         </Link>
       </div>

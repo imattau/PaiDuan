@@ -8,6 +8,7 @@ import CommentDrawer from './CommentDrawer';
 import ReportModal from './ReportModal';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { Skeleton } from './ui/Skeleton';
 import { SimplePool } from 'nostr-tools/pool';
 import useFollowing from '../hooks/useFollowing';
@@ -50,6 +51,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   zapTotal,
   onLike,
 }) => {
+  const router = useRouter();
   const playerRef = useRef<ReactPlayer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(true);
@@ -238,7 +240,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       </div>
 
       <div className="absolute bottom-0 left-0 w-full p-4">
-        <Link href={`/p/${pubkey}`} className="flex items-center space-x-3">
+        <Link
+          href={`/p/${pubkey}`}
+          className="flex items-center space-x-3"
+          prefetch={false}
+          onMouseEnter={() => router.prefetch(`/p/${pubkey}`)}
+        >
           {avatar ? (
             <Image
               src={avatar}
