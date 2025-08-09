@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useCallback } from 'react';
 import NextLink from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import MiniProfileCard from '@/components/MiniProfileCard';
@@ -49,6 +50,36 @@ export default function MainNav({
   const activeColor = useColorModeValue('blue.600', 'blue.300');
   const hoverBg = useColorModeValue('blue.50', 'whiteAlpha.200');
 
+  const prefetch = useCallback(
+    (path: string) => {
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        router.prefetch(path);
+      }
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    const handlePrefetch = () => {
+      if (
+        typeof document !== 'undefined' &&
+        document.visibilityState === 'visible' &&
+        typeof navigator !== 'undefined' &&
+        navigator.onLine
+      ) {
+        navigation.forEach(({ path }) => router.prefetch(path));
+      }
+    };
+
+    handlePrefetch();
+    window.addEventListener('online', handlePrefetch);
+    document.addEventListener('visibilitychange', handlePrefetch);
+    return () => {
+      window.removeEventListener('online', handlePrefetch);
+      document.removeEventListener('visibilitychange', handlePrefetch);
+    };
+  }, [router]);
+
   return (
     <VStack p="1.2rem" spacing={4} align="stretch">
       <ChakraLink as={NextLink} href="/" pl={5} prefetch>
@@ -80,7 +111,7 @@ export default function MainNav({
                 fontWeight="bold"
                 aria-current={active ? 'page' : undefined}
                 prefetch={false}
-                onMouseEnter={() => router.prefetch(path)}
+                onMouseEnter={() => prefetch(path)}
                 color={active ? activeColor : muted}
                 bg={active ? hoverBg : 'transparent'}
                 _hover={{ bg: hoverBg, color: activeColor }}

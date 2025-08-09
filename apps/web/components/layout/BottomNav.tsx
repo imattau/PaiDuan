@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useCallback } from 'react';
 import NextLink from 'next/link';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { navigation } from '@/config/navigation';
@@ -22,6 +23,36 @@ export default function BottomNav() {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const activeColor = useColorModeValue('blue.600', 'blue.300');
   const inactiveColor = useColorModeValue('gray.600', 'gray.400');
+
+  const prefetch = useCallback(
+    (path: string) => {
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        router.prefetch(path);
+      }
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    const handlePrefetch = () => {
+      if (
+        typeof document !== 'undefined' &&
+        document.visibilityState === 'visible' &&
+        typeof navigator !== 'undefined' &&
+        navigator.onLine
+      ) {
+        navigation.forEach(({ path }) => router.prefetch(path));
+      }
+    };
+
+    handlePrefetch();
+    window.addEventListener('online', handlePrefetch);
+    document.addEventListener('visibilitychange', handlePrefetch);
+    return () => {
+      window.removeEventListener('online', handlePrefetch);
+      document.removeEventListener('visibilitychange', handlePrefetch);
+    };
+  }, [router]);
   if (layout === 'desktop') return null;
 
   return (
@@ -53,7 +84,7 @@ export default function BottomNav() {
             aria-label={label}
             aria-current={active ? 'page' : undefined}
             prefetch={false}
-            onMouseEnter={() => router.prefetch(path)}
+            onMouseEnter={() => prefetch(path)}
           >
             <Icon size={24} />
           </ChakraLink>
