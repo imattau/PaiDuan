@@ -12,6 +12,7 @@ import { queryClient } from '../../lib/queryClient';
 const mockTrim = vi.fn();
 vi.mock('../../utils/trimVideoFfmpeg', () => ({
   trimVideoFfmpeg: (...args: any[]) => mockTrim(...(args as any)),
+  terminateFfmpegPool: vi.fn(),
 }));
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
   trimVideoWebCodecs: vi.fn(() => null),
