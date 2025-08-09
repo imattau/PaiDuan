@@ -65,9 +65,10 @@ The lightning zap flow can be tested with a wallet such as [Alby](https://getalb
 
 ## Uploading a video
 
-The feed includes a floating upload button that opens a three‑step wizard:
+The feed includes a floating upload button that opens a three‑step wizard. Recording video directly in
+the browser is not supported—prepare clips ahead of time:
 
-1. Select or record a short clip (MP4/WebM, ≤3 min)
+1. Select a short clip (MP4/WebM, ≤3 min)
 2. Trim the clip and capture a poster frame
 3. Add a caption, upload the assets, and publish a NIP‑23 note
 
