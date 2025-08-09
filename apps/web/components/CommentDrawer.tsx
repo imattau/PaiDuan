@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { SimplePool } from 'nostr-tools/pool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import { X, MoreVertical } from 'lucide-react';
@@ -8,7 +7,7 @@ import { trackEvent } from '../utils/analytics';
 import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { useAuth } from '@/hooks/useAuth';
-import { getRelays } from '@/lib/nostr';
+import { getRelays, getPool } from '@/lib/nostr';
 import { useModqueue } from '@/context/modqueueContext';
 import useFocusTrap from '../hooks/useFocusTrap';
 
@@ -25,7 +24,6 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   onClose,
   onCountChange,
 }) => {
-  const poolRef = useRef(new SimplePool());
   const drawerRef = useRef<HTMLDivElement>(null);
   const { state } = useAuth();
   const [events, setEvents] = useState<NostrEvent[]>([]);
@@ -82,7 +80,8 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
 
   // Subscribe to comments
   useEffect(() => {
-    const pool = poolRef.current;
+    if (!open) return;
+    const pool = getPool();
     const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [1], '#e': [videoId] }], {
       onevent: (ev: any) => {
         setEvents((prev) => {
@@ -95,11 +94,12 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
     return () => {
       sub.close();
     };
-  }, [videoId]);
+  }, [videoId, open]);
 
   // fetch reports to hide comments
   useEffect(() => {
-    const pool = poolRef.current as any;
+    if (!open) return;
+    const pool = getPool() as any;
     const sub = pool.subscribeMany(getRelays(), [{ kinds: [9001] }], {
       onevent: (ev: any) => {
         const tag = ev.tags.find((t: string[]) => t[0] === 'e');
@@ -109,7 +109,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
     return () => {
       sub.close();
     };
-  }, []);
+  }, [open]);
 
   // Update count of top level comments
   useEffect(() => {
@@ -141,7 +141,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       setEvents((prev) => [...prev, signed].sort((a, b) => a.created_at - b.created_at));
       setInput('');
       setReplyTo(null);
-      await poolRef.current.publish(getRelays(), signed);
+      await getPool().publish(getRelays(), signed);
       toast.success('Comment sent');
       trackEvent('comment_send');
     } catch (err) {
