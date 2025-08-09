@@ -15,7 +15,7 @@ interface WorkerApi {
     blob: Blob,
     options: TrimWorkerOptions,
     onProgress: (p: number) => void,
-  ): Promise<Blob>;
+  ): Promise<{ buffer: ArrayBuffer; type: string }>;
 }
 
 export async function trimVideoWebCodecs(
@@ -37,7 +37,7 @@ export async function trimVideoWebCodecs(
     try {
       const result = await api.trim(blob, options, Comlink.proxy(onProgress));
       worker.terminate();
-      return result;
+      return new Blob([result.buffer], { type: result.type });
     } catch (err) {
       worker.terminate();
       throw err instanceof Error ? err : new Error(String(err));
