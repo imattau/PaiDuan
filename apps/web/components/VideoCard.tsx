@@ -19,6 +19,7 @@ import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFeedSelection } from '@/store/feedSelection';
 import { getRelays } from '@/lib/nostr';
+import { useAuth } from '@/hooks/useAuth';
 
 const MoreVertical = dynamic(() => import('lucide-react').then((mod) => mod.MoreVertical), {
   ssr: false,
@@ -59,7 +60,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [commentCount, setCommentCount] = useState(0);
   const holdTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
-  const { following, follow } = useFollowing();
+  const { state: auth } = useAuth();
+  const { following, follow } = useFollowing(
+    auth.status === 'ready' ? auth.pubkey : undefined,
+  );
   const [avatar, setAvatar] = useState('');
   const [displayName, setDisplayName] = useState(author);
   const isFollowing = following.includes(pubkey);

@@ -7,14 +7,27 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "ui/*": ["../../packages/ui/src/*"],
-      "@/*": ["./*"]
-    }
+      "ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strictNullChecks": true
   },
   "include": [
     "next-env.d.ts",
     "**/*",
-    "../../packages/ui/src/**/*"
+    "../../packages/ui/src/**/*",
+    ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

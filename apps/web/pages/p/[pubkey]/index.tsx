@@ -24,7 +24,9 @@ export default function ProfilePage() {
   const [myPubkey, setMyPubkey] = useState('');
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [selected, setSelected] = useState<VideoCardProps | null>(null);
-  const { following, follow, unfollow } = useFollowing();
+  const { following, follow, unfollow } = useFollowing(
+    state.status === 'ready' ? state.pubkey : undefined,
+  );
   const followers = useFollowers(pubkey);
 
   const isFollowing = pubkey ? following.includes(pubkey) : false;

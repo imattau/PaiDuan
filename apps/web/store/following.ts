@@ -5,6 +5,7 @@ export type FollowingState = {
   following: string[];
   follow: (pubkey: string) => void;
   unfollow: (pubkey: string) => void;
+  setFollowing: (pubkeys: string[]) => void;
 };
 
 export const useFollowingStore = create<FollowingState>()(
@@ -21,6 +22,7 @@ export const useFollowingStore = create<FollowingState>()(
         set((state) => ({
           following: state.following.filter((p) => p !== pubkey),
         })),
+      setFollowing: (pubkeys: string[]) => set({ following: pubkeys }),
     }),
     {
       name: 'following',
@@ -32,4 +34,6 @@ export const follow = (pubkey: string) =>
   useFollowingStore.getState().follow(pubkey);
 export const unfollow = (pubkey: string) =>
   useFollowingStore.getState().unfollow(pubkey);
+export const setFollowing = (pubkeys: string[]) =>
+  useFollowingStore.getState().setFollowing(pubkeys);
 export const following = () => useFollowingStore.getState().following;
