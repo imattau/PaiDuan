@@ -109,7 +109,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   }
 
   return (
-    <div {...bind()} className="relative h-full w-full overflow-hidden">
+    <div {...bind()} className="relative h-full w-full overflow-hidden touch-none">
       <animated.div
         style={{ transform: y.to((py) => `translateY(${py}%)`) }}
         className="h-full w-full"
