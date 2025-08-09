@@ -346,4 +346,40 @@ describe('CreateVideoForm', () => {
     const tags = mockSignEvent.mock.calls[0][0].tags;
     expect(tags).toContainEqual(['copyright', 'My License']);
   });
+
+  it('opens file dialog when clicking the preview', async () => {
+    (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    mockTrim.mockImplementation((_f: any, opts: any) => {
+      opts.onProgress?.(1);
+      return Promise.resolve(new Blob());
+    });
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
+
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await Promise.resolve();
+
+    const clickSpy = vi.spyOn(fileInput, 'click');
+    const video = container.querySelector('video') as HTMLVideoElement;
+
+    await act(async () => {
+      video.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(clickSpy).toHaveBeenCalled();
+  });
 });
