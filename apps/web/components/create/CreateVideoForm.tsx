@@ -134,8 +134,20 @@ export default function CreateVideoForm() {
           if (msg?.type === 'progress') {
             setProgress(Math.round((msg.progress || 0) * 100));
           } else if (msg?.type === 'error') {
-            setErr(msg.message || 'Conversion failed.');
             setProgress(0);
+            if (msg.error === 'unsupported-codec') {
+              setErr('Unsupported video codec. Please convert your video and try again.');
+            } else if (msg.error === 'no-keyframe') {
+              setErr('Cannot trim this video because it lacks a key frame. Using the original file.');
+              setOutBlob(f);
+              updatePreview(URL.createObjectURL(f));
+            } else if (msg.error === 'demux-failed') {
+              setErr('Failed to read video file. Using the original file.');
+              setOutBlob(f);
+              updatePreview(URL.createObjectURL(f));
+            } else {
+              setErr(msg.message || 'Conversion failed.');
+            }
             worker.terminate();
           } else if (msg?.type === 'done') {
             const blob: Blob = msg.blob;
