@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
     "libavjs-webcodecs-polyfill": "^0.5.5",
+    "lnurl-pay": "^4.0.0",
     "lucide-react": "^0.344.0",
     "mp4box": "1.4.7",
     "next": "^15.4.6",
