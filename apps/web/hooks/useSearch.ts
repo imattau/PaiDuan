@@ -46,13 +46,11 @@ export interface SearchResults {
 export function useSearch(query: string): SearchResults {
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [creators, setCreators] = useState<CreatorResult[]>([]);
-    const subRef = useRef<{ close: () => void } | null>(null);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const subRef = useRef<{ close: () => void } | null>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     subRef.current?.close();
-    if (timerRef.current) clearTimeout(timerRef.current);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (!query) {
@@ -115,14 +113,11 @@ export function useSearch(query: string): SearchResults {
           }
         },
       });
-
-      timerRef.current = setTimeout(() => sub.close(), 20000);
       subRef.current = sub;
     }, 300);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (timerRef.current) clearTimeout(timerRef.current);
       subRef.current?.close();
     };
   }, [query]);
