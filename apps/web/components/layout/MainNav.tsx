@@ -4,10 +4,11 @@ import SearchBar from '@/components/SearchBar';
 import MiniProfileCard from '@/components/MiniProfileCard';
 import NotificationBell from '@/components/NotificationBell';
 import { useTheme } from '@/context/themeContext';
-import { Sun, Moon, Home, Users, Plus, User } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { cardStyle } from '@/components/ui/Card';
 import Logo from '@/components/branding/Logo';
+import { navItems } from './nav';
 
 interface MainNavProps {
   me?: {
@@ -43,12 +44,7 @@ export default function MainNav({
       {/* Nav */}
       <nav className={`${cardStyle} p-2`}>
         <ul className="flex flex-col">
-          {[
-            { href: '/feed', label: 'Home', icon: Home },
-            { href: '/following', label: 'Following', icon: Users },
-            { href: '/create', label: 'Create', icon: Plus },
-            { href: '/settings', label: 'Settings', icon: User },
-          ].map(({ href, label, icon: Icon }) => {
+          {navItems.map(({ href, label, icon: Icon }) => {
             const active = asPath.startsWith(href);
             return (
               <li key={href}>

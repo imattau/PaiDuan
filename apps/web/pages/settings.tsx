@@ -1,4 +1,5 @@
 import React from 'react';
+import AppShell from '@/components/layout/AppShell';
 import MainNav from '@/components/layout/MainNav';
 import { Accordion } from '../components/ui/Accordion';
 import { KeysCard } from '../components/settings/KeysCard';
@@ -23,60 +24,65 @@ export default function Settings() {
     }
   }, []);
 
+  const nav = <MainNav showSearch={false} showProfile={false} />;
+
   return (
-    <>
-      <MainNav showSearch={false} showProfile={false} />
-      <main className="max-w-3xl mx-auto px-4 py-10 space-y-6 lg:ml-48">
-        <Accordion
-          initialOpenIndex={initialOpenIndex}
-          items={[
-            {
-              title: 'Profile',
-              content: (
-                <div id="profile">
-                  <ProfileCard />
-                </div>
-              ),
-            },
-            {
-              title: 'Account & Keys',
-              content: (
-                <div className="space-y-6">
-                  <KeysCard />
-                  <AccountCard />
-                </div>
-              ),
-            },
-            {
-              title: 'Wallet Management',
-              content: <LightningCard />,
-            },
-            {
-              title: 'Network',
-              content: <NetworkCard />,
-            },
-            {
-              title: 'Appearance & Language',
-              content: (
-                <div className="space-y-6">
-                  <AppearanceCard />
-                  <LanguageCard />
-                </div>
-              ),
-            },
-            {
-              title: 'Data, Storage & Privacy',
-              content: (
-                <div className="space-y-6">
-                  <StorageCard />
-                  <DataCard />
-                  <PrivacyCard />
-                </div>
-              ),
-            },
-          ]}
-        />
-      </main>
-    </>
+    <AppShell
+      left={nav}
+      center={
+        <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
+          <Accordion
+            initialOpenIndex={initialOpenIndex}
+            items={[
+              {
+                title: 'Profile',
+                content: (
+                  <div id="profile">
+                    <ProfileCard />
+                  </div>
+                ),
+              },
+              {
+                title: 'Account & Keys',
+                content: (
+                  <div className="space-y-6">
+                    <KeysCard />
+                    <AccountCard />
+                  </div>
+                ),
+              },
+              {
+                title: 'Wallet Management',
+                content: <LightningCard />,
+              },
+              {
+                title: 'Network',
+                content: <NetworkCard />,
+              },
+              {
+                title: 'Appearance & Language',
+                content: (
+                  <div className="space-y-6">
+                    <AppearanceCard />
+                    <LanguageCard />
+                  </div>
+                ),
+              },
+              {
+                title: 'Data, Storage & Privacy',
+                content: (
+                  <div className="space-y-6">
+                    <StorageCard />
+                    <DataCard />
+                    <PrivacyCard />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </div>
+      }
+      right={<></>}
+    />
   );
 }
