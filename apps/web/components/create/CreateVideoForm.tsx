@@ -146,7 +146,19 @@ export default function CreateVideoForm() {
             worker.terminate();
             setProgress(0);
             if (msg.error === 'unsupported-codec') {
-              setErr('Unsupported video codec. Please convert your video and try again.');
+              try {
+                const blob = await trimVideoFfmpeg(f, {
+                  start: 0,
+                  width,
+                  height,
+                  onProgress: (p) => setProgress(Math.round(p * 100)),
+                });
+                setOutBlob(blob);
+                updatePreview(URL.createObjectURL(blob));
+              } catch (err: any) {
+                console.error(err);
+                setErr('Unsupported video codec. Please convert your video and try again.');
+              }
             } else if (msg.error === 'no-keyframe' || msg.error === 'demux-failed') {
               setErr(
                 msg.error === 'no-keyframe'
