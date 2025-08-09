@@ -74,6 +74,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const online = useOffline();
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
@@ -184,12 +185,22 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         height="100%"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         config={{ file: { attributes: { poster: posterUrl } } }}
+        onError={() => setVideoError(true)}
       />
+
+      {videoError && (
+        <img
+          src={posterUrl || '/offline.jpg'}
+          alt="Video unavailable"
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={(e) => (e.currentTarget.src = '/offline.jpg')}
+        />
+      )}
 
       {showMenu && (
         <div className="absolute right-4 top-4">
           <button onClick={() => setMenuOpen((o) => !o)} className="hover:text-accent-primary">
-            <MoreVertical />
+            <MoreVertical className="icon" />
           </button>
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-24 rounded bg-background-primary p-1 shadow">
@@ -214,7 +225,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           title={muted ? 'Unmute' : 'Mute'}
           aria-label={muted ? 'Unmute' : 'Mute'}
         >
-          {muted ? <VolumeX /> : <Volume2 />}
+          {muted ? <VolumeX className="icon" /> : <Volume2 className="icon" />}
         </button>
         <button
           className="relative hover:text-accent-primary disabled:opacity-50 lg:hidden"
@@ -222,7 +233,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         >
-          <MessageCircle />
+          <MessageCircle className="icon" />
           {commentCount > 0 && (
             <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
           )}
@@ -241,7 +252,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         >
-          <Repeat2 />
+          <Repeat2 className="icon" />
         </button>
       </div>
 
@@ -263,11 +274,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               height={40}
               className="h-10 w-10 rounded-full object-cover"
               unoptimized
+              onError={(e) => (e.currentTarget.src = '/offline.jpg')}
             />
           ) : (
             <Skeleton className="h-10 w-10 rounded-full" />
           )}
-          <div className="font-semibold">@{displayName}</div>
+          <div className="username">@{displayName}</div>
         </Link>
         {!isFollowing && (
           <button
@@ -277,7 +289,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             Follow
           </button>
         )}
-        <div className="text-sm mt-1">{caption}</div>
+        <div className="meta-info mt-1">{caption}</div>
       </div>
 
       <animated.div

@@ -52,7 +52,7 @@ body {
 /* Button system — works in light & dark */
 @layer components {
   .btn {
-    @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2;
+    @apply px-4 py-2.5 rounded-xl font-medium focus-visible:outline-none focus-visible:ring-2 ring-offset-2 transition-colors duration-200 ease-in-out;
   }
   .btn-primary {
     background-color: hsl(var(--accent-primary));
@@ -67,13 +67,27 @@ body {
   .btn-secondary {
     @apply border border-current text-current bg-transparent;
   }
+  .btn-ghost {
+    @apply bg-transparent text-primary;
+  }
   .btn-danger {
     background: #ef4444;
     color: white;
   }
-  .btn-ghost {
-    background: transparent;
-    color: hsl(var(--text-primary));
+  .icon {
+    @apply transition-colors duration-200 ease-in-out;
+  }
+  .feed-container {
+    @apply lg:mt-4;
+  }
+  .username {
+    @apply text-lg font-semibold;
+  }
+  .meta-info {
+    @apply text-xs text-muted;
+  }
+  .sidebar-right {
+    @apply p-4;
   }
 }
 
