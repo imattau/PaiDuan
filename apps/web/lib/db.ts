@@ -1,69 +1,46 @@
-const DB_NAME = 'nostr-cache';
-const DB_VERSION = 1;
-const STORE_EVENTS = 'events';
+import Dexie, { type Table } from 'dexie';
 
-let dbPromise: Promise<IDBDatabase | null> | null = null;
-
-function openDB(): Promise<IDBDatabase | null> {
-  if (typeof indexedDB === 'undefined') {
-    return Promise.resolve(null);
-  }
-  if (!dbPromise) {
-    dbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_EVENTS)) {
-          db.createObjectStore(STORE_EVENTS, { keyPath: ['pubkey', 'id'] });
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-  }
-  return dbPromise;
+interface StoredEvent {
+  id: string;
+  pubkey: string;
+  event: any;
 }
 
+class NostrCacheDB extends Dexie {
+  events!: Table<StoredEvent, [string, string]>;
+
+  constructor() {
+    super('nostr-cache');
+    this.version(1).stores({
+      events: '[pubkey+id]',
+    });
+  }
+}
+
+export const db =
+  typeof indexedDB === 'undefined' ? null : new NostrCacheDB();
+
 export async function saveEvent(event: any): Promise<void> {
-  const db = await openDB();
   if (!db) return;
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_EVENTS, 'readwrite');
-    const store = tx.objectStore(STORE_EVENTS);
-    const req = store.add({ id: event.id, pubkey: event.pubkey, event });
-    req.onsuccess = () => resolve();
-    req.onerror = () => {
-      if ((req.error as any)?.name === 'ConstraintError') resolve();
-      else reject(req.error);
-    };
-  });
+  try {
+    await db.events.add({ id: event.id, pubkey: event.pubkey, event });
+  } catch (err: any) {
+    if (err?.name !== 'ConstraintError') throw err;
+  }
 }
 
 export async function getEventsByPubkey(pubkey: string): Promise<any[]> {
-  const db = await openDB();
   if (!db) return [];
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_EVENTS, 'readonly');
-    const range = IDBKeyRange.bound([pubkey, ''], [pubkey, '\uffff']);
-    const req = tx.objectStore(STORE_EVENTS).getAll(range);
-    req.onsuccess = () => {
-      const res = req.result as { event: any }[];
-      resolve(res.map((r) => r.event));
-    };
-    req.onerror = () => reject(req.error);
-  });
+  const rows = await db.events
+    .where('[pubkey+id]')
+    .between([pubkey, Dexie.minKey], [pubkey, Dexie.maxKey])
+    .toArray();
+  return rows.map((r) => r.event);
 }
 
 export async function getAllEvents(): Promise<any[]> {
-  const db = await openDB();
   if (!db) return [];
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_EVENTS, 'readonly');
-    const req = tx.objectStore(STORE_EVENTS).getAll();
-    req.onsuccess = () => {
-      const res = req.result as { event: any }[];
-      resolve(res.map((r) => r.event));
-    };
-    req.onerror = () => reject(req.error);
-  });
+  const rows = await db.events.toArray();
+  return rows.map((r) => r.event);
 }
+
