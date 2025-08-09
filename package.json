@@ -7,7 +7,7 @@
     "lint": "turbo lint",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:analytics": "vitest run scripts/aggregate-creator-stats.test.ts apps/web/pages/api/creator-stats.test.ts",
+    "test:analytics": "vitest run scripts/aggregate-creator-stats.test.ts apps/web/app/api/creator-stats.test.ts",
     "cron:summary": "node scripts/cron-summary.js",
     "postinstall": "node scripts/install-ffmpeg-core.js"
   },

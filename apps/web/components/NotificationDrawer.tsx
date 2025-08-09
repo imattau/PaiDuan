@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import useFocusTrap from '../hooks/useFocusTrap';
 
 const NotificationDrawer: React.FC = () => {

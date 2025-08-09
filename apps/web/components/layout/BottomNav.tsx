@@ -1,17 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import { navItems } from './nav';
 
 export default function BottomNav() {
   const router = useRouter();
-  const { asPath } = router;
+  const pathname = usePathname();
 
   return (
     <nav className="fixed bottom-0 inset-x-0 flex justify-around border-t bg-surface lg:hidden">
       {navItems.map(({ href, label, icon: Icon }) => {
-        const active = asPath.startsWith(href);
+        const active = pathname.startsWith(href);
         return (
           <Link
             key={href}

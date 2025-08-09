@@ -5,7 +5,7 @@ import MiniProfileCard from '@/components/MiniProfileCard';
 import NotificationBell from '@/components/NotificationBell';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { cardStyle } from '@/components/ui/Card';
 import Logo from '@/components/branding/Logo';
 import { navItems } from './nav';
@@ -30,7 +30,10 @@ export default function MainNav({
   const isDark = resolvedTheme === 'dark';
   const toggleMode = () => setTheme(isDark ? 'light' : 'dark');
   const router = useRouter();
-  const { asPath, locale } = router;
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = (params?.locale as string) || undefined;
 
   return (
     <div className="p-[1.2rem] space-y-4">
@@ -48,7 +51,10 @@ export default function MainNav({
       <nav className={`${cardStyle} p-2`}>
         <ul className="flex flex-col">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const currentUrl = new URL(asPath, 'http://localhost');
+            const currentUrl = new URL(
+              pathname + (searchParams.toString() ? `?${searchParams}` : ''),
+              'http://localhost',
+            );
             const targetUrl = new URL(href, 'http://localhost');
             let currentPath = currentUrl.pathname;
             if (locale) currentPath = currentPath.replace(new RegExp(`^/${locale}`), '');

@@ -1,12 +1,15 @@
 import React from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import useT from '@/hooks/useT';
 import { Card } from '@/components/ui/Card';
 
 export function LanguageCard() {
   const t = useT();
   const router = useRouter();
-  const locale = (router.query.locale as string) || 'en';
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = (params?.locale as string) || 'en';
 
   const handleLocaleChange = (
     e: React.ChangeEvent<HTMLSelectElement>,
@@ -15,7 +18,9 @@ export function LanguageCard() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('locale', next);
       document.cookie = `locale=${next}; path=/; max-age=31536000`;
-      const path = router.asPath.replace(/^\/[a-zA-Z-]+/, '');
+      const path = (
+        pathname + (searchParams.toString() ? `?${searchParams}` : '')
+      ).replace(/^\/[a-zA-Z-]+/, '');
       router.push(`/${next}${path}`);
     }
   };
