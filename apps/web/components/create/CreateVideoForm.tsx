@@ -4,8 +4,6 @@ import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
-import { sniffCodec } from '../../utils/codec';
-import { canDecode } from '../../utils/canDecode';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useProfiles } from '../../hooks/useProfiles';
@@ -163,14 +161,17 @@ export default function CreateVideoForm() {
 
         const width = video.videoWidth;
         const height = video.videoHeight;
+        const duration = video.duration;
         setDimensions({ width, height });
         URL.revokeObjectURL(url);
         video.remove();
 
-        const codec = await sniffCodec(f);
-        const supported = codec && codec !== 'hvc1' ? await canDecode(codec) : false;
-        if (!supported) {
-          setErr(codec === 'hvc1' ? 'HEVC/H.265 not supported.' : 'Unsupported video codec.');
+        const ratio = width / height;
+        const targetRatio = 9 / 16;
+        if (Math.abs(ratio - targetRatio) > 0.01) {
+          setErr('Video must be 9:16 aspect ratio.');
+          setFile(null);
+          updatePreview(null);
           setProgress(0);
           return;
         }
@@ -181,8 +182,7 @@ export default function CreateVideoForm() {
             f,
             {
               start: 0,
-              width,
-              height,
+              end: Math.min(300, duration),
             },
             (p) => setProgress(Math.round(p * 100)),
           );
@@ -209,6 +209,8 @@ export default function CreateVideoForm() {
           return;
         }
 
+        blob = new Blob([blob], { type: f.type });
+
         setOutBlob(blob);
         updatePreview(URL.createObjectURL(blob));
       } catch (e: any) {
@@ -220,7 +222,7 @@ export default function CreateVideoForm() {
   }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: { 'video/*': ['.mp4', '.webm', '.mov', '.ogg'] },
+    accept: { 'video/mp4': ['.mp4'], 'video/webm': ['.webm'] },
     onDrop: (accepted) => onPick(accepted[0] ?? null),
   });
 
@@ -233,7 +235,9 @@ export default function CreateVideoForm() {
     try {
       setPosting(true);
       const form = new FormData();
-      form.append('file', outBlob, 'video.webm');
+      const ext = file?.type === 'video/mp4' ? '.mp4' : '.webm';
+      const mimeTag = file?.type === 'video/mp4' ? 'm video/mp4' : 'm video/webm';
+      form.append('file', outBlob, `video${ext}`);
       form.append('caption', values.caption);
       form.append('topics', values.topics);
       const licenseValue = values.license === 'other' ? customLicense : values.license;
@@ -258,7 +262,7 @@ export default function CreateVideoForm() {
       const tags: string[][] = [
         ['title', values.caption],
         ['published_at', Math.floor(Date.now() / 1000).toString()],
-        ['imeta', `dim ${dim}`, `url ${video}`, 'm video/mp4', `image ${poster}`],
+        ['imeta', `dim ${dim}`, `url ${video}`, mimeTag, `image ${poster}`],
         ...topicList.map((t) => ['t', t]),
       ];
       if (manifest) {

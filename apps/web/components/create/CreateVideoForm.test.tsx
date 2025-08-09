@@ -13,8 +13,6 @@ const mockTrim = vi.fn();
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
   trimVideoWebCodecs: (...args: any[]) => mockTrim(...(args as any)),
 }));
-vi.mock('../../utils/codec', () => ({ sniffCodec: () => Promise.resolve('avc1') }));
-vi.mock('../../utils/canDecode', () => ({ canDecode: () => Promise.resolve(true) }));
 
 const mockSignEvent = vi.fn(() => Promise.resolve({}));
 vi.mock('../../hooks/useAuth', () => ({
@@ -47,8 +45,9 @@ describe('CreateVideoForm', () => {
     vi.spyOn(document, 'createElement').mockImplementation((tag: any, opts?: any) => {
       const el = origCreateElement(tag, opts) as any;
       if (tag === 'video') {
-        Object.defineProperty(el, 'videoWidth', { configurable: true, value: 640 });
-        Object.defineProperty(el, 'videoHeight', { configurable: true, value: 480 });
+        Object.defineProperty(el, 'videoWidth', { configurable: true, value: 540 });
+        Object.defineProperty(el, 'videoHeight', { configurable: true, value: 960 });
+        Object.defineProperty(el, 'duration', { configurable: true, value: 10 });
         setTimeout(() => el.onloadedmetadata?.(new Event('loadedmetadata')));
       }
       return el;
@@ -58,9 +57,9 @@ describe('CreateVideoForm', () => {
 
   it('auto converts selected file and keeps publish disabled until form complete', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation((_f: any, opts: any) => {
-      opts.onProgress?.(0.5);
-      opts.onProgress?.(1);
+    mockTrim.mockImplementation((_f: any, opts: any, onProgress: any) => {
+      onProgress?.(0.5);
+      onProgress?.(1);
       return Promise.resolve(new Blob());
     });
 
@@ -86,12 +85,7 @@ describe('CreateVideoForm', () => {
     });
     await Promise.resolve();
 
-    expect(mockTrim).toHaveBeenCalledWith(file, {
-      start: 0,
-      width: 640,
-      height: 480,
-      onProgress: expect.any(Function),
-    });
+    expect(mockTrim).toHaveBeenCalledWith(file, { start: 0, end: 10 }, expect.any(Function));
     expect(container.querySelector('.bg-blue-500')).not.toBeNull();
     expect(publishButton.disabled).toBe(true);
 
@@ -120,8 +114,8 @@ describe('CreateVideoForm', () => {
 
   it('posts video when publish is clicked', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation((_f: any, opts: any) => {
-      opts.onProgress?.(1);
+    mockTrim.mockImplementation((_f: any, opts: any, onProgress: any) => {
+      onProgress?.(1);
       return Promise.resolve(new Blob());
     });
 
@@ -193,8 +187,8 @@ describe('CreateVideoForm', () => {
 
   it('saves zap splits for collaborators', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation((_f: any, opts: any) => {
-      opts.onProgress?.(1);
+    mockTrim.mockImplementation((_f: any, opts: any, onProgress: any) => {
+      onProgress?.(1);
       return Promise.resolve(new Blob());
     });
 
