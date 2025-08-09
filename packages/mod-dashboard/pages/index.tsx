@@ -1,5 +1,29 @@
 import { useEffect, useState } from 'react';
 import type { GetServerSideProps } from 'next';
+import { SimplePool } from 'nostr-tools/pool';
+
+const pool = new SimplePool();
+
+const DEFAULT_RELAYS = [
+  'wss://relay.damus.io',
+  'wss://nos.lol',
+  'wss://relay.snort.social',
+];
+
+function getRelays(): string[] {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('pd.relays');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  return DEFAULT_RELAYS;
+}
 
 
 const ADMIN_PUBKEYS = (process.env.ADMIN_PUBKEYS || '').split(',').filter(Boolean);
@@ -54,7 +78,7 @@ export default function Dashboard({ allowed }: Props) {
     const hide = { targetId: id, moderator, reason: 'removed', ts };
     const event = { kind: 9001, created_at: ts, content: JSON.stringify(hide) };
     const signed = await nostr.signEvent(event);
-      const relays = getRelays();
+    const relays = getRelays();
     try {
       await pool.publish(relays, signed);
       await approve(id);
