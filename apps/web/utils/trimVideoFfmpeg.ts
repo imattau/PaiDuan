@@ -1,4 +1,4 @@
-import type { FFmpeg } from '@ffmpeg/ffmpeg';
+import { getFFmpeg } from './ffmpegLoader';
 
 export interface TrimFfmpegOptions {
   start: number;
@@ -7,34 +7,6 @@ export interface TrimFfmpegOptions {
   height?: number;
   crop?: { x: number; y: number; width: number; height: number };
   onProgress?: (progress: number) => void; // progress 0-1
-}
-
-let ffmpeg: FFmpeg | null = null;
-let loading: Promise<void> | null = null;
-
-async function loadFfmpeg() {
-  if (!ffmpeg) {
-    const ffmpegModule = await import('@ffmpeg/ffmpeg');
-    const createFFmpeg = ffmpegModule.createFFmpeg ?? ffmpegModule.default;
-    if (!createFFmpeg) {
-      throw new Error(
-        '@ffmpeg/ffmpeg does not provide a `createFFmpeg` export or default export',
-      );
-    }
-    if (typeof createFFmpeg !== 'function') {
-      throw new Error(
-        'Resolved `createFFmpeg` export from @ffmpeg/ffmpeg is not a function',
-      );
-    }
-    // load core from CDN to avoid bundling large assets
-    ffmpeg = createFFmpeg({
-      log: false,
-      corePath: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
-    });
-    loading = ffmpeg.load();
-  }
-  if (loading) await loading;
-  return ffmpeg!;
 }
 
 function uniqueId() {
@@ -48,7 +20,11 @@ export async function trimVideoFfmpeg(blob: Blob, opts: TrimFfmpegOptions): Prom
   if (typeof window === 'undefined') {
     throw new Error('trimVideoFfmpeg can only run in the browser');
   }
-  const ffmpeg = await loadFfmpeg();
+  const ffmpeg = await getFFmpeg({
+    progress: ({ ratio }) => {
+      opts.onProgress?.(ratio);
+    },
+  });
   const { fetchFile } = await import('@ffmpeg/util');
 
   const inFile = `in-${uniqueId()}`;
@@ -88,10 +64,6 @@ export async function trimVideoFfmpeg(blob: Blob, opts: TrimFfmpegOptions): Prom
       'webm',
       outFile,
     );
-
-    ffmpeg.setProgress(({ ratio }) => {
-      opts.onProgress?.(ratio);
-    });
 
     await ffmpeg.run(...args);
     opts.onProgress?.(1);
