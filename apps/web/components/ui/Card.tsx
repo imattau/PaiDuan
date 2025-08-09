@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 
 export const cardStyle =
-  'bg-[#1e1e1e] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.3)]';
+  'bg-[var(--background-secondary)] rounded-[10px] border border-border-primary shadow-card';
 
 export function Card({
   title,
