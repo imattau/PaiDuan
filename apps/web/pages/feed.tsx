@@ -60,7 +60,7 @@ export default function FeedPage() {
       <AppShell
         left={<MainNav me={me} />}
         center={
-          <div className="h-full">
+          <div className="feed-container h-full">
             {/* tabs bar you already have can stay on top */}
             {videos.length === 0 ? (
               <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />

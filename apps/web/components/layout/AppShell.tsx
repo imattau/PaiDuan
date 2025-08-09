@@ -33,8 +33,8 @@ export default function AppShell({
 
         {/* Right column: author info & comments (sticky on desktop) */}
         {hasRight && (
-          <aside className="hidden lg:block border-l divider sticky top-0 h-screen overflow-y-auto">
-            <div className="p-4">{right}</div>
+          <aside className="sidebar-right hidden lg:block border-l divider sticky top-0 h-screen overflow-y-auto">
+            {right}
           </aside>
         )}
       </div>

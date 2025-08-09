@@ -17,7 +17,7 @@ export default function RightPanel({
   const { selectedVideoId, selectedVideoAuthor } = useFeedSelection();
   const router = useRouter();
   return (
-    <div className="p-[1.2rem] space-y-4">
+    <div className="space-y-4">
       {author && (
         <div className={`${cardStyle} p-4`}>
           <div className="flex gap-3">
@@ -27,23 +27,28 @@ export default function RightPanel({
               width={48}
               height={48}
               className="w-12 h-12 rounded-full object-cover"
+              onError={(e) => (e.currentTarget.src = '/offline.jpg')}
+              unoptimized
             />
             <div>
               <div className="font-semibold">{author.name}</div>
-              <div className="text-sm text-muted">@{author.username}</div>
-              <div className="text-[0.9rem] font-light text-muted mt-1">
+              <div className="username">@{author.username}</div>
+              <div className="meta-info mt-1">
                 {author.followers.toLocaleString()} followers
               </div>
               <div className="mt-3 flex gap-2">
                 <Link
                   href={`/p/${author.pubkey}`}
-                  className="btn btn-secondary"
+                  className="btn btn-secondary px-3 py-1.5 text-sm"
                   prefetch={false}
                   onMouseEnter={() => router.prefetch(`/p/${author.pubkey}`)}
                 >
                   View profile
                 </Link>
-                <button className="btn btn-primary" onClick={() => onFilterByAuthor(author.pubkey)}>
+                <button
+                  className="btn btn-primary px-3 py-1.5 text-sm"
+                  onClick={() => onFilterByAuthor(author.pubkey)}
+                >
                   Filter by author
                 </button>
               </div>
