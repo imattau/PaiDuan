@@ -85,7 +85,7 @@ export function KeySetupStep({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs">
       <Button
-        className="btn-primary w-full"
+        className="btn btn-primary w-full"
         onClick={connectExtension}
         disabled={!(globalThis as any).nostr}
       >

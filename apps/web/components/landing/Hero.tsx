@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 export default function Hero() {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleClick = () => {
-    const privKey = localStorage.privkey
-    router.push(privKey ? '/feed' : '/onboarding/key')
-  }
+    const privKey = localStorage.privkey;
+    router.push(privKey ? '/feed' : '/onboarding/key');
+  };
 
   return (
     <section className="py-16 px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -21,7 +21,7 @@ export default function Hero() {
           Lightning-fast short video, powered by Nostr and Lightning.
         </p>
         <div className="mt-8 flex justify-center md:justify-start">
-          <button className="btn-primary" onClick={handleClick}>
+          <button className="btn btn-primary" onClick={handleClick}>
             Get Started
           </button>
         </div>
@@ -29,5 +29,5 @@ export default function Hero() {
       {/* right: preview grid */}
       <div></div>
     </section>
-  )
+  );
 }
