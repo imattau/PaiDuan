@@ -1,15 +1,22 @@
 'use client';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import MiniProfileCard from '@/components/MiniProfileCard';
 import NotificationBell from '@/components/NotificationBell';
-import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
-import { cardStyle } from '@/components/ui/Card';
 import Logo from '@/components/branding/Logo';
 import { navItems } from './nav';
 import { useLayout } from '@/context/LayoutContext';
+import {
+  Box,
+  VStack,
+  HStack,
+  Link as ChakraLink,
+  IconButton,
+  useColorMode,
+  useColorModeValue,
+} from '@chakra-ui/react';
 
 interface MainNavProps {
   me?: {
@@ -27,21 +34,25 @@ export default function MainNav({
   showSearch = true,
   showProfile = true,
 }: MainNavProps) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
-  const toggleMode = () => setTheme(isDark ? 'light' : 'dark');
+  const { colorMode, toggleColorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params?.locale as string) || undefined;
   const layout = useLayout();
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const muted = useColorModeValue('gray.600', 'gray.400');
+  const activeColor = useColorModeValue('blue.600', 'blue.300');
+  const hoverBg = useColorModeValue('blue.50', 'whiteAlpha.200');
 
   return (
-    <div className="p-[1.2rem] space-y-4">
-      <Link href="/" className="block pl-5" prefetch>
+    <VStack p="1.2rem" spacing={4} align="stretch">
+      <ChakraLink as={NextLink} href="/" pl={5} prefetch>
         <Logo width={160} height={34} />
-      </Link>
+      </ChakraLink>
 
       {/* Search */}
       {showSearch && layout !== 'mobile' && <SearchBar showActions={false} />}
@@ -50,8 +61,8 @@ export default function MainNav({
       {showProfile && layout === 'desktop' && <MiniProfileCard stats={me?.stats} />}
 
       {/* Nav */}
-      <nav className={`${cardStyle} p-2`}>
-        <ul className="flex flex-col">
+      <Box as="nav" bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="lg" p={2}>
+        <VStack align="stretch">
           {navItems.map(({ href, label, icon: Icon }) => {
             const currentUrl = new URL(
               pathname + (searchParams.toString() ? `?${searchParams}` : ''),
@@ -66,37 +77,50 @@ export default function MainNav({
                 ? currentUrl.search === targetUrl.search
                 : currentUrl.search === '');
             return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent-primary/20 focus-visible:text-accent-primary ${
-                    active
-                      ? 'bg-accent-primary/20 text-accent-primary'
-                      : 'text-muted hover:bg-accent-primary/20 hover:text-accent-primary'
-                  }`}
-                  aria-current={active ? 'page' : undefined}
-                  prefetch={false}
-                  onMouseEnter={() => router.prefetch(href)}
-                >
-                  <Icon size={20} /> {label}
-                </Link>
-              </li>
+              <ChakraLink
+                key={href}
+                as={NextLink}
+                href={href}
+                display="flex"
+                alignItems="center"
+                gap={2}
+                px={3}
+                py={2}
+                borderRadius="lg"
+                fontWeight="bold"
+                aria-current={active ? 'page' : undefined}
+                prefetch={false}
+                onMouseEnter={() => router.prefetch(href)}
+                color={active ? activeColor : muted}
+                bg={active ? hoverBg : 'transparent'}
+                _hover={{ bg: hoverBg, color: activeColor }}
+                _focusVisible={{ boxShadow: 'outline' }}
+              >
+                <Icon size={20} /> {label}
+              </ChakraLink>
             );
           })}
-        </ul>
-      </nav>
+        </VStack>
+      </Box>
 
       {/* Actions */}
-      <div className={`${cardStyle} p-2 flex items-center justify-between`}>
-        <button
-          onClick={toggleMode}
-          className="px-3 py-2 rounded-lg hover:bg-white/50 dark:hover:bg-white/10 focus-visible:bg-white/50 dark:focus-visible:bg-white/10"
-        >
-          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
+      <HStack
+        bg={cardBg}
+        borderWidth="1px"
+        borderColor={borderColor}
+        borderRadius="lg"
+        p={2}
+        justify="space-between"
+      >
+        <IconButton
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          icon={isDark ? <Sun size={20} /> : <Moon size={20} />}
+          onClick={toggleColorMode}
+          variant="ghost"
+        />
         <NotificationBell />
-      </div>
+      </HStack>
 
-    </div>
+    </VStack>
   );
 }

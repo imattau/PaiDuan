@@ -1,11 +1,22 @@
 'use client';
 import React from 'react';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Thread from '@/components/comments/Thread';
 import { useFeedSelection } from '@/store/feedSelection';
-import { cardStyle } from '@/components/ui/Card';
+import { useLayout } from '@/context/LayoutContext';
+import {
+  Box,
+  Button,
+  Link as ChakraLink,
+  Stack,
+  Drawer,
+  DrawerContent,
+  DrawerOverlay,
+  DrawerBody,
+  useColorModeValue,
+} from '@chakra-ui/react';
 
 export default function RightPanel({
   author,
@@ -16,52 +27,74 @@ export default function RightPanel({
 }) {
   const { selectedVideoId, selectedVideoAuthor } = useFeedSelection();
   const router = useRouter();
-  return (
-    <div className="space-y-4">
+  const layout = useLayout();
+  const isDesktop = layout === 'desktop';
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const cardBg = useColorModeValue('white', 'gray.800');
+
+  const panelContent = (
+    <Stack spacing={4}>
       {author && (
-        <div className={`${cardStyle} p-4`}>
-          <div className="flex gap-3">
+        <Box bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="lg" p={4}>
+          <Stack direction="row" spacing={3}>
             <Image
               src={author.avatar}
               alt={author.name}
               width={48}
               height={48}
-              className="w-12 h-12 rounded-full object-cover"
+              style={{ borderRadius: '50%', objectFit: 'cover' }}
               onError={(e) => (e.currentTarget.src = '/offline.jpg')}
               unoptimized
             />
-            <div>
-              <div className="font-semibold">{author.name}</div>
-              <div className="username">@{author.username}</div>
-              <div className="meta-info mt-1">
+            <Box>
+              <Box fontWeight="semibold">{author.name}</Box>
+              <Box fontSize="sm" color="gray.500">
+                @{author.username}
+              </Box>
+              <Box mt={1} fontSize="sm" color="gray.500">
                 {author.followers.toLocaleString()} followers
-              </div>
-              <div className="mt-3 flex gap-2">
-                <Link
+              </Box>
+              <Stack mt={3} direction="row" spacing={2}>
+                <ChakraLink
+                  as={NextLink}
                   href={`/p/${author.pubkey}`}
-                  className="btn btn-outline px-3 py-1.5 text-sm"
                   prefetch={false}
                   onMouseEnter={() => router.prefetch(`/p/${author.pubkey}`)}
+                  px={3}
+                  py={1.5}
+                  borderWidth="1px"
+                  borderRadius="md"
                 >
                   View profile
-                </Link>
-                <button
-                  className="btn btn-primary px-3 py-1.5 text-sm"
-                  onClick={() => onFilterByAuthor(author.pubkey)}
-                >
+                </ChakraLink>
+                <Button size="sm" colorScheme="blue" onClick={() => onFilterByAuthor(author.pubkey)}>
                   Filter by author
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                </Button>
+              </Stack>
+            </Box>
+          </Stack>
+        </Box>
       )}
 
       {selectedVideoId && (
-        <div className={`${cardStyle} p-0`}>
+        <Box bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="lg" p={0}>
           <Thread rootId={selectedVideoId} authorPubkey={selectedVideoAuthor} />
-        </div>
+        </Box>
       )}
-    </div>
+    </Stack>
+  );
+
+  if (isDesktop) {
+    return panelContent;
+  }
+
+  const isOpen = !!(author || selectedVideoId);
+  return (
+    <Drawer isOpen={isOpen} placement="right" onClose={() => {}}>
+      <DrawerOverlay />
+      <DrawerContent>
+        <DrawerBody p={4}>{panelContent}</DrawerBody>
+      </DrawerContent>
+    </Drawer>
   );
 }
