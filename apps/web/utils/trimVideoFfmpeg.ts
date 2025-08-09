@@ -14,12 +14,17 @@ let loading: Promise<void> | null = null;
 
 async function loadFfmpeg() {
   if (!ffmpeg) {
-    const { createFFmpeg } = await import('@ffmpeg/ffmpeg');
+    const ffmpegModule = await import('@ffmpeg/ffmpeg');
+    const createFFmpeg = ffmpegModule.createFFmpeg ?? ffmpegModule.default;
     if (!createFFmpeg) {
-      throw new Error('`createFFmpeg` export not found in @ffmpeg/ffmpeg');
+      throw new Error(
+        '@ffmpeg/ffmpeg does not provide a `createFFmpeg` export or default export',
+      );
     }
     if (typeof createFFmpeg !== 'function') {
-      throw new Error('`createFFmpeg` export from @ffmpeg/ffmpeg is not a function');
+      throw new Error(
+        'Resolved `createFFmpeg` export from @ffmpeg/ffmpeg is not a function',
+      );
     }
     // load core from CDN to avoid bundling large assets
     ffmpeg = createFFmpeg({
