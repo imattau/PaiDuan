@@ -5,6 +5,33 @@ import type { Filter } from 'nostr-tools/filter';
 import { VideoCardProps } from '../components/VideoCard';
 import { getRelays } from '@/lib/nostr';
 
+function parseImeta(tags: string[][]) {
+  let videoUrl: string | undefined;
+  let manifestUrl: string | undefined;
+  let posterUrl: string | undefined;
+
+  tags
+    .filter((t) => t[0] === 'imeta')
+    .forEach((t) => {
+      const kv: Record<string, string[]> = {};
+      t.slice(1).forEach((entry) => {
+        const [key, ...rest] = entry.split(' ');
+        const value = rest.join(' ');
+        (kv[key] ||= []).push(value);
+      });
+      if (!posterUrl && kv.image?.[0]) posterUrl = kv.image[0];
+      const url = kv.url?.[0];
+      const m = kv.m?.[0];
+      if (m === 'application/x-mpegURL') {
+        if (!manifestUrl && url) manifestUrl = url;
+      } else {
+        if (!videoUrl && url) videoUrl = url;
+      }
+    });
+
+  return { videoUrl, manifestUrl, posterUrl };
+}
+
 export interface CreatorResult {
   pubkey: string;
   name: string;
@@ -45,7 +72,7 @@ export function useSearch(query: string): SearchResults {
       filters.push({ kinds: [0], search: q, limit: 20 } as Filter);
     } else {
       // search videos and creators
-      const videoFilter: Filter = { kinds: [30023], search: q, limit: 50 };
+      const videoFilter: Filter = { kinds: [21, 22], search: q, limit: 50 };
       if (query.startsWith('#')) {
         (videoFilter as any)['#t'] = [q];
       }
@@ -59,19 +86,18 @@ export function useSearch(query: string): SearchResults {
     debounceRef.current = setTimeout(() => {
       const sub = pool.subscribeMany(relays, filters, {
         onevent: (ev: NostrEvent) => {
-          if (ev.kind === 30023) {
-            const videoTag = ev.tags.find((t) => t[0] === 'v');
-            if (!videoTag) return;
-            const posterTag = ev.tags.find((t) => t[0] === 'image');
-            const manifestTag = ev.tags.find((t) => t[0] === 'vman');
+          if (ev.kind === 21 || ev.kind === 22) {
+            const { videoUrl, manifestUrl, posterUrl } = parseImeta(ev.tags);
+            if (!videoUrl && !manifestUrl) return;
             const zapTags = ev.tags.filter((t) => t[0] === 'zap');
             const tTags = ev.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+            const titleTag = ev.tags.find((t) => t[0] === 'title');
             nextVideos.push({
-              videoUrl: videoTag[1],
-              posterUrl: posterTag ? posterTag[1] : undefined,
-              manifestUrl: manifestTag ? manifestTag[1] : undefined,
+              videoUrl: videoUrl || manifestUrl || '',
+              posterUrl,
+              manifestUrl,
               author: ev.pubkey.slice(0, 8),
-              caption: tTags.join(' '),
+              caption: titleTag ? titleTag[1] : ev.content,
               eventId: ev.id,
               lightningAddress: zapTags.length ? zapTags[0][1] : '',
               pubkey: ev.pubkey,

@@ -18,6 +18,7 @@ export default function CreateVideoForm() {
   const [preview, setPreview] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -120,6 +121,7 @@ export default function CreateVideoForm() {
 
         const width = video.videoWidth;
         const height = video.videoHeight;
+        setDimensions({ width, height });
         const worker = trimVideoWebCodecs(f, {
           start: 0,
           width,
@@ -217,23 +219,28 @@ export default function CreateVideoForm() {
       if (!res.ok) throw new Error('Upload failed');
       const { video, poster, manifest } = await res.json();
 
+      const dim = `${dimensions.width}x${dimensions.height}`;
       const tags: string[][] = [
-        ['v', video],
-        ['image', poster],
-        ['vman', manifest],
+        ['title', caption],
+        ['published_at', Math.floor(Date.now() / 1000).toString()],
+        ['imeta', `dim ${dim}`, `url ${video}`, 'm video/mp4', `image ${poster}`],
         ...topicList.map((t) => ['t', t]),
       ];
+      if (manifest) {
+        tags.push(['imeta', `dim ${dim}`, `url ${manifest}`, 'm application/x-mpegURL', `image ${poster}`]);
+      }
       const creatorPct = Math.max(0, 100 - totalPct);
       if (lightningAddress) tags.push(['zap', lightningAddress, creatorPct.toString()]);
       zapSplits.forEach((s) => {
         if (s.lnaddr && s.pct > 0) tags.push(['zap', s.lnaddr, s.pct.toString()]);
       });
-      if (nsfw) tags.push(['nsfw', 'true']);
+      if (nsfw) tags.push(['content-warning', 'nsfw']);
       if (licenseValue) tags.push(['copyright', licenseValue]);
 
       if (state.status !== 'ready') throw new Error('signer required');
+      const kind = dimensions.width >= dimensions.height ? 21 : 22;
       const event: any = {
-        kind: 30023,
+        kind,
         created_at: Math.floor(Date.now() / 1000),
         content: caption,
         tags,

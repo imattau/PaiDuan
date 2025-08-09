@@ -6,6 +6,33 @@ import { VideoCardProps } from '../components/VideoCard';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { getRelays } from '@/lib/nostr';
 
+function parseImeta(tags: string[][]) {
+  let videoUrl: string | undefined;
+  let manifestUrl: string | undefined;
+  let posterUrl: string | undefined;
+
+  tags
+    .filter((t) => t[0] === 'imeta')
+    .forEach((t) => {
+      const kv: Record<string, string[]> = {};
+      t.slice(1).forEach((entry) => {
+        const [key, ...rest] = entry.split(' ');
+        const value = rest.join(' ');
+        (kv[key] ||= []).push(value);
+      });
+      if (!posterUrl && kv.image?.[0]) posterUrl = kv.image[0];
+      const url = kv.url?.[0];
+      const m = kv.m?.[0];
+      if (m === 'application/x-mpegURL') {
+        if (!manifestUrl && url) manifestUrl = url;
+      } else {
+        if (!videoUrl && url) videoUrl = url;
+      }
+    });
+
+  return { videoUrl, manifestUrl, posterUrl };
+}
+
 export type FeedMode = 'all' | 'following' | { tag: string } | { author: string }; 
 
 interface FeedResult {
@@ -71,7 +98,7 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
     // clean previous subscription
     subRef.current?.close();
 
-    const filter: Filter = { kinds: [30023], limit: 1000 };
+    const filter: Filter = { kinds: [21, 22], limit: 1000 };
     if (mode === 'following') {
       if (authors.length === 0) {
         setItems([]);
@@ -90,21 +117,20 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
     const sub = pool.subscribeMany(relays, [filter], {
       onevent: (event: NostrEvent) => {
         if (hiddenRef.current.has(event.id)) return;
-        const videoTag = event.tags.find((t) => t[0] === 'v');
-        if (!videoTag) return;
-        const posterTag = event.tags.find((t) => t[0] === 'image');
-        const manifestTag = event.tags.find((t) => t[0] === 'vman');
+        const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
+        if (!videoUrl && !manifestUrl) return;
         const zapTags = event.tags.filter((t) => t[0] === 'zap');
         const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
         tTags.forEach((t) => {
           tagCounts[t] = (tagCounts[t] || 0) + 1;
         });
+        const titleTag = event.tags.find((t) => t[0] === 'title');
         nextItems.push({
-          videoUrl: videoTag[1],
-          posterUrl: posterTag ? posterTag[1] : undefined,
-          manifestUrl: manifestTag ? manifestTag[1] : undefined,
+          videoUrl: videoUrl || manifestUrl || '',
+          posterUrl,
+          manifestUrl,
           author: event.pubkey.slice(0, 8),
-          caption: tTags.join(' '),
+          caption: titleTag ? titleTag[1] : event.content,
           eventId: event.id,
           lightningAddress: zapTags.length ? zapTags[0][1] : '',
           pubkey: event.pubkey,
