@@ -6,7 +6,8 @@ import NotificationBell from '@/components/NotificationBell';
 import { Sun, Moon } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import Logo from '@/components/branding/Logo';
-import { navItems } from './nav';
+import { navigation } from '@/config/navigation';
+import { isRouteActive } from '@/utils/navigation';
 import { useLayout } from '@/context/LayoutContext';
 import {
   Box,
@@ -63,24 +64,13 @@ export default function MainNav({
       {/* Nav */}
       <Box as="nav" bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="lg" p={2}>
         <VStack align="stretch">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const currentUrl = new URL(
-              pathname + (searchParams.toString() ? `?${searchParams}` : ''),
-              'http://localhost',
-            );
-            const targetUrl = new URL(href, 'http://localhost');
-            let currentPath = currentUrl.pathname;
-            if (locale) currentPath = currentPath.replace(new RegExp(`^/${locale}`), '');
-            const active =
-              currentPath === targetUrl.pathname &&
-              (targetUrl.search
-                ? currentUrl.search === targetUrl.search
-                : currentUrl.search === '');
+          {navigation.map(({ path, label, icon: Icon }) => {
+            const active = isRouteActive(path, pathname, searchParams, locale);
             return (
               <ChakraLink
-                key={href}
+                key={path}
                 as={NextLink}
-                href={href}
+                href={path}
                 display="flex"
                 alignItems="center"
                 gap={2}
@@ -90,7 +80,7 @@ export default function MainNav({
                 fontWeight="bold"
                 aria-current={active ? 'page' : undefined}
                 prefetch={false}
-                onMouseEnter={() => router.prefetch(href)}
+                onMouseEnter={() => router.prefetch(path)}
                 color={active ? activeColor : muted}
                 bg={active ? hoverBg : 'transparent'}
                 _hover={{ bg: hoverBg, color: activeColor }}
