@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Event, type Filter, finalizeEvent } from 'nostr-tools';
 import * as nostrKinds from 'nostr-tools/kinds';
-import { getPool, getRelays, getMyPrivkey, getMyPubkey } from '@/lib/nostr';
+import { getRelays, getMyPrivkey, getMyPubkey } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 
 type Note = {
   id: string;
@@ -37,7 +38,6 @@ export function useThread(rootEventId?: string) {
 
   useEffect(() => {
     if (!rootEventId) return;
-    const pool = getPool();
     setLoading(true);
     setErr(null);
     setNotes([]);
@@ -83,8 +83,6 @@ export function useThread(rootEventId?: string) {
     };
 
     const ev = finalizeEvent(draft, sk);
-    const pool = getPool();
-
     // optimistic
     setNotes((prev) => [
       ...prev,

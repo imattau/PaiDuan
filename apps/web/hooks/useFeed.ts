@@ -4,7 +4,8 @@ import type { Filter } from 'nostr-tools/filter';
 import { saveEvent } from '@/lib/db';
 import { VideoCardProps } from '../components/VideoCard';
 import { queryClient } from '@/lib/queryClient';
-import { register } from '@/lib/subRegistry';
+import pool from '@/lib/relayPool';
+import { getRelays } from '@/lib/nostr';
 
 function parseImeta(tags: string[][]) {
   let videoUrl: string | undefined;
@@ -65,7 +66,7 @@ async function fetchFeedPage({
   return await new Promise<{ items: VideoCardProps[]; tags: string[]; nextCursor?: number }>((resolve) => {
     const items: { data: VideoCardProps; created: number }[] = [];
     const tagCounts: Record<string, number> = {};
-    const sub = register([filter], {
+    const sub = pool.subscribeMany(getRelays(), [filter], {
       onevent: async (event: NostrEvent) => {
         const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
         if (!videoUrl && !manifestUrl) return;

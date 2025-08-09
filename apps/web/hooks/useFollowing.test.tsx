@@ -6,17 +6,17 @@ import { JSDOM } from 'jsdom';
 import useFollowing from './useFollowing';
 import { useFollowingStore } from '@/store/following';
 
-vi.mock('@/lib/nostr', () => ({
-  getPool: () => ({
+vi.mock('@/lib/relayPool', () => ({
+  default: {
     subscribeMany: (_relays: any, _filters: any, opts: any) => {
       setTimeout(() => {
         opts.onevent({ tags: [['p', 'pk1'], ['p', 'pk2']] });
       }, 0);
       return { close: vi.fn() };
     },
-  }),
-  getRelays: () => ['wss://example.com'],
+  },
 }));
+vi.mock('@/lib/nostr', () => ({ getRelays: () => ['wss://example.com'] }));
 
 vi.mock('./useAuth', () => ({
   useAuth: () => ({ state: { status: 'ready', pubkey: 'me' } }),

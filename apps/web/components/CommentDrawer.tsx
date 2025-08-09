@@ -7,7 +7,8 @@ import analytics from '../utils/analytics';
 import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { useAuth } from '@/hooks/useAuth';
-import { getRelays, getPool } from '@/lib/nostr';
+import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 import { useModqueue } from '@/context/modqueueContext';
 import useFocusTrap from '../hooks/useFocusTrap';
 
@@ -81,7 +82,6 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   // Subscribe to comments
   useEffect(() => {
     if (!open) return;
-    const pool = getPool();
     const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [1], '#e': [videoId] }], {
       onevent: (ev: any) => {
         setEvents((prev) => {
@@ -99,8 +99,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
   // fetch reports to hide comments
   useEffect(() => {
     if (!open) return;
-    const pool = getPool() as any;
-    const sub = pool.subscribeMany(getRelays(), [{ kinds: [9001] }], {
+    const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [9001] }], {
       onevent: (ev: any) => {
         const tag = ev.tags.find((t: string[]) => t[0] === 'e');
         if (tag) setExtraHiddenIds((prev) => new Set(prev).add(tag[1]));
@@ -141,7 +140,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       setEvents((prev) => [...prev, signed].sort((a, b) => a.created_at - b.created_at));
       setInput('');
       setReplyTo(null);
-      await getPool().publish(getRelays(), signed);
+      await pool.publish(getRelays(), signed);
       toast.success('Comment sent');
       analytics.trackEvent('comment_send');
     } catch (err) {

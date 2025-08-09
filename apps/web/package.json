@@ -16,11 +16,13 @@
     "@ffmpeg/util": "^0.12.2",
     "@headlessui/react": "^2.2.7",
     "@noble/hashes": "^1.3.1",
+    "@nostr-dev-kit/ndk": "^2.14.33",
     "@paiduan/ui": "workspace:*",
     "@react-spring/web": "^9.7.2",
     "@sentry/nextjs": "^10.3.0",
     "@tanstack/react-query": "^5.84.2",
     "clsx": "^2.1.1",
+    "dexie": "^4.0.11",
     "framer-motion": "^12.23.12",
     "libavjs-webcodecs-polyfill": "^0.5.5",
     "lnurl-pay": "^4.0.0",
@@ -44,8 +46,7 @@
     "recharts": "^2.8.0",
     "tailwindcss-plugin-rtl": "^1.2.0",
     "web-push": "^3.6.0",
-    "zustand": "^4.5.2",
-    "dexie": "^4.0.11"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",

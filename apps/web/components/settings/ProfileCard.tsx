@@ -3,7 +3,8 @@ import Image from 'next/image';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { getPool, getRelays } from '@/lib/nostr';
+import { getRelays } from '@/lib/nostr';
+import pool from '@/lib/relayPool';
 import { Card } from '../ui/Card';
 
 export function ProfileCard() {
@@ -41,7 +42,6 @@ export function ProfileCard() {
         content,
       };
       const signed = await state.signer.signEvent({ ...tmpl });
-      const pool = getPool();
       await pool.publish(getRelays(), signed as any);
       setSaving(false);
     } catch (e: any) {
