@@ -27,12 +27,12 @@ describe('useLightning', () => {
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ json: async () => ({ callback: 'https://cb1' }) })
-      .mockResolvedValueOnce({ json: async () => ({ pr: 'inv1' }) })
-      .mockResolvedValueOnce({ json: async () => ({ callback: 'https://cb2' }) })
-      .mockResolvedValueOnce({ json: async () => ({ pr: 'inv2' }) })
-      .mockResolvedValueOnce({ json: async () => ({ callback: 'https://cb3' }) })
-      .mockResolvedValueOnce({ json: async () => ({ pr: 'inv3' }) });
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb1' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv1' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb2' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv2' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb3' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
     // @ts-ignore
     global.fetch = fetchMock;
     // @ts-ignore

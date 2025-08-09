@@ -2,6 +2,7 @@ import { SimplePool } from 'nostr-tools/pool';
 import type { Filter } from 'nostr-tools/filter';
 import { useAuth } from './useAuth';
 import { getRelays } from '../lib/nostr';
+import { fetchPayData, requestInvoice } from '../utils/lnurl';
 
 interface ZapArgs {
   lightningAddress: string;
@@ -21,17 +22,8 @@ export default function useLightning() {
   const { state } = useAuth();
 
   const payLn = async (lnaddr: string, sats: number, comment?: string) => {
-    const [name, domain] = lnaddr.split('@');
-    const payRes = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
-    const payData = await payRes.json();
-    const callback: string = payData.callback;
-    const invoiceRes = await fetch(`${callback}?amount=${sats * 1000}&comment=${encodeURIComponent(comment ?? '')}`);
-    const invoiceData = await invoiceRes.json();
-    const invoice: string = invoiceData.pr;
-    if (typeof window !== 'undefined') {
-      window.open(`lightning:${invoice}`);
-    }
-    return { invoice, result: invoiceData };
+    const payData = await fetchPayData(lnaddr);
+    return requestInvoice(payData, sats, comment);
   };
 
   const createZap = async ({ lightningAddress, amount, comment, eventId, pubkey }: ZapArgs) => {
