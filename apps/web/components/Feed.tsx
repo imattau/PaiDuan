@@ -17,7 +17,8 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const [{ y }, api] = useSpring(() => ({ y: 0 }));
 
   const wheelOffset = useRef(0);
-  const { setSelectedVideo } = useFeedSelection();
+  const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
+  const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
 
   const next = useCallback(() => {
     setIndex((i) => (i < items.length - 1 ? i + 1 : i));
@@ -85,9 +86,10 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   }, [index, items.length, loadMore]);
 
   useEffect(() => {
-    if (!items[index]) return;
-    setSelectedVideo(items[index].eventId, items[index].pubkey);
-  }, [index, items, setSelectedVideo]);
+    if (items[index] && items[index].eventId !== selectedVideoId) {
+      setSelectedVideo(items[index].eventId, items[index].pubkey);
+    }
+  }, [index, items, setSelectedVideo, selectedVideoId]);
 
   if (loading) {
     return (
