@@ -12,6 +12,14 @@ export const ndk = new NDK({ explicitRelayUrls: getRelays() });
 // establish connections eagerly so hooks/components can use it immediately
 ndk.connect();
 
+// update relay connections when the list changes
+if (typeof window !== 'undefined') {
+  window.addEventListener('pd.relays', () => {
+    ndk.explicitRelayUrls = getRelays();
+    ndk.connect();
+  });
+}
+
 const LS_KEY = 'pd.auth.v1';
 
 function loadAuth(): any | undefined {
