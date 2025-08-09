@@ -21,7 +21,7 @@ export async function trimVideoFfmpeg(blob: Blob, opts: TrimFfmpegOptions): Prom
     throw new Error('trimVideoFfmpeg can only run in the browser');
   }
   const ffmpeg = await getFFmpeg({
-    progress: ({ ratio }) => {
+    onProgress: (ratio) => {
       opts.onProgress?.(ratio);
     },
   });

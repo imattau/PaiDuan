@@ -9,27 +9,19 @@ import { queryClient } from '../../lib/queryClient';
 
 (globalThis as any).React = React;
 
-class MockWorker {
-  onmessage: ((ev: any) => void) | null = null;
-  constructor(private messages: any[]) {
-    setTimeout(() => {
-      for (const m of this.messages) {
-        this.onmessage?.({ data: m });
-      }
-    }, 0);
-  }
-  postMessage() {}
-  terminate() {}
-}
-
 const mockTrim = vi.fn();
+vi.mock('../../utils/trimVideoFfmpeg', () => ({
+  trimVideoFfmpeg: (...args: any[]) => mockTrim(...(args as any)),
+}));
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
-  trimVideoWebCodecs: (...args: any[]) => mockTrim(...(args as any)),
+  trimVideoWebCodecs: vi.fn(() => null),
 }));
 
 const mockSignEvent = vi.fn(() => Promise.resolve({}));
 vi.mock('../../hooks/useAuth', () => ({
-  useAuth: () => ({ state: { status: 'ready', pubkey: 'pub', signer: { signEvent: mockSignEvent } } }),
+  useAuth: () => ({
+    state: { status: 'ready', pubkey: 'pub', signer: { signEvent: mockSignEvent } },
+  }),
 }));
 
 vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
@@ -67,10 +59,11 @@ describe('CreateVideoForm', () => {
 
   it('auto converts selected file and keeps publish disabled until form complete', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation(() => new MockWorker([
-      { type: 'progress', progress: 0.5 },
-      { type: 'done', blob: new Blob() },
-    ]));
+    mockTrim.mockImplementation((_f: any, opts: any) => {
+      opts.onProgress?.(0.5);
+      opts.onProgress?.(1);
+      return Promise.resolve(new Blob());
+    });
 
     const container = document.createElement('div');
     const root = createRoot(container);
@@ -83,20 +76,22 @@ describe('CreateVideoForm', () => {
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-    const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    const publishButton = container.querySelector(
+      '[data-testid="publish-button"]',
+    ) as HTMLButtonElement;
     const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
 
     await act(async () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    await new Promise((r) => setTimeout(r));
-    await new Promise((r) => setTimeout(r));
+    await Promise.resolve();
 
     expect(mockTrim).toHaveBeenCalledWith(file, {
       start: 0,
       width: 640,
       height: 480,
+      onProgress: expect.any(Function),
     });
     expect(container.querySelector('.bg-blue-500')).not.toBeNull();
     expect(publishButton.disabled).toBe(true);
@@ -109,10 +104,7 @@ describe('CreateVideoForm', () => {
       .querySelector('input') as HTMLInputElement;
 
     const setValue = (el: HTMLInputElement, value: string) => {
-      const proto = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        'value',
-      );
+      const proto = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
       proto?.set?.call(el, value);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
@@ -121,19 +113,24 @@ describe('CreateVideoForm', () => {
       setValue(lightningInput, 'addr');
     });
     await Promise.resolve();
-    const publishButtonAfter = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    const publishButtonAfter = container.querySelector(
+      '[data-testid="publish-button"]',
+    ) as HTMLButtonElement;
     expect(publishButtonAfter.disabled).toBe(false);
   });
 
   it('posts video when publish is clicked', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation(() => new MockWorker([
-      { type: 'progress', progress: 1 },
-      { type: 'done', blob: new Blob() },
-    ]));
+    mockTrim.mockImplementation((_f: any, opts: any) => {
+      opts.onProgress?.(1);
+      return Promise.resolve(new Blob());
+    });
 
     const mockFetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }),
+      }),
     );
     (globalThis as any).fetch = mockFetch;
     (globalThis as any).alert = vi.fn();
@@ -155,22 +152,22 @@ describe('CreateVideoForm', () => {
     const lightningInput = Array.from(container.querySelectorAll('label'))
       .find((l) => l.textContent?.includes('Lightning address'))!
       .querySelector('input') as HTMLInputElement;
-    const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
-    const licenseSelect = container.querySelector('[data-testid="license-select"]') as HTMLSelectElement;
+    const publishButton = container.querySelector(
+      '[data-testid="publish-button"]',
+    ) as HTMLButtonElement;
+    const licenseSelect = container.querySelector(
+      '[data-testid="license-select"]',
+    ) as HTMLSelectElement;
     const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
 
     await act(async () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    await new Promise((r) => setTimeout(r));
-    await new Promise((r) => setTimeout(r));
+    await Promise.resolve();
 
     const setValue = (el: HTMLInputElement, value: string) => {
-      const proto = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        'value',
-      );
+      const proto = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
       proto?.set?.call(el, value);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
@@ -181,7 +178,9 @@ describe('CreateVideoForm', () => {
       licenseSelect.dispatchEvent(new Event('change', { bubbles: true }));
     });
     await Promise.resolve();
-    const publishBtn = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    const publishBtn = container.querySelector(
+      '[data-testid="publish-button"]',
+    ) as HTMLButtonElement;
 
     await act(async () => {
       publishBtn.click();
@@ -195,13 +194,16 @@ describe('CreateVideoForm', () => {
 
   it('saves zap splits for collaborators', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation(() => new MockWorker([
-      { type: 'progress', progress: 1 },
-      { type: 'done', blob: new Blob() },
-    ]));
+    mockTrim.mockImplementation((_f: any, opts: any) => {
+      opts.onProgress?.(1);
+      return Promise.resolve(new Blob());
+    });
 
     const mockFetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }),
+      }),
     );
     (globalThis as any).fetch = mockFetch;
     (globalThis as any).alert = vi.fn();
@@ -233,14 +235,10 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    await new Promise((r) => setTimeout(r));
-    await new Promise((r) => setTimeout(r));
+    await Promise.resolve();
 
     const setValue = (el: HTMLInputElement, value: string) => {
-      const proto = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        'value',
-      );
+      const proto = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
       proto?.set?.call(el, value);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
@@ -259,7 +257,9 @@ describe('CreateVideoForm', () => {
       setValue(pctInput, '10');
     });
 
-    const publishBtn = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
+    const publishBtn = container.querySelector(
+      '[data-testid="publish-button"]',
+    ) as HTMLButtonElement;
     await act(async () => {
       publishBtn.click();
     });
@@ -273,13 +273,16 @@ describe('CreateVideoForm', () => {
 
   it('uses custom license when Other is selected', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
-    mockTrim.mockImplementation(() => new MockWorker([
-      { type: 'progress', progress: 1 },
-      { type: 'done', blob: new Blob() },
-    ]));
+    mockTrim.mockImplementation((_f: any, opts: any) => {
+      opts.onProgress?.(1);
+      return Promise.resolve(new Blob());
+    });
 
     const mockFetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }) }),
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ video: 'v', poster: 'p', manifest: 'm' }),
+      }),
     );
     (globalThis as any).fetch = mockFetch;
     (globalThis as any).alert = vi.fn();
@@ -301,8 +304,12 @@ describe('CreateVideoForm', () => {
     const lightningInput = Array.from(container.querySelectorAll('label'))
       .find((l) => l.textContent?.includes('Lightning address'))!
       .querySelector('input') as HTMLInputElement;
-    const publishButton = container.querySelector('[data-testid="publish-button"]') as HTMLButtonElement;
-    const licenseSelect = container.querySelector('[data-testid="license-select"]') as HTMLSelectElement;
+    const publishButton = container.querySelector(
+      '[data-testid="publish-button"]',
+    ) as HTMLButtonElement;
+    const licenseSelect = container.querySelector(
+      '[data-testid="license-select"]',
+    ) as HTMLSelectElement;
 
     const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
 
@@ -310,14 +317,10 @@ describe('CreateVideoForm', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    await new Promise((r) => setTimeout(r));
-    await new Promise((r) => setTimeout(r));
+    await Promise.resolve();
 
     const setValue = (el: HTMLInputElement, value: string) => {
-      const proto = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        'value',
-      );
+      const proto = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
       proto?.set?.call(el, value);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
@@ -342,4 +345,3 @@ describe('CreateVideoForm', () => {
     expect(tags).toContainEqual(['copyright', 'My License']);
   });
 });
-

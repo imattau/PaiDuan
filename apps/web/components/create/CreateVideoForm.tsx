@@ -18,7 +18,10 @@ export default function CreateVideoForm() {
   const [preview, setPreview] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
-  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -122,14 +125,10 @@ export default function CreateVideoForm() {
         const width = video.videoWidth;
         const height = video.videoHeight;
         setDimensions({ width, height });
-        const worker = trimVideoWebCodecs(f, {
-          start: 0,
-          width,
-          height,
-        });
         URL.revokeObjectURL(url);
         video.remove();
-        if (!worker) {
+
+        try {
           const blob = await trimVideoFfmpeg(f, {
             start: 0,
             width,
@@ -139,37 +138,34 @@ export default function CreateVideoForm() {
           setOutBlob(blob);
           updatePreview(URL.createObjectURL(blob));
           return;
+        } catch (err: any) {
+          console.error(err);
+          setErr(err?.message || 'Conversion failed.');
+          setProgress(0);
         }
-        worker.onmessage = async (ev: MessageEvent) => {
+
+        const worker = trimVideoWebCodecs(f, {
+          start: 0,
+          width,
+          height,
+        });
+        if (!worker) return;
+        worker.onmessage = (ev: MessageEvent) => {
           const msg = ev.data as any;
           if (msg?.type === 'progress') {
             setProgress(Math.round((msg.progress || 0) * 100));
           } else if (msg?.type === 'error') {
             worker.terminate();
+            setErr(
+              msg.error === 'unsupported-codec'
+                ? 'Unsupported video codec. Please convert your video and try again.'
+                : msg.error === 'no-keyframe'
+                  ? 'Cannot trim this video because it lacks a key frame.'
+                  : msg.error === 'demux-failed'
+                    ? 'Failed to read video file.'
+                    : msg.message || 'Conversion failed.',
+            );
             setProgress(0);
-            setErr(null);
-            try {
-              const blob = await trimVideoFfmpeg(f, {
-                start: 0,
-                width,
-                height,
-                onProgress: (p) => setProgress(Math.round(p * 100)),
-              });
-              setOutBlob(blob);
-              updatePreview(URL.createObjectURL(blob));
-            } catch (err: any) {
-              console.error(err);
-              setErr(
-                msg.error === 'unsupported-codec'
-                  ? 'Unsupported video codec. Please convert your video and try again.'
-                  : msg.error === 'no-keyframe'
-                    ? 'Cannot trim this video because it lacks a key frame.'
-                    : msg.error === 'demux-failed'
-                      ? 'Failed to read video file.'
-                      : msg.message || 'Conversion failed.'
-              );
-              setProgress(0);
-            }
           } else if (msg?.type === 'done') {
             const blob: Blob = msg.blob;
             setOutBlob(blob);
@@ -226,7 +222,13 @@ export default function CreateVideoForm() {
         ...topicList.map((t) => ['t', t]),
       ];
       if (manifest) {
-        tags.push(['imeta', `dim ${dim}`, `url ${manifest}`, 'm application/x-mpegURL', `image ${poster}`]);
+        tags.push([
+          'imeta',
+          `dim ${dim}`,
+          `url ${manifest}`,
+          'm application/x-mpegURL',
+          `image ${poster}`,
+        ]);
       }
       const creatorPct = Math.max(0, 100 - totalPct);
       if (lightningAddress) tags.push(['zap', lightningAddress, creatorPct.toString()]);
