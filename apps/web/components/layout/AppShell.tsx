@@ -16,8 +16,8 @@ export default function AppShell({
         </aside>
 
         {/* Middle column: main feed */}
-        <main className="min-h-screen">
-          <div className="max-w-2xl mx-auto px-4 py-6">{center}</div>
+        <main className="h-screen overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-4 py-4">{center}</div>
         </main>
 
         {/* Right column: author info & comments (sticky on desktop) */}
