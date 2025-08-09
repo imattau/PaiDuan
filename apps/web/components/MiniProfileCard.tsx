@@ -20,6 +20,7 @@ export default function MiniProfileCard({
         alt="Profile avatar"
         width={80}
         height={80}
+        priority
         className="mx-auto mb-2 h-20 w-20 rounded-full"
       />
       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">@{name}</div>

@@ -27,6 +27,7 @@ export default function TopNavProfile() {
         alt="Profile avatar"
         width={80}
         height={80}
+        priority
         className="h-20 w-20 rounded-lg"
       />
     </div>
