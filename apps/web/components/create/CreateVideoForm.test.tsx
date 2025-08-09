@@ -10,14 +10,10 @@ import { queryClient } from '../../lib/queryClient';
 (globalThis as any).React = React;
 
 const mockTrim = vi.fn();
-vi.mock('../../utils/trimVideoFfmpeg', () => ({
-  trimVideoFfmpeg: (...args: any[]) => mockTrim(...(args as any)),
-  terminateFfmpegPool: vi.fn(),
-}));
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
-  trimVideoWebCodecs: vi.fn(() => Promise.resolve(null)),
+  trimVideoWebCodecs: (...args: any[]) => mockTrim(...(args as any)),
 }));
-vi.mock('../../utils/codec', () => ({ sniffCodec: () => Promise.resolve('hvc1') }));
+vi.mock('../../utils/codec', () => ({ sniffCodec: () => Promise.resolve('avc1') }));
 vi.mock('../../utils/canDecode', () => ({ canDecode: () => Promise.resolve(true) }));
 
 const mockSignEvent = vi.fn(() => Promise.resolve({}));

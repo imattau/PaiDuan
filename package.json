@@ -8,8 +8,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:analytics": "vitest run scripts/aggregate-creator-stats.test.ts apps/web/app/api/creator-stats.test.ts",
-    "cron:summary": "node scripts/cron-summary.js",
-    "postinstall": "node scripts/install-ffmpeg-core.js"
+    "cron:summary": "node scripts/cron-summary.js"
   },
   "packageManager": "pnpm@10.5.2",
   "devDependencies": {

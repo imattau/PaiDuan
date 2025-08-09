@@ -4,7 +4,6 @@ import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
-import { trimVideoFfmpeg, terminateFfmpegPool } from '../../utils/trimVideoFfmpeg';
 import { sniffCodec } from '../../utils/codec';
 import { canDecode } from '../../utils/canDecode';
 import { useAuth } from '../../hooks/useAuth';
@@ -144,12 +143,6 @@ export default function CreateVideoForm() {
     };
   }, [preview]);
 
-  useEffect(() => {
-    return () => {
-      terminateFfmpegPool();
-    };
-  }, []);
-
   async function onPick(f: File | null) {
     setFile(f);
     setOutBlob(null);
@@ -177,46 +170,10 @@ export default function CreateVideoForm() {
         const codec = await sniffCodec(f);
         const supported = codec && codec !== 'hvc1' ? await canDecode(codec) : false;
         if (!supported) {
-          setErr(
-            codec === 'hvc1'
-              ? 'HEVC/H.265 detected; converting with FFmpeg.'
-              : 'Unsupported codec; converting with FFmpeg.',
-          );
-          try {
-            const blob = await trimVideoFfmpeg(f, {
-              start: 0,
-              width,
-              height,
-              onProgress: (p) => setProgress(Math.round(p * 100)),
-            });
-            setErr(null);
-            setOutBlob(blob);
-            updatePreview(URL.createObjectURL(blob));
-          } catch (err: any) {
-            console.error(err);
-            setErr(err?.message || 'Conversion failed.');
-            setProgress(0);
-          }
+          setErr(codec === 'hvc1' ? 'HEVC/H.265 not supported.' : 'Unsupported video codec.');
+          setProgress(0);
           return;
         }
-
-        const ffmpegFallback = async (clearErr = false) => {
-          try {
-            const blob = await trimVideoFfmpeg(f, {
-              start: 0,
-              width,
-              height,
-              onProgress: (p) => setProgress(Math.round(p * 100)),
-            });
-            if (clearErr) setErr(null);
-            setOutBlob(blob);
-            updatePreview(URL.createObjectURL(blob));
-          } catch (err: any) {
-            console.error(err);
-            setErr(err?.message || 'Conversion failed.');
-            setProgress(0);
-          }
-        };
 
         let blob: Blob | null = null;
         try {
@@ -232,12 +189,6 @@ export default function CreateVideoForm() {
         } catch (err: any) {
           console.error(err);
           const code = (err as any)?.code;
-          if (code === 'unsupported-codec') {
-            setErr('Unsupported video codec. Converting with FFmpeg.');
-            setProgress(0);
-            await ffmpegFallback(true);
-            return;
-          }
           if (code === 'no-keyframe') {
             setErr('Cannot trim this video because it lacks a key frame.');
             setProgress(0);
@@ -250,13 +201,11 @@ export default function CreateVideoForm() {
           }
           setErr(err?.message || 'Video processing failed. Relax Shields or try again.');
           setProgress(0);
-          await ffmpegFallback();
           return;
         }
 
         if (!blob) {
-          setErr('WebCodecs unavailable. Using slower FFmpeg conversion.');
-          await ffmpegFallback();
+          setErr('WebCodecs unavailable in this browser.');
           return;
         }
 
