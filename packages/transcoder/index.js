@@ -48,7 +48,7 @@ export class Transcoder {
   writeManifest(variants, dir) {
     const manifest = {};
     for (const [h, file] of Object.entries(variants)) {
-      manifest[h] = `/${file.replace(/\\/g, '/')}`;
+      manifest[h] = `/${file.replace(/\/g, '/')}`;
     }
     writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest));
   }
