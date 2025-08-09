@@ -34,6 +34,7 @@
     "react-use-gesture": "^9.1.3",
     "recharts": "^2.8.0",
     "tailwindcss-plugin-rtl": "^1.2.0",
+    "qrcode": "^1.5.3",
     "web-push": "^3.6.0",
     "zustand": "^4.5.2"
   },

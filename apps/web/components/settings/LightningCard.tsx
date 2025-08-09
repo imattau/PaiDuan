@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import QRCode from 'qrcode';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -20,11 +21,24 @@ export function LightningCard() {
   const [zapSplits, setZapSplits] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [qr, setQr] = useState('');
 
   useEffect(() => {
     if (Array.isArray(meta?.wallets)) setWallets(meta.wallets);
     if (Array.isArray(meta?.zapSplits)) setZapSplits(meta.zapSplits);
   }, [meta]);
+
+  const defaultAddress = wallets.find((w) => w.default)?.lnaddr;
+
+  useEffect(() => {
+    if (defaultAddress) {
+      QRCode.toDataURL(defaultAddress)
+        .then((url) => setQr(url))
+        .catch(() => setQr(''));
+    } else {
+      setQr('');
+    }
+  }, [defaultAddress]);
 
   const addWallet = () => {
     setWallets((w) => [...w, { label: '', lnaddr: '', default: w.length === 0 }]);
@@ -166,13 +180,22 @@ export function LightningCard() {
               placeholder="Label"
               className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
             />
-            <input
-              type="text"
-              value={w.lnaddr}
-              onChange={(e) => updateWallet(i, { lnaddr: e.target.value })}
-              placeholder="name@example.com"
-              className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={w.lnaddr}
+                onChange={(e) => updateWallet(i, { lnaddr: e.target.value })}
+                placeholder="name@example.com"
+                className="flex-1 rounded bg-text-primary/10 p-2 text-sm outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(w.lnaddr)}
+                className="text-sm text-accent-primary"
+              >
+                Copy
+              </button>
+            </div>
             <div className="flex items-center gap-2">
               <input
                 type="radio"
@@ -200,6 +223,19 @@ export function LightningCard() {
         <button type="button" onClick={addWallet} className="btn btn-secondary">
           Add wallet
         </button>
+        {qr && (
+          <div className="flex justify-center">
+            <img src={qr} alt="Lightning address QR code" className="h-32 w-32" />
+          </div>
+        )}
+        <a
+          href="https://lightningaddress.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-accent-primary"
+        >
+          What is a Lightning address?
+        </a>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <div className="flex flex-wrap gap-2">
           <button
