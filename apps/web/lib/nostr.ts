@@ -1,6 +1,7 @@
 'use client';
 import { SimplePool } from 'nostr-tools/pool';
 import { getPublicKey } from 'nostr-tools/pure';
+import { hexToBytes } from 'nostr-tools/utils';
 import relaysConfig from '../relays.json';
 
 let _pool: SimplePool | null = null;
@@ -32,7 +33,7 @@ export function getMyPubkey(): string | undefined {
   const sk = getMyPrivkey();
   if (!sk) return undefined;
   try {
-    return getPublicKey(sk);
+    return getPublicKey(hexToBytes(sk));
   } catch {
     return undefined;
   }
