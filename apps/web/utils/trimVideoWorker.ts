@@ -1,4 +1,4 @@
-import * as MP4Box from 'mp4box';
+import { createFile } from 'mp4box';
 
 function detectCodec(blobType?: string, trackCodec?: string): string | null {
   const candidates = [trackCodec, blobType];
@@ -36,7 +36,7 @@ self.onmessage = async (e: MessageEvent) => {
     }
 
     const buffer = await (blob as Blob).arrayBuffer();
-    const mp4box = MP4Box.createFile();
+    const mp4box = createFile();
     let track: any;
     let demuxError: any;
     const samples: { data: Uint8Array; timestamp: number; type: 'key' | 'delta' }[] = [];
