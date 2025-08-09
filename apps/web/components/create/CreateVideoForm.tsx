@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
@@ -143,8 +144,7 @@ export default function CreateVideoForm() {
     };
   }, [preview]);
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0] ?? null;
+  async function onPick(f: File | null) {
     setFile(f);
     setOutBlob(null);
     updatePreview(f ? URL.createObjectURL(f) : null);
@@ -278,6 +278,18 @@ export default function CreateVideoForm() {
       }
     }
   }
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'video/webm': [],
+      'video/mp4': [],
+      'video/quicktime': [],
+      'video/ogg': [],
+    },
+    onDrop: (accepted) => {
+      onPick(accepted[0] ?? null);
+    },
+  });
 
   const onSubmit = async (values: FormValues) => {
     if (!outBlob) {
@@ -523,32 +535,35 @@ export default function CreateVideoForm() {
       </div>
       <div className="flex flex-1 flex-wrap gap-4 items-start">
         <div className="space-y-4">
-          <input
-            type="file"
-            accept="video/webm,video/mp4,video/mov,video/ogg"
-            onChange={onPick}
-            className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          />
-          {preview ? (
-            <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
+          <div
+            {...getRootProps({
+              className:
+                'relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl',
+            })}
+          >
+            <input {...getInputProps()} />
+            {preview ? (
               <video
                 ref={videoRef}
                 controls
                 src={preview}
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              {progress > 0 && progress < 100 && (
-                <div
-                  className="absolute left-0 bottom-0 h-1 bg-blue-500"
-                  style={{ width: `${progress}%` }}
-                />
-              )}
-            </div>
-          ) : (
-            <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
+            ) : (
               <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
-            </div>
-          )}
+            )}
+            {isDragActive && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">
+                Drop the file here
+              </div>
+            )}
+            {progress > 0 && progress < 100 && (
+              <div
+                className="absolute left-0 bottom-0 h-1 bg-blue-500"
+                style={{ width: `${progress}%` }}
+              />
+            )}
+          </div>
           {err && <p className="text-sm text-red-500">{err}</p>}
         </div>
         <div className="space-y-4">{form}</div>
