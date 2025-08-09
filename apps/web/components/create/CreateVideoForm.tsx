@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
 import { trimVideoWebCodecs } from '../../utils/trimVideoWebCodecs';
+import { trimVideoFfmpeg } from '../../utils/trimVideoFfmpeg';
 import { SimplePool } from 'nostr-tools/pool';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
@@ -86,8 +87,7 @@ export default function CreateVideoForm() {
     .filter(Boolean);
   const totalPct = zapSplits.reduce((sum, s) => sum + s.pct, 0);
   const splitsValid = totalPct <= 95 && zapSplits.every((s) => s.lnaddr && s.pct > 0);
-  const formValid =
-    !!outBlob && !!lightningAddress.trim() && topicList.length > 0 && splitsValid;
+  const formValid = !!outBlob && !!lightningAddress.trim() && topicList.length > 0 && splitsValid;
 
   useEffect(() => {
     if (videoRef.current && preview) {
@@ -118,15 +118,24 @@ export default function CreateVideoForm() {
           video.src = url;
         });
 
+        const width = video.videoWidth;
+        const height = video.videoHeight;
         const worker = trimVideoWebCodecs(f, {
           start: 0,
-          width: video.videoWidth,
-          height: video.videoHeight,
+          width,
+          height,
         });
         URL.revokeObjectURL(url);
         video.remove();
         if (!worker) {
-          setErr('Video trimming not supported in this browser');
+          const blob = await trimVideoFfmpeg(f, {
+            start: 0,
+            width,
+            height,
+            onProgress: (p) => setProgress(Math.round(p * 100)),
+          });
+          setOutBlob(blob);
+          updatePreview(URL.createObjectURL(blob));
           return;
         }
         worker.onmessage = (ev: MessageEvent) => {
@@ -138,7 +147,9 @@ export default function CreateVideoForm() {
             if (msg.error === 'unsupported-codec') {
               setErr('Unsupported video codec. Please convert your video and try again.');
             } else if (msg.error === 'no-keyframe') {
-              setErr('Cannot trim this video because it lacks a key frame. Using the original file.');
+              setErr(
+                'Cannot trim this video because it lacks a key frame. Using the original file.',
+              );
               setOutBlob(f);
               updatePreview(URL.createObjectURL(f));
             } else if (msg.error === 'demux-failed') {
@@ -156,16 +167,15 @@ export default function CreateVideoForm() {
             worker.terminate();
           }
         };
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
-        setErr('Conversion failed.');
+        setErr(e?.message || 'Conversion failed.');
         setProgress(0);
       }
     }
   }
 
   async function postVideo() {
-
     if (!outBlob) {
       alert('Please process a video first');
       return;
@@ -205,8 +215,7 @@ export default function CreateVideoForm() {
         ...topicList.map((t) => ['t', t]),
       ];
       const creatorPct = Math.max(0, 100 - totalPct);
-      if (lightningAddress)
-        tags.push(['zap', lightningAddress, creatorPct.toString()]);
+      if (lightningAddress) tags.push(['zap', lightningAddress, creatorPct.toString()]);
       zapSplits.forEach((s) => {
         if (s.lnaddr && s.pct > 0) tags.push(['zap', s.lnaddr, s.pct.toString()]);
       });
@@ -328,27 +337,17 @@ export default function CreateVideoForm() {
             onChange={(e) => updateSplit(i, 'pct', e.target.value)}
             className="w-20 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
-          <button
-            type="button"
-            className="text-xs underline"
-            onClick={() => removeSplit(i)}
-          >
+          <button type="button" className="text-xs underline" onClick={() => removeSplit(i)}>
             remove
           </button>
         </div>
       ))}
       {zapSplits.length < 4 && totalPct < 95 && (
-        <button
-          type="button"
-          onClick={addSplit}
-          className="rounded border px-2 py-1 text-sm"
-        >
+        <button type="button" onClick={addSplit} className="rounded border px-2 py-1 text-sm">
           Add collaborator
         </button>
       )}
-      {zapSplits.length > 0 && (
-        <div className="text-sm">Total {totalPct}% / 95%</div>
-      )}
+      {zapSplits.length > 0 && <div className="text-sm">Total {totalPct}% / 95%</div>}
       <datalist id="lnaddr-options">
         {following.map((pk) => {
           const p = profiles.get(pk);
@@ -421,26 +420,26 @@ export default function CreateVideoForm() {
             onChange={onPick}
             className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
-            {preview ? (
-              <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
-                <video
-                  ref={videoRef}
-                  controls
-                  src={preview}
-                  className="absolute inset-0 h-full w-full object-cover"
+          {preview ? (
+            <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
+              <video
+                ref={videoRef}
+                controls
+                src={preview}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {progress > 0 && progress < 100 && (
+                <div
+                  className="absolute left-0 bottom-0 h-1 bg-blue-500"
+                  style={{ width: `${progress}%` }}
                 />
-                {progress > 0 && progress < 100 && (
-                  <div
-                    className="absolute left-0 bottom-0 h-1 bg-blue-500"
-                    style={{ width: `${progress}%` }}
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
-                <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
-              </div>
-            )}
+              )}
+            </div>
+          ) : (
+            <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
+              <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
+            </div>
+          )}
           {err && <p className="text-sm text-red-500">{err}</p>}
         </div>
         <div className="space-y-4">{form}</div>
