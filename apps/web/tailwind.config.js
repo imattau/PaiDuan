@@ -12,12 +12,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        background: 'hsl(var(--background-primary))',
+        foreground: 'hsl(var(--text-primary))',
         card: 'hsl(var(--card))',
         surface: 'hsl(var(--surface))',
         panel: 'hsl(var(--panel))',
-        accent: 'hsl(var(--accent))',
+        accent: 'hsl(var(--accent-primary))',
         border: 'hsl(var(--border))',
         brand: {
           DEFAULT: '#9d4edd',

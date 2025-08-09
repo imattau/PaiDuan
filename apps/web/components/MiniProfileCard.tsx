@@ -25,7 +25,10 @@ export default function MiniProfileCard({
           {stats.followers.toLocaleString()} followers • {stats.following.toLocaleString()} following
         </div>
       )}
-      <Link href="/settings#profile" className="text-xs text-[var(--accent)]">
+      <Link
+        href="/settings#profile"
+        className="text-xs text-[hsl(var(--accent-primary))]"
+      >
         Manage profile
       </Link>
     </div>
