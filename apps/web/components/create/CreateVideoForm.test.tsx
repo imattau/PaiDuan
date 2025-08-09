@@ -16,8 +16,8 @@ vi.mock('../../utils/trimVideoFfmpeg', () => ({
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
   trimVideoWebCodecs: vi.fn(() => null),
 }));
-vi.mock('../../utils/codec', () => ({ sniffCodec: () => Promise.resolve(null) }));
-vi.mock('../../utils/canDecode', () => ({ canDecode: () => Promise.resolve(false) }));
+vi.mock('../../utils/codec', () => ({ sniffCodec: () => Promise.resolve('hvc1') }));
+vi.mock('../../utils/canDecode', () => ({ canDecode: () => Promise.resolve(true) }));
 
 const mockSignEvent = vi.fn(() => Promise.resolve({}));
 vi.mock('../../hooks/useAuth', () => ({
