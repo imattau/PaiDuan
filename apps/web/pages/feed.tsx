@@ -9,6 +9,7 @@ import useFollowing from '@/hooks/useFollowing';
 import useFollowers from '@/hooks/useFollowers';
 import { useProfile } from '@/hooks/useProfile';
 import { useFeedSelection } from '@/store/feedSelection';
+import { CurrentVideoProvider } from '@/hooks/useCurrentVideo';
 
 export default function FeedPage() {
   const { filterAuthor, setFilterAuthor, selectedVideoAuthor } = useFeedSelection();
@@ -53,19 +54,21 @@ export default function FeedPage() {
   }
 
   return (
-    <AppShell
-      left={<MainNav me={me} />}
-      center={
-        <div className="h-full">
-          {/* tabs bar you already have can stay on top */}
-          {videos.length === 0 ? (
-            <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />
-          ) : (
-            <Feed items={videos} />
-          )}
-        </div>
-      }
-      right={<RightPanel author={author} onFilterByAuthor={filterByAuthor} />}
-    />
+    <CurrentVideoProvider>
+      <AppShell
+        left={<MainNav me={me} />}
+        center={
+          <div className="h-full">
+            {/* tabs bar you already have can stay on top */}
+            {videos.length === 0 ? (
+              <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />
+            ) : (
+              <Feed items={videos} />
+            )}
+          </div>
+        }
+        right={<RightPanel author={author} onFilterByAuthor={filterByAuthor} />}
+      />
+    </CurrentVideoProvider>
   );
 }
