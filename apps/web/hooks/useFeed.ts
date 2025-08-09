@@ -6,6 +6,7 @@ import { VideoCardProps } from '../components/VideoCard';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { getRelays } from '@/lib/nostr';
 import { useModqueue } from '@/context/modqueueContext';
+import { getAllEvents, saveEvent } from '@/lib/db';
 
 function parseImeta(tags: string[][]) {
   let videoUrl: string | undefined;
@@ -34,7 +35,7 @@ function parseImeta(tags: string[][]) {
   return { videoUrl, manifestUrl, posterUrl };
 }
 
-export type FeedMode = 'all' | 'following' | { tag: string } | { author: string }; 
+export type FeedMode = 'all' | 'following' | { tag: string } | { author: string };
 
 interface FeedResult {
   items: VideoCardProps[];
@@ -104,32 +105,32 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
       filter.authors = [mode.author];
     }
 
-    const relays = getRelays();
     const nextItems: VideoCardProps[] = [];
     const tagCounts: Record<string, number> = {};
-    const sub = pool.subscribeMany(relays, [filter], {
-      onevent: (event: NostrEvent) => {
-        if (hiddenRef.current.has(event.id)) return;
-        const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
-        if (!videoUrl && !manifestUrl) return;
-        const zapTags = event.tags.filter((t) => t[0] === 'zap');
-        const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
-        tTags.forEach((t) => {
-          tagCounts[t] = (tagCounts[t] || 0) + 1;
-        });
-        const titleTag = event.tags.find((t) => t[0] === 'title');
-        nextItems.push({
-          videoUrl: videoUrl || manifestUrl || '',
-          posterUrl,
-          manifestUrl,
-          author: event.pubkey.slice(0, 8),
-          caption: titleTag ? titleTag[1] : event.content,
-          eventId: event.id,
-          lightningAddress: zapTags.length ? zapTags[0][1] : '',
-          pubkey: event.pubkey,
-          zapTotal: 0,
-          onLike: () => {},
-        });
+
+    const addEvent = (event: NostrEvent, emit = true) => {
+      if (hiddenRef.current.has(event.id)) return;
+      const { videoUrl, manifestUrl, posterUrl } = parseImeta(event.tags);
+      if (!videoUrl && !manifestUrl) return;
+      const zapTags = event.tags.filter((t) => t[0] === 'zap');
+      const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+      tTags.forEach((t) => {
+        tagCounts[t] = (tagCounts[t] || 0) + 1;
+      });
+      const titleTag = event.tags.find((t) => t[0] === 'title');
+      nextItems.push({
+        videoUrl: videoUrl || manifestUrl || '',
+        posterUrl,
+        manifestUrl,
+        author: event.pubkey.slice(0, 8),
+        caption: titleTag ? titleTag[1] : event.content,
+        eventId: event.id,
+        lightningAddress: zapTags.length ? zapTags[0][1] : '',
+        pubkey: event.pubkey,
+        zapTotal: 0,
+        onLike: () => {},
+      });
+      if (emit) {
         setItems([...nextItems]);
         if (mode === 'all') {
           const sorted = Object.entries(tagCounts)
@@ -137,6 +138,36 @@ export function useFeed(mode: FeedMode, authors: string[] = []): FeedResult {
             .map(([t]) => t);
           setTags(sorted);
         }
+      }
+    };
+
+    (async () => {
+      const cached = await getAllEvents();
+      cached
+        .filter((ev: any) => [21, 22].includes(ev.kind))
+        .filter((ev: any) => {
+          if (mode === 'following') return authors.includes(ev.pubkey);
+          if (typeof mode === 'object' && 'tag' in mode)
+            return ev.tags.some((t: string[]) => t[0] === 't' && t[1] === mode.tag);
+          if (typeof mode === 'object' && 'author' in mode) return ev.pubkey === mode.author;
+          return true;
+        })
+        .sort((a: any, b: any) => (b.created_at || 0) - (a.created_at || 0))
+        .forEach((ev: any) => addEvent(ev, false));
+      setItems([...nextItems]);
+      if (mode === 'all') {
+        const sorted = Object.entries(tagCounts)
+          .sort((a, b) => b[1] - a[1])
+          .map(([t]) => t);
+        setTags(sorted);
+      }
+    })();
+
+    const relays = getRelays();
+    const sub = pool.subscribeMany(relays, [filter], {
+      onevent: async (event: NostrEvent) => {
+        addEvent(event);
+        await saveEvent(event);
       },
       oneose: () => {},
     });
