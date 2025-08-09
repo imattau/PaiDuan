@@ -14,7 +14,8 @@ let loading: Promise<void> | null = null;
 
 async function loadFfmpeg() {
   if (!ffmpeg) {
-    const { createFFmpeg } = await import('@ffmpeg/ffmpeg');
+    const ffmpegModule = await import('@ffmpeg/ffmpeg');
+    const createFFmpeg = ffmpegModule.createFFmpeg ?? ffmpegModule.default;
     // load core from CDN to avoid bundling large assets
     ffmpeg = createFFmpeg({
       log: false,
