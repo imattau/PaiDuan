@@ -37,6 +37,7 @@
     "react-intersection-observer": "^9.16.0",
     "react-player": "^2.12.0",
     "react-range": "^1.10.0",
+    "react-use": "^17.6.0",
     "react-use-gesture": "^9.1.3",
     "recharts": "^2.8.0",
     "tailwindcss-plugin-rtl": "^1.2.0",
