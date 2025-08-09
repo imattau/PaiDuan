@@ -1,11 +1,16 @@
 import { createFile } from 'mp4box';
 
-function detectCodec(blobType?: string, trackCodec?: string): string | null {
+export function detectCodec(blobType?: string, trackCodec?: string): string | null {
   const candidates = [trackCodec, blobType];
   for (const c of candidates) {
     if (!c) continue;
     const codec = c.toLowerCase();
-    if (codec.includes('avc1') || codec.includes('h264')) return 'avc1';
+    if (
+      codec.startsWith('avc') ||
+      codec.includes('h264') ||
+      codec.includes('x264')
+    )
+      return 'avc1';
     if (
       codec.includes('hvc1') ||
       codec.includes('hev1') ||
