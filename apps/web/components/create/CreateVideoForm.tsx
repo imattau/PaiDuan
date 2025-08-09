@@ -18,7 +18,8 @@ export default function CreateVideoForm() {
 
   const [caption, setCaption] = useState('');
   const [topics, setTopics] = useState('');
-  const [copyright, setCopyright] = useState('');
+  const [license, setLicense] = useState('All Rights Reserved');
+  const [customLicense, setCustomLicense] = useState('');
   const [nsfw, setNsfw] = useState(false);
   const [lightningAddress, setLightningAddress] = useState('');
   const [posting, setPosting] = useState(false);
@@ -104,7 +105,8 @@ export default function CreateVideoForm() {
       form.append('file', outBlob, 'video.webm');
       form.append('caption', caption);
       form.append('topics', topics);
-      form.append('copyright', copyright);
+      const licenseValue = license === 'other' ? customLicense : license;
+      form.append('copyright', licenseValue);
       form.append('nsfw', nsfw ? 'true' : 'false');
       if (lightningAddress) form.append('zap', lightningAddress);
 
@@ -123,7 +125,7 @@ export default function CreateVideoForm() {
       ];
       if (lightningAddress) tags.push(['zap', lightningAddress]);
       if (nsfw) tags.push(['nsfw', 'true']);
-      if (copyright) tags.push(['copyright', copyright]);
+      if (licenseValue) tags.push(['copyright', licenseValue]);
 
       if (state.status !== 'ready') throw new Error('signer required');
       const event: any = {
@@ -152,7 +154,8 @@ export default function CreateVideoForm() {
         preview ||
         caption ||
         topics ||
-        copyright ||
+        license !== 'All Rights Reserved' ||
+        customLicense ||
         nsfw ||
         lightningAddress) &&
       !confirm('Discard your progress?')
@@ -200,13 +203,35 @@ export default function CreateVideoForm() {
           className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         />
       </label>
-      <input
-        type="text"
-        value={copyright}
-        onChange={(e) => setCopyright(e.target.value)}
-        placeholder="Copyright information"
-        className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-      />
+      <label className="block text-sm">
+        <span className="mb-1 block">License</span>
+        <select
+          data-testid="license-select"
+          value={license}
+          onChange={(e) => setLicense(e.target.value)}
+          className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        >
+          <option value="All Rights Reserved">All Rights Reserved</option>
+          <option value="CC0 (Public Domain)">CC0 (Public Domain)</option>
+          <option value="CC BY">CC BY</option>
+          <option value="CC BY-SA">CC BY-SA</option>
+          <option value="CC BY-ND">CC BY-ND</option>
+          <option value="CC BY-NC">CC BY-NC</option>
+          <option value="CC BY-NC-SA">CC BY-NC-SA</option>
+          <option value="CC BY-NC-ND">CC BY-NC-ND</option>
+          <option value="other">Other...</option>
+        </select>
+        {license === 'other' && (
+          <input
+            data-testid="custom-license-input"
+            type="text"
+            value={customLicense}
+            onChange={(e) => setCustomLicense(e.target.value)}
+            placeholder="Custom license"
+            className="mt-2 block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          />
+        )}
+      </label>
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
         <span className="text-sm">NSFW</span>
