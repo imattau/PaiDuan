@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import dynamic from 'next/dynamic';
-import { MessageCircle, Repeat2 } from 'lucide-react';
+import { MessageCircle, Repeat2, Volume2, VolumeX } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
@@ -57,6 +57,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const playerRef = useRef<ReactPlayer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
   const adaptiveUrl = useAdaptiveSource(manifestUrl, playerRef);
@@ -177,7 +178,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         url={manifestUrl ? adaptiveUrl || videoUrl : videoUrl}
         playing={playing}
         loop
-        muted
+        muted={muted}
         playsinline
         width="100%"
         height="100%"
@@ -207,6 +208,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       )}
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
+        <button
+          className="hover:text-accent-primary"
+          onClick={() => setMuted((m) => !m)}
+          title={muted ? 'Unmute' : 'Mute'}
+        >
+          {muted ? <VolumeX /> : <Volume2 />}
+        </button>
         <button
           className="relative hover:text-accent-primary disabled:opacity-50 lg:hidden"
           onClick={() => online && setCommentsOpen(true)}
