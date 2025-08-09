@@ -6,7 +6,7 @@ export default function LandingPage() {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
-        <HeroArt className="w-full h-[400px] text-foreground" />
+        <HeroArt className="w-full h-[400px] text-primary" />
       </div>
 
       <div className="relative max-w-5xl mx-auto px-4 py-20 text-center">
@@ -14,7 +14,7 @@ export default function LandingPage() {
           <Logo />
         </div>
         <h1 className="mt-6 text-5xl font-bold">Decentralised Short Video</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        <p className="mt-4 text-lg text-muted">
           Built on Nostr. Own your keys, your audience, your revenue.
         </p>
         <div className="mt-8 flex justify-center gap-3">

@@ -39,11 +39,11 @@ export default function InstallBanner() {
       role="dialog"
       aria-modal="true"
       aria-label={t('install_paiduan')}
-      className="fixed bottom-0 inset-x-0 z-50 bg-background/90 p-4 flex items-center justify-between"
+      className="fixed bottom-0 inset-x-0 z-50 bg-background-primary/90 p-4 flex items-center justify-between"
     >
       <span>{t('install_paiduan')}</span>
       <div className="space-x-2">
-        <button onClick={handleInstall} className="rounded bg-accent px-3 py-1 text-white">
+        <button onClick={handleInstall} className="rounded bg-accent-primary px-3 py-1 text-white">
           {t('install')}
         </button>
         <button onClick={handleDismiss} className="rounded bg-gray-200 px-3 py-1">

@@ -50,10 +50,10 @@ export default function MainNav({
               <li key={href}>
                 <Link
                   href={href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent-primary/20 focus-visible:text-accent-primary ${
                     active
-                      ? 'bg-accent/20 text-accent'
-                      : 'text-muted-foreground hover:bg-accent/20 hover:text-accent'
+                      ? 'bg-accent-primary/20 text-accent-primary'
+                      : 'text-muted hover:bg-accent-primary/20 hover:text-accent-primary'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >

@@ -58,7 +58,7 @@ export default function FeedPage() {
         <div className="space-y-6">
           {/* tabs bar you already have can stay on top */}
           {videos.length === 0 ? (
-            <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-foreground" />
+            <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />
           ) : (
             videos.map((v) => <div key={v.eventId}>{/* <VideoCard {...v} /> */}</div>)
           )}

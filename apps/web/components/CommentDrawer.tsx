@@ -190,12 +190,12 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       aria-modal="true"
       aria-label="Comments"
       style={{ transform: y.to((py) => `translateY(${py}%)`) }}
-      className="fixed inset-x-0 bottom-0 z-50 h-1/2 bg-background text-foreground"
+      className="fixed inset-x-0 bottom-0 z-50 h-1/2 bg-background-primary text-primary"
       {...bind()}
     >
       <div className="flex items-center justify-between border-b divider p-2">
         <span className="font-semibold">Comments</span>
-        <button onClick={onClose} className="p-1 hover:text-accent" aria-label="Close comments">
+        <button onClick={onClose} className="p-1 hover:text-accent-primary" aria-label="Close comments">
           <X />
         </button>
       </div>
@@ -203,29 +203,29 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
         {visibleTop.map((c) => (
           <div key={c.id}>
             <div className="flex items-start space-x-2">
-              <div className="h-8 w-8 rounded-full bg-foreground/20" />
+              <div className="h-8 w-8 rounded-full bg-text-primary/20" />
               <div className="flex-1">
                 <div className="text-sm font-semibold">@{c.pubkey.slice(0, 8)}</div>
                 <div className="text-sm">{c.content}</div>
-                <div className="text-xs text-foreground/50">
+                <div className="text-xs text-primary/50">
                   {new Date(c.created_at * 1000).toLocaleString()}
                 </div>
-                <button className="text-xs text-accent mr-2" onClick={() => setReplyTo(c)}>
+                <button className="text-xs text-accent-primary mr-2" onClick={() => setReplyTo(c)}>
                   Reply
                 </button>
               </div>
               <div className="relative">
                 <button
                   onClick={() => setMenuFor(c.id)}
-                  className="p-1 text-foreground/50"
+                  className="p-1 text-primary/50"
                   aria-label="Comment options"
                 >
                   <MoreVertical size={16} />
                 </button>
                 {menuFor === c.id && (
-                  <div className="absolute right-0 mt-1 w-24 rounded bg-background p-1 shadow">
+                  <div className="absolute right-0 mt-1 w-24 rounded bg-background-primary p-1 shadow">
                     <button
-                      className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-foreground/10"
+                      className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
                       onClick={() => {
                         setMenuFor(null);
                         setReportTarget(c.id);
@@ -240,29 +240,29 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
             </div>
             {visibleMap[c.id]?.map((r) => (
               <div key={r.id} className="mt-2 ml-8 flex items-start space-x-2">
-                <div className="h-6 w-6 rounded-full bg-foreground/20" />
+                <div className="h-6 w-6 rounded-full bg-text-primary/20" />
                 <div className="flex-1">
                   <div className="text-sm font-semibold">@{r.pubkey.slice(0, 8)}</div>
                   <div className="text-sm">{r.content}</div>
-                  <div className="text-xs text-foreground/50">
+                  <div className="text-xs text-primary/50">
                     {new Date(r.created_at * 1000).toLocaleString()}
                   </div>
-                  <button className="text-xs text-accent mr-2" onClick={() => setReplyTo(r)}>
+                  <button className="text-xs text-accent-primary mr-2" onClick={() => setReplyTo(r)}>
                     Reply
                   </button>
                 </div>
               <div className="relative">
                 <button
                   onClick={() => setMenuFor(r.id)}
-                  className="p-1 text-foreground/50"
+                  className="p-1 text-primary/50"
                   aria-label="Comment options"
                 >
                   <MoreVertical size={16} />
                 </button>
                   {menuFor === r.id && (
-                    <div className="absolute right-0 mt-1 w-24 rounded bg-background p-1 shadow">
+                    <div className="absolute right-0 mt-1 w-24 rounded bg-background-primary p-1 shadow">
                       <button
-                        className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-foreground/10"
+                        className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
                         onClick={() => {
                           setMenuFor(null);
                           setReportTarget(r.id);
@@ -281,9 +281,9 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       </div>
       <div className="absolute bottom-0 left-0 right-0 border-t divider p-2">
         {replyTo && (
-          <div className="mb-1 text-xs text-foreground/50">
+          <div className="mb-1 text-xs text-primary/50">
             Replying to @{replyTo.pubkey.slice(0, 8)}{' '}
-            <button onClick={() => setReplyTo(null)} className="underline hover:text-accent">
+            <button onClick={() => setReplyTo(null)} className="underline hover:text-accent-primary">
               cancel
             </button>
           </div>
@@ -293,7 +293,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Add a comment"
-          className="w-full rounded bg-foreground/10 p-2 text-sm outline-none"
+          className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
           disabled={!open}
         />
       </div>

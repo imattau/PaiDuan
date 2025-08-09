@@ -21,7 +21,7 @@ export default function MiniProfileCard({
       />
       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">@{name}</div>
       {stats && (
-        <div className="mt-1 text-xs text-muted-foreground">
+        <div className="mt-1 text-xs text-muted">
           {stats.followers.toLocaleString()} followers • {stats.following.toLocaleString()} following
         </div>
       )}

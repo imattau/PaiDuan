@@ -15,7 +15,7 @@ export default function NavBar() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-panel/95 backdrop-blur shadow-card"
+      className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-background-secondary/95 backdrop-blur shadow-card"
     >
       {links.map(({ href, icon, label }) => {
         const active = asPath.startsWith(href);
@@ -23,10 +23,10 @@ export default function NavBar() {
           <Link
             key={href}
             href={href}
-            className={`flex flex-col items-center px-3 py-2 rounded-md text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent/20 focus-visible:text-accent ${
+            className={`flex flex-col items-center px-3 py-2 rounded-md text-[1.2rem] font-bold focus:outline-none focus-visible:bg-accent-primary/20 focus-visible:text-accent-primary ${
               active
-                ? 'bg-accent/20 text-accent'
-                : 'text-muted-foreground hover:bg-accent/20 hover:text-accent'
+                ? 'bg-accent-primary/20 text-accent-primary'
+                : 'text-muted hover:bg-accent-primary/20 hover:text-accent-primary'
             }`}
             aria-current={active ? 'page' : undefined}
           >

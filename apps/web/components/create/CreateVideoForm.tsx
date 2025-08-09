@@ -250,7 +250,7 @@ export default function CreateVideoForm() {
   return (
     <section className="max-w-4xl mx-auto rounded-2xl border border-border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
       <div className="flex items-center justify-end">
-        <button className="text-sm text-muted-foreground" onClick={handleCancel}>
+        <button className="text-sm text-muted" onClick={handleCancel}>
           Cancel
         </button>
       </div>

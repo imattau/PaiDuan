@@ -4,7 +4,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
   const videos: unknown[] = [];
 
   if (videos.length === 0) {
-    return <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-foreground" />;
+    return <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />;
   }
 
   return (

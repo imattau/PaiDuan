@@ -39,15 +39,15 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
 
   return (
     <>
-      <div className="fixed inset-x-0 top-0 z-20 flex h-12 items-center space-x-2 bg-background/80 p-2 text-foreground lg:static lg:max-w-[1400px] lg:mx-auto">
+      <div className="fixed inset-x-0 top-0 z-20 flex h-12 items-center space-x-2 bg-background-primary/80 p-2 text-primary lg:static lg:max-w-[1400px] lg:mx-auto">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={t('search')}
-          className="flex-1 rounded bg-background px-2 py-1 text-foreground"
+          className="flex-1 rounded bg-background-primary px-2 py-1 text-primary"
         />
         {value && (
-          <button onClick={clear} className="hover:text-accent">
+          <button onClick={clear} className="hover:text-accent-primary">
             <X />
           </button>
         )}
@@ -56,7 +56,7 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
             <button
               onClick={toggleMode}
               title={t('toggle_theme')}
-              className="hover:text-accent"
+              className="hover:text-accent-primary"
             >
               {mode === 'dark' ? (
                 <Sun className="text-gray-900 dark:text-gray-100" />
@@ -69,7 +69,7 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
         )}
       </div>
       <div
-        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-background text-foreground transition-transform duration-300 lg:absolute lg:inset-x-auto lg:right-0 ${
+        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-background-primary text-primary transition-transform duration-300 lg:absolute lg:inset-x-auto lg:right-0 ${
           showDrawer ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
@@ -92,7 +92,7 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
                     unoptimized
                   />
                 ) : (
-                  <div className="h-8 w-8 rounded-full bg-foreground/20" />
+                  <div className="h-8 w-8 rounded-full bg-text-primary/20" />
                 )}
                 <div>{c.name}</div>
               </div>
@@ -118,7 +118,7 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
                     unoptimized
                   />
                 ) : (
-                  <div className="h-12 w-16 bg-foreground/20" />
+                  <div className="h-12 w-16 bg-text-primary/20" />
                 )}
                 <div className="text-sm">{v.caption}</div>
               </div>

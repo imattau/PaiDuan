@@ -244,7 +244,7 @@ export default function ProfilePage() {
           ) : (
             <div
               key={v.eventId}
-              className="w-full aspect-video bg-foreground/20 cursor-pointer"
+              className="w-full aspect-video bg-text-primary/20 cursor-pointer"
               onClick={() => setSelected(v)}
             />
           ),
