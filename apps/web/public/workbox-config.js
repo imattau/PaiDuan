@@ -4,6 +4,10 @@ module.exports = {
   runtimeCaching: [
     { urlPattern: /^https?.*\.(webm|mp4)$/, handler: 'CacheFirst' },
     { urlPattern: /^https?.*\.(jpg|jpeg|png|gif|svg)$/, handler: 'StaleWhileRevalidate' },
-    { urlPattern: /^https?.*nostr\.media.*$/, handler: 'NetworkFirst' }
-  ]
-}
+    { urlPattern: /^https?.*nostr\.media.*$/, handler: 'NetworkFirst' },
+    {
+      urlPattern: /^(https|wss):.*(relay|nostr).*$/,
+      handler: 'StaleWhileRevalidate',
+    },
+  ],
+};
