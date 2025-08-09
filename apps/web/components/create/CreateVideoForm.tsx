@@ -422,7 +422,7 @@ export default function CreateVideoForm() {
             className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
             {preview ? (
-              <div className="relative aspect-[9/16] h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
+              <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
                 <video
                   ref={videoRef}
                   controls
@@ -437,7 +437,7 @@ export default function CreateVideoForm() {
                 )}
               </div>
             ) : (
-              <div className="relative aspect-[9/16] h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
+              <div className="relative aspect-[9/16] max-h-[70vh] w-full sm:max-w-sm overflow-hidden rounded-xl">
                 <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
               </div>
             )}
