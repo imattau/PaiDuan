@@ -1,25 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import toast from 'react-hot-toast'
+import { useNetworkState } from 'react-use'
 
 export default function useOffline() {
-  const [online, setOnline] = useState(true)
+  const { online } = useNetworkState()
 
   useEffect(() => {
-    const update = () => {
-      const status = navigator.onLine
-      if (!status) {
-        toast.info('You are offline')
-      }
-      setOnline(status)
+    if (online === false) {
+      toast.info('You are offline')
     }
-    update()
-    window.addEventListener('online', update)
-    window.addEventListener('offline', update)
-    return () => {
-      window.removeEventListener('online', update)
-      window.removeEventListener('offline', update)
-    }
-  }, [])
+  }, [online])
 
   return online
 }

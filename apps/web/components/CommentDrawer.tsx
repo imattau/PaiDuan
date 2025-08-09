@@ -3,7 +3,7 @@ import type { Event as NostrEvent } from 'nostr-tools/pure';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import { X, MoreVertical } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { trackEvent } from '../utils/analytics';
+import analytics from '../utils/analytics';
 import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
 import { useAuth } from '@/hooks/useAuth';
@@ -143,7 +143,7 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({
       setReplyTo(null);
       await getPool().publish(getRelays(), signed);
       toast.success('Comment sent');
-      trackEvent('comment_send');
+      analytics.trackEvent('comment_send');
     } catch (err) {
       console.error(err);
       toast.error('Failed to send');

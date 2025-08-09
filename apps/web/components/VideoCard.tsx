@@ -12,7 +12,7 @@ import { useRouter } from 'next/router';
 import { Skeleton } from './ui/Skeleton';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
-import useOffline from '../utils/useOffline';
+import { useNetworkState } from 'react-use';
 import useAdaptiveSource from '../hooks/useAdaptiveSource';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -72,7 +72,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const avatar = profile?.picture || '';
   const displayName = profile?.name || author;
   const isFollowing = following.includes(pubkey);
-  const online = useOffline();
+  const { online } = useNetworkState();
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [videoError, setVideoError] = useState(false);
