@@ -3,7 +3,6 @@ import { LocalSigner } from '@/lib/signers/local';
 import { Nip07Signer } from '@/lib/signers/nip07';
 import { Nip46Signer } from '@/lib/signers/nip46';
 import type { Signer } from '@/lib/signers/types';
-import { keyStore } from '@/utils/keyStorage';
 
 type AuthState =
   | { status: 'signedOut' }
@@ -19,7 +18,7 @@ export function useAuth() {
   useEffect(() => {
     function refreshFlags() {
       if (typeof localStorage === 'undefined') return;
-      setHasKeys(!!localStorage.getItem(LS_KEY) || !!keyStore.load());
+      setHasKeys(!!localStorage.getItem(LS_KEY));
       setHasProfile(localStorage.getItem('pd.onboarded') === '1');
     }
 
