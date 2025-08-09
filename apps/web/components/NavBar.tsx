@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Home, Users, Plus, Settings } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { prefetchFeed } from '@/hooks/useFeed';
+import { navigation } from '@/config/navigation';
+import { isRouteActive } from '@/utils/navigation';
 
 export default function NavBar() {
   const router = useRouter();
@@ -11,19 +12,14 @@ export default function NavBar() {
   const params = useParams();
   const locale = (params?.locale as string) || 'en';
   const asPath = pathname + (searchParams.toString() ? `?${searchParams}` : '');
-  const links = [
-    { href: `/${locale}/feed`, icon: <Home />, label: 'Home' },
-    { href: `/${locale}/feed?tab=following`, icon: <Users />, label: 'Following' },
-    { href: `/${locale}/create`, icon: <Plus />, label: 'Create' },
-    { href: `/${locale}/settings`, icon: <Settings />, label: 'Settings' },
-  ];
   return (
     <nav
       aria-label="Main navigation"
       className="fixed bottom-0 inset-x-0 lg:hidden z-30 flex justify-around bg-background-secondary/95 backdrop-blur shadow-card"
     >
-      {links.map(({ href, icon, label }) => {
-        const active = asPath.startsWith(href);
+      {navigation.map(({ path, icon: Icon, label }) => {
+        const href = `/${locale}${path}`;
+        const active = isRouteActive(path, pathname, searchParams, locale);
         return (
           <Link
             key={href}
@@ -37,9 +33,9 @@ export default function NavBar() {
             prefetch={false}
             onMouseEnter={() => {
               router.prefetch(href);
-              if (href.includes('/feed?tab=following')) {
+              if (path === '/feed?tab=following') {
                 prefetchFeed('following');
-              } else if (href.includes('/feed')) {
+              } else if (path.startsWith('/feed')) {
                 prefetchFeed('all');
               }
             }}
@@ -48,7 +44,7 @@ export default function NavBar() {
               animate={{ scale: active ? 1.2 : 1 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
-              {icon}
+              <Icon />
             </motion.div>
             <span>{label}</span>
           </Link>
