@@ -155,14 +155,14 @@ export default function CreateVideoForm() {
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         placeholder="Caption"
-        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+        className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       />
       <input
         type="text"
         value={topics}
         onChange={(e) => setTopics(e.target.value)}
         placeholder="Topic tags (comma separated)"
-        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+        className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       />
       <label className="block text-sm">
         <span className="mb-1 block">Lightning address</span>
@@ -170,7 +170,7 @@ export default function CreateVideoForm() {
           <select
             value={selectedZapOption}
             onChange={(e) => setLightningAddress(e.target.value)}
-            className="block w-full border rounded px-3 py-2 bg-transparent mb-2"
+            className="block w-full rounded-md border border-border bg-transparent px-3 py-2 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {zapOptions.map((addr) => (
               <option key={addr} value={addr}>
@@ -184,7 +184,7 @@ export default function CreateVideoForm() {
           type="text"
           value={lightningAddress}
           onChange={(e) => setLightningAddress(e.target.value)}
-          className="block w-full border rounded px-3 py-2 bg-transparent"
+          className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         />
       </label>
       <input
@@ -192,7 +192,7 @@ export default function CreateVideoForm() {
         value={copyright}
         onChange={(e) => setCopyright(e.target.value)}
         placeholder="Copyright information"
-        className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+        className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       />
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
@@ -210,7 +210,7 @@ export default function CreateVideoForm() {
   );
 
   return (
-    <section className="max-w-4xl mx-auto rounded-2xl border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
+    <section className="max-w-4xl mx-auto rounded-2xl border border-border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
       <div className="flex items-center justify-end">
         <button className="text-sm text-muted-foreground" onClick={handleCancel}>
           Cancel
@@ -222,7 +222,7 @@ export default function CreateVideoForm() {
             type="file"
             accept="video/*"
             onChange={onPick}
-            className="block w-full text-sm border rounded px-3 py-2 bg-transparent"
+            className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
             {preview ? (
               <div className="relative aspect-[9/16] w-full max-w-sm max-h-screen overflow-hidden rounded-xl bg-black">
