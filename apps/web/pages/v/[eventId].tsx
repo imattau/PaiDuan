@@ -33,7 +33,6 @@ export default function VideoPage() {
         lightningAddress: zapTags.length ? zapTags[0][1] : '',
         pubkey: ev.pubkey,
         zapTotal: 0,
-        onLike: () => {},
       });
     });
     return () => {

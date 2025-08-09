@@ -88,7 +88,6 @@ async function fetchFeedPage({
           lightningAddress: zapTags.length ? zapTags[0][1] : '',
           pubkey: event.pubkey,
           zapTotal: 0,
-          onLike: () => {},
         };
         items.push({ data: item, created: event.created_at || 0 });
         await saveEvent(event);

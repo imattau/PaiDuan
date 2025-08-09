@@ -102,7 +102,6 @@ export function useSearch(query: string): SearchResults {
               lightningAddress: zapTags.length ? zapTags[0][1] : '',
               pubkey: ev.pubkey,
               zapTotal: 0,
-              onLike: () => {},
             });
             setVideos([...nextVideos]);
           } else if (ev.kind === 0) {
