@@ -57,6 +57,7 @@ function writeStorage(list: Notification[]) {
 
 export async function requestNotificationPermission() {
   if (typeof window === 'undefined') return;
+  if (process.env.NODE_ENV !== 'production') return;
   if (!('serviceWorker' in navigator)) return;
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
