@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSpring, animated, useGesture } from '@paiduan/ui';
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
@@ -19,16 +19,24 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const wheelOffset = useRef(0);
   const { setSelectedVideo } = useFeedSelection();
 
+  const next = useCallback(() => {
+    setIndex((i) => (i < items.length - 1 ? i + 1 : i));
+  }, [items.length]);
+
+  const prev = useCallback(() => {
+    setIndex((i) => (i > 0 ? i - 1 : i));
+  }, []);
+
   const bind = useGesture(
     {
       onDrag: ({ down, movement: [, my], cancel }) => {
         if (!down) return;
         if (my < -50 && index < items.length - 1) {
-          setIndex((i) => i + 1);
+          next();
           cancel();
         }
         if (my > 50 && index > 0) {
-          setIndex((i) => i - 1);
+          prev();
           cancel();
         }
       },
@@ -37,13 +45,13 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
         wheelOffset.current += dy;
         if (wheelOffset.current > 50) {
           if (index < items.length - 1) {
-            setIndex((i) => i + 1);
+            next();
           }
           wheelOffset.current = 0;
         }
         if (wheelOffset.current < -50) {
           if (index > 0) {
-            setIndex((i) => i - 1);
+            prev();
           }
           wheelOffset.current = 0;
         }
@@ -51,6 +59,20 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     },
     { drag: { axis: 'y' }, wheel: { eventOptions: { passive: false } } },
   );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['ArrowDown', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        next();
+      } else if (['ArrowUp', 'ArrowLeft'].includes(e.key)) {
+        e.preventDefault();
+        prev();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [next, prev]);
 
   useEffect(() => {
     api.start({ y: -index * 100 });
@@ -98,6 +120,24 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
           </div>
         ))}
       </animated.div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          prev();
+        }}
+        className="btn btn-secondary absolute left-4 top-1/2 -translate-y-1/2"
+      >
+        Previous
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          next();
+        }}
+        className="btn btn-secondary absolute right-4 top-1/2 -translate-y-1/2"
+      >
+        Next
+      </button>
     </div>
   );
 };
