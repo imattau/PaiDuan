@@ -26,12 +26,6 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   });
 
   const virtualItems = rowVirtualizer.getVirtualItems();
-  const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
-  const paddingBottom =
-    virtualItems.length > 0
-      ? rowVirtualizer.getTotalSize() -
-        virtualItems[virtualItems.length - 1].end
-      : 0;
 
   useEffect(() => {
     if (!virtualItems.length) return;
@@ -70,17 +64,22 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
       className="h-full w-full overflow-auto snap-y snap-mandatory scrollbar-none"
     >
       <div
-        style={{ paddingTop, paddingBottom }}
-        className="flex flex-col"
+        style={{ height: rowVirtualizer.getTotalSize(), position: 'relative' }}
+        className="w-full"
       >
         {virtualItems.map((virtualRow) => {
           const item = items[virtualRow.index];
           return (
             <div
               key={item.eventId ?? virtualRow.index}
-              ref={rowVirtualizer.measureElement}
               data-index={virtualRow.index}
-              className="snap-start min-h-screen"
+              className="h-screen w-full snap-start snap-always"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
             >
               <VideoCard {...item} showMenu />
             </div>
