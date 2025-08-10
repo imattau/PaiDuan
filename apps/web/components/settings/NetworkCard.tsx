@@ -1,32 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card } from '../ui/Card';
-import { getRelays, normalizeRelay } from '@/lib/nostr';
+import { useRelays } from '@/agents/relays';
 
 export function NetworkCard() {
-  const [relays, setRelays] = useState<string[]>(() => getRelays());
+  const { relays, addRelay, removeRelay } = useRelays();
   const [input, setInput] = useState('');
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem('pd.relays', JSON.stringify(relays));
-      window.dispatchEvent(new CustomEvent('pd.relays', { detail: relays }));
-    } catch {
-      /* ignore */
-    }
-  }, [relays]);
-
-  function addRelay(url: string) {
-    const normalized = normalizeRelay(url.trim());
-    if (!normalized) return;
-    setRelays((prev) => (prev.includes(normalized) ? prev : [...prev, normalized]));
-  }
-
-  function removeRelay(url: string) {
-    setRelays((prev) => prev.filter((r) => r !== url));
-  }
 
   const handleAdd = () => {
     addRelay(input);

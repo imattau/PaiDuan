@@ -4,14 +4,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, beforeEach, expect } from 'vitest';
 import NetworkCard from '../NetworkCard';
+import { initRelays } from '@/agents/relays';
 
 describe('NetworkCard', () => {
   beforeEach(() => {
     localStorage.clear();
+    initRelays();
   });
 
   it('renders stored relays without flashing defaults', () => {
     localStorage.setItem('pd.relays', JSON.stringify(['wss://relay.example.com']));
+    initRelays();
     render(<NetworkCard />);
     screen.getByText('wss://relay.example.com');
     expect(screen.queryByText('No relays configured.')).toBeNull();
