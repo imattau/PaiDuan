@@ -312,7 +312,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </div>
       )}
 
-      <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
+      <div className="absolute right-4 bottom-24 z-10 flex flex-col items-center space-y-4">
         <button
           type="button"
           className="hover:text-accent-primary"
@@ -333,6 +333,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           onClick={() => online && setCommentsOpen(true)}
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
+          aria-label="Comments"
         >
           <MessageCircle className="icon" />
           {commentCount > 0 && (
