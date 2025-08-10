@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import ReactPlayer from 'react-player';
 import { MessageCircle, Repeat2, Volume2, VolumeX, MoreVertical } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
@@ -49,9 +48,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   showMenu = false,
 }) => {
   const router = useRouter();
-  const playerRef = useRef<ReactPlayer>(null);
-  const getPlayer = () =>
-    playerRef.current?.getInternalPlayer() as HTMLVideoElement | null;
+  const playerRef = useRef<HTMLVideoElement>(null);
+  const getPlayer = () => playerRef.current;
   const containerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
@@ -82,6 +80,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     const err = getPlayer()?.error;
     if (err) console.error('Video playback error:', err);
   }, [errorMessage]);
+
+  useEffect(() => {
+    const video = getPlayer();
+    if (video) video.playbackRate = speedMode ? 2 : 1;
+  }, [speedMode]);
 
   const [source, setSource] = useState<{ src: string; type: string }>();
 
@@ -165,8 +168,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         if (!down) {
           const player = playerRef.current;
           if (player) {
-            const newTime = Math.max(0, player.getCurrentTime() + delta);
-            player.seekTo(newTime);
+            const newTime = Math.max(0, player.currentTime + delta);
+            player.currentTime = newTime;
           }
           setSeekPreview(0);
           api.start({ opacity: 0 });
@@ -225,17 +228,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       {...bind()}
     >
       {source && !errorMessage && (
-        <ReactPlayer
+        <video
           ref={playerRef}
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          url={source.src}
-          width="100%"
-          height="100%"
-          muted={muted}
-          playing={isPlaying}
-          playbackRate={speedMode ? 2 : 1}
           loop
-          onReady={() => {
+          muted={muted}
+          playsInline
+          poster={posterUrl}
+          autoPlay={isPlaying}
+          onLoadedData={() => {
             const video = getPlayer();
             if (video) {
               video.muted = true;
@@ -248,8 +249,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             }
           }}
           onError={() => setErrorMessage('Video playback error')}
-          config={{ file: { forceHLS: true, attributes: { poster: posterUrl, playsInline: true } } }}
-        />
+        >
+          <source src={source.src} type={source.type} />
+        </video>
       )}
 
       {showPlayIndicator && !errorMessage && (
@@ -308,6 +310,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
         <button
+          type="button"
           className="hover:text-accent-primary"
           onClick={() => {
             const next = !muted;
@@ -317,6 +320,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           }}
           title={muted ? 'Unmute' : 'Mute'}
           aria-label={muted ? 'Unmute' : 'Mute'}
+          aria-pressed={!muted}
         >
           {muted ? <VolumeX className="icon" /> : <Volume2 className="icon" />}
         </button>
