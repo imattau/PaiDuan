@@ -1,10 +1,5 @@
-try {
-  // Use a relative path so the service worker can locate the bundled
-  // Workbox script regardless of the deployment base path.
-  importScripts('./workbox-sw.js');
-} catch (err) {
-  importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
-}
+// Use CDN-hosted Workbox script to avoid path issues on sub-path deployments.
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
 workbox.loadModule('workbox-routing');
 workbox.loadModule('workbox-strategies');
