@@ -12,6 +12,7 @@ import useFollowerCount from '@/hooks/useFollowerCount';
 import SearchBar from '@/components/SearchBar';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
+import CommentDrawer from '@/components/CommentDrawer';
 
 export default function ProfilePage() {
   const { pubkey } = useParams<{ pubkey?: string }>();
@@ -23,6 +24,7 @@ export default function ProfilePage() {
   const [myPubkey, setMyPubkey] = useState('');
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [selected, setSelected] = useState<VideoCardProps | null>(null);
+  const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
   const { following, follow, unfollow } = useFollowing(
     state.status === 'ready' ? state.pubkey : undefined,
   );
@@ -252,17 +254,29 @@ export default function ProfilePage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
-          <div className="relative h-full w-full">
-            <VideoCard {...selected} showMenu />
+          <div className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] w-full items-center justify-center relative">
+            <VideoCard
+              {...selected}
+              showMenu
+              onComment={() => setCommentVideoId(selected.eventId)}
+            />
             <button
               className="absolute right-4 top-4 text-white"
-              onClick={() => setSelected(null)}
+              onClick={() => {
+                setSelected(null);
+                setCommentVideoId(null);
+              }}
             >
               Close
             </button>
           </div>
         </div>
       )}
+      <CommentDrawer
+        videoId={commentVideoId || ''}
+        open={!!commentVideoId}
+        onOpenChange={(o) => !o && setCommentVideoId(null)}
+      />
     </div>
   );
 }
