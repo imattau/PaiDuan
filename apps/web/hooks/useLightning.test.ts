@@ -13,20 +13,38 @@ vi.mock('@/lib/relayPool', () => ({
   },
 }));
 
-const fetchPayDataMock = vi.fn();
-const requestInvoiceMock = vi.fn();
-vi.mock('@/utils/lnurl', () => ({
-  fetchPayData: (...args: any[]) => fetchPayDataMock(...args),
-  requestInvoice: (...args: any[]) => requestInvoiceMock(...args),
+
 }));
 
 import useLightning from './useLightning';
 
-const originalWindow = global.window;
+
 
 describe('useLightning', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    sendPaymentMock = vi.fn();
+    if (typeof window === 'undefined') {
+      // @ts-ignore
+      global.window = {};
+    }
+    Object.defineProperty(window, 'webln', {
+      value: { sendPayment: sendPaymentMock },
+      configurable: true,
+    });
+    window.open = vi.fn();
+  });
+
+  afterEach(() => {
+    if (originalWindow.open) {
+      window.open = originalWindow.open;
+    } else {
+      // @ts-ignore
+      delete window.open;
+    }
+    // Remove injected webln to avoid cross-test contamination
+    // @ts-ignore
+    delete window.webln;
   });
   afterEach(() => {
     global.window = originalWindow;
@@ -41,20 +59,7 @@ describe('useLightning', () => {
     });
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
-    fetchPayDataMock
-      .mockResolvedValueOnce({ callback: 'https://cb1' })
-      .mockResolvedValueOnce({ callback: 'https://cb2' })
-      .mockResolvedValueOnce({ callback: 'https://cb3' });
-    requestInvoiceMock
-      .mockResolvedValueOnce({ invoice: 'inv1' })
-      .mockResolvedValueOnce({ invoice: 'inv2' })
-      .mockResolvedValueOnce({ invoice: 'inv3' });
-    const sendPaymentMock = vi.fn();
-    // @ts-ignore
-    global.window = {
-      webln: { sendPayment: sendPaymentMock },
-      open: vi.fn(),
-    };
+
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
@@ -79,20 +84,7 @@ describe('useLightning', () => {
       });
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
-    fetchPayDataMock
-      .mockResolvedValueOnce({ callback: 'https://cb1' })
-      .mockResolvedValueOnce({ callback: 'https://cb2' })
-      .mockResolvedValueOnce({ callback: 'https://cb3' });
-    requestInvoiceMock
-      .mockResolvedValueOnce({ invoice: 'inv1' })
-      .mockResolvedValueOnce({ invoice: 'inv2' })
-      .mockResolvedValueOnce({ invoice: 'inv3' });
-    const sendPaymentMock = vi.fn();
-    // @ts-ignore
-    global.window = {
-      webln: { sendPayment: sendPaymentMock },
-      open: vi.fn(),
-    };
+
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({

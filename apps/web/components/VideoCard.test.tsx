@@ -1,10 +1,10 @@
 /* @vitest-environment jsdom */
 import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { createRoot } from 'react-dom/client';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { usePlaybackPrefs } from '@/store/playbackPrefs';
+import { useFollowingStore } from '@/store/following';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
@@ -20,7 +20,6 @@ Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
 vi.mock('./ReportModal', () => ({ default: () => null }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ prefetch: () => {} }) }));
 
-vi.mock('../hooks/useFollowing', () => ({ default: () => ({ following: [], follow: () => {} }) }));
 vi.mock('react-use', () => ({ useNetworkState: () => ({ online: true }) }));
 vi.mock('../hooks/useAdaptiveSource', () => ({ default: () => undefined }));
 vi.mock('react-intersection-observer', () => ({
@@ -29,9 +28,6 @@ vi.mock('react-intersection-observer', () => ({
 vi.mock('../hooks/useCurrentVideo', () => ({ useCurrentVideo: () => ({ setCurrent: () => {} }) }));
 vi.mock('@/store/feedSelection', () => ({
   useFeedSelection: (selector: any) => selector({ setSelectedVideo: () => {} }),
-}));
-vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: {} } }),
 }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: 'author' }) }));
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
@@ -61,6 +57,7 @@ const { default: VideoCard } = await import('./VideoCard');
 afterEach(() => {
   cleanup();
   usePlaybackPrefs.setState({ isMuted: true });
+  useFollowingStore.setState({ following: [] });
   currentVideo = null;
   (HTMLMediaElement.prototype.pause as unknown as vi.Mock).mockClear();
   play.mockClear();
