@@ -6,10 +6,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'apps/web'),
       ui: path.resolve(__dirname, 'packages/ui/src'),
-      '@videojs/http-streaming': path.resolve(
-        __dirname,
-        'test/stubs/videojs-http-streaming.ts',
-      ),
     },
   },
 

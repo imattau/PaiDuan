@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import type videojs from 'video.js';
+import type ReactPlayer from 'react-player';
 import useAlwaysSD from './useAlwaysSD';
 
 export default function useAdaptiveSource(
   manifestUrl: string | undefined,
-  playerRef: React.RefObject<videojs.Player | null>,
+  playerRef: React.RefObject<ReactPlayer | null>,
 ) {
   const { alwaysSD } = useAlwaysSD();
   const [src, setSrc] = useState<string>();
@@ -25,7 +25,7 @@ export default function useAdaptiveSource(
         let lastTotal = 0;
         let lastDropped = 0;
         id = setInterval(() => {
-          const videoEl = playerRef.current?.el()?.getElementsByTagName('video')[0] as
+          const videoEl = playerRef.current?.getInternalPlayer() as
             | HTMLVideoElement
             | undefined;
           if (!videoEl || !videoEl.getVideoPlaybackQuality) return;
@@ -44,7 +44,7 @@ export default function useAdaptiveSource(
             stable = 0;
             setTimeout(() => {
               const player = playerRef.current;
-              if (player) player.currentTime(t);
+              if (player) player.seekTo(t);
             }, 500);
           } else if (rate <= 0.05) {
             stable += 5;
@@ -55,7 +55,7 @@ export default function useAdaptiveSource(
               stable = 0;
               setTimeout(() => {
                 const player = playerRef.current;
-                if (player) player.currentTime(t);
+                if (player) player.seekTo(t);
               }, 500);
             }
           } else {
