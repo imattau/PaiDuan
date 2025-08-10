@@ -196,11 +196,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         poster={posterUrl}
         controls={false}
         playsinline
+        loop
         onReady={(player) => {
           playerRef.current = player;
-          player.loop(true);
-          player.muted(true);
-          player.play();
+          if (typeof (player as any).muted === 'function') {
+            (player as any).muted(true);
+          } else {
+            (player as any).muted = true;
+          }
+          if (typeof (player as any).play === 'function') {
+            (player as any).play();
+          }
         }}
         onError={() => setVideoError(true)}
       />
