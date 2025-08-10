@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';

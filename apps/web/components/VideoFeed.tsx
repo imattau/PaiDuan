@@ -1,3 +1,4 @@
+'use client';
 import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import PlaceholderVideo from './PlaceholderVideo';

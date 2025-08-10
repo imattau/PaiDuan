@@ -1,9 +1,9 @@
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { VideoPlayer as VideoJsPlayer } from '@videojs-player/react';
 import type videojs from 'video.js';
 import 'video.js/dist/video-js.css';
-import dynamic from 'next/dynamic';
-import { MessageCircle, Repeat2, Volume2, VolumeX } from 'lucide-react';
+import { MessageCircle, Repeat2, Volume2, VolumeX, MoreVertical } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
 import CommentDrawer from './CommentDrawer';
@@ -25,10 +25,6 @@ import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
 import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
-
-const MoreVertical = dynamic(() => import('lucide-react').then((mod) => mod.MoreVertical), {
-  ssr: false,
-});
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -90,11 +86,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     if (auth.status !== 'ready') return;
     if (!window.confirm('Repost this video?')) return;
     try {
-        const relays = getRelays();
+      const relays = getRelays();
       let original: any = null;
       let relayUrl: string | undefined;
-        for (const r of relays) {
-          original = await pool.get([r], { ids: [eventId] });
+      for (const r of relays) {
+        original = await pool.get([r], { ids: [eventId] });
         if (original) {
           relayUrl = r;
           break;
@@ -283,11 +279,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           onClick={handleRepost}
           className="hover:text-accent-primary disabled:opacity-50"
           disabled={!online || reposted}
-          title={!online
-            ? 'Offline – reconnect to interact.'
-            : reposted
-              ? 'Already reposted'
-              : undefined}
+          title={
+            !online ? 'Offline – reconnect to interact.' : reposted ? 'Already reposted' : undefined
+          }
         >
           <Repeat2 className="icon" />
         </button>
