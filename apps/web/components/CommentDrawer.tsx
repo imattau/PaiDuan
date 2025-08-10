@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import { X, MoreVertical } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -9,13 +9,13 @@ import { useModqueue } from '@/context/modqueueContext';
 import Overlay from './ui/Overlay';
 import useComments from '@/hooks/useComments';
 
-interface CommentDrawerProps {
+interface CommentDrawerContentProps {
   videoId: string;
   onClose?: () => void;
   onCountChange?: (count: number) => void;
 }
 
-function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawerProps) {
+function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawerContentProps) {
   const { comments, hiddenIds: agentHiddenIds, send, canSend } = useComments(videoId);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState<NostrEvent | null>(null);
@@ -201,6 +201,51 @@ function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawer
   );
 }
 
-export default function CommentDrawer(props: CommentDrawerProps) {
-  Overlay.open('drawer', { content: <CommentDrawerContent {...props} />, onClose: props.onClose });
+interface CommentDrawerProps extends CommentDrawerContentProps {
+  open: boolean;
+  onOpenChange?: (open: boolean) => void;
+  autoFocus?: boolean;
+}
+
+export default function CommentDrawer({
+  videoId,
+  onClose,
+  onCountChange,
+  open,
+  onOpenChange,
+  autoFocus,
+}: CommentDrawerProps) {
+  const opened = useRef(false);
+
+  useEffect(() => {
+    if (open && !opened.current) {
+      const handleClose = () => {
+        onOpenChange?.(false);
+        onClose?.();
+      };
+      Overlay.open('drawer', {
+        content: (
+          <CommentDrawerContent
+            videoId={videoId}
+            onClose={handleClose}
+            onCountChange={onCountChange}
+          />
+        ),
+        onClose: handleClose,
+        autoFocus,
+      });
+      opened.current = true;
+    } else if (!open && opened.current) {
+      Overlay.close();
+      opened.current = false;
+    }
+    return () => {
+      if (opened.current) {
+        Overlay.close();
+        opened.current = false;
+      }
+    };
+  }, [open, videoId, onCountChange, autoFocus, onOpenChange, onClose]);
+
+  return null;
 }

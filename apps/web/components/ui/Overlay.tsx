@@ -7,6 +7,7 @@ export type OverlayKind = 'modal' | 'drawer';
 interface OverlayProps {
   content: ReactNode;
   onClose?: () => void;
+  autoFocus?: boolean;
 }
 
 interface OverlayState {
@@ -42,7 +43,14 @@ export function OverlayHost() {
     <Dialog.Root open onOpenChange={(o) => !o && closeHandler()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
-        <Dialog.Content className={contentClass}>{state.props.content}</Dialog.Content>
+        <Dialog.Content
+          className={contentClass}
+          onOpenAutoFocus={(e) => {
+            if (state.props.autoFocus === false) e.preventDefault();
+          }}
+        >
+          {state.props.content}
+        </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
   );
