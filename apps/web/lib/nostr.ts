@@ -50,8 +50,9 @@ void connectNDK();
 
 // update relay connections when the list changes
 if (typeof window !== 'undefined') {
-  window.addEventListener('pd.relays', () => {
-    ndk.explicitRelayUrls = getRelays();
+  window.addEventListener('pd.relays', (e) => {
+    const relays = (e as CustomEvent<string[]>).detail ?? getRelays();
+    ndk.explicitRelayUrls = relays;
     void connectNDK();
   });
 }

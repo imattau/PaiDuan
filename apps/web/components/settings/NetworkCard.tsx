@@ -1,36 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card } from '../ui/Card';
-import { getRelays, parseRelays } from '@/lib/nostr';
-import relaysConfig from '@/relays.json';
+import { useRelays } from '@/hooks/useRelays';
 
 export function NetworkCard() {
-  const [relays, setRelays] = useState<string[]>(() => parseRelays(relaysConfig) ?? []);
+  const { relays, addRelay, removeRelay } = useRelays();
   const [input, setInput] = useState('');
 
-  // persist relays to localStorage whenever they change
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem('pd.relays', JSON.stringify(relays));
-      window.dispatchEvent(new Event('pd.relays')); // notify listeners
-    } catch {
-      /* ignore */
-    }
-  }, [relays]);
-
-  useEffect(() => {
-    setRelays(getRelays());
-  }, []);
-
-  const addRelay = () => {
-    const url = input.trim();
-    if (!url || relays.includes(url)) return;
-    setRelays((prev) => [...prev, url]);
+  const handleAdd = () => {
+    addRelay(input);
     setInput('');
-  };
-
-  const removeRelay = (url: string) => {
-    setRelays((prev) => prev.filter((r) => r !== url));
   };
 
   return (
@@ -44,13 +22,13 @@ export function NetworkCard() {
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                addRelay();
+                handleAdd();
               }
             }}
             placeholder="wss://relay.example.com"
             className="flex-1 rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
-          <button type="button" onClick={addRelay} className="btn btn-outline">
+          <button type="button" onClick={handleAdd} className="btn btn-outline">
             Add
           </button>
         </div>
