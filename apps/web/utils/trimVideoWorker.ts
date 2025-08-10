@@ -275,10 +275,12 @@ export async function trim(
   if (description) decoderConfig.description = description;
   decoder.configure(decoderConfig);
 
-  const firstKey = samples.findIndex((s) => s.type === 'key');
-  if (firstKey < 0) {
-    fail('no-keyframe', 'No key frame found');
+  let firstKey = samples.findIndex((s) => s.type === 'key');
+  if (firstKey < 0 && samples.length) {
+    firstKey = 0;
+    samples[0].type = 'key';
   }
+  if (firstKey < 0) fail('no-keyframe', 'No key frame found');
   const feed = samples.slice(firstKey);
   for (const s of feed) {
     const chunk = new (self as any).EncodedVideoChunk({
