@@ -19,8 +19,7 @@ export default function TopNavProfile() {
   return (
     <div
       onClick={handleClick}
-      className="cursor-pointer rounded-lg p-[2px]"
-      style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
+      className="cursor-pointer rounded-lg bg-surface p-[2px]"
     >
       <Image
         src={profile?.picture || '/avatar.svg'}

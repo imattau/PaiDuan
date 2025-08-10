@@ -15,10 +15,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ avatarUrl, name, l
   const { online } = useNetworkState();
   return (
     <div className="flex flex-col items-center space-y-3 p-4 text-center">
-      <div
-        className="rounded-lg p-[2px]"
-        style={{ background: 'linear-gradient(145deg, #2a2a2a, #1c1c1c)' }}
-      >
+      <div className="rounded-lg bg-surface p-[2px]">
         <Image
           src={avatarUrl}
           alt={name}
