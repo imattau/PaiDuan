@@ -236,6 +236,7 @@ export default function ProfilePage() {
               width={1920}
               height={1080}
               className="w-full aspect-video object-cover cursor-pointer"
+              style={{ height: 'auto' }}
               onClick={() => setSelected(v)}
               unoptimized
             />
