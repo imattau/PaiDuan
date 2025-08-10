@@ -8,6 +8,7 @@ import { GestureProvider } from '@paiduan/ui';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { OverlayHost } from '@/components/ui/Overlay';
+import { NotificationsProvider } from '@/hooks/useNotifications';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -17,8 +18,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <GestureProvider>
           <ModqueueProvider>
             <QueryClientProvider client={queryClient}>
-              {children}
-              <OverlayHost />
+              <NotificationsProvider>
+                {children}
+                <OverlayHost />
+              </NotificationsProvider>
             </QueryClientProvider>
           </ModqueueProvider>
         </GestureProvider>
