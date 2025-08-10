@@ -19,6 +19,9 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
   const t = useT();
   const layout = useLayout();
   const barRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const handler = setTimeout(() => setQuery(value.trim()), 300);
@@ -73,17 +76,19 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
         )}
         {showActions && (
           <>
-            <button
-              onClick={toggleMode}
-              title={t('toggle_theme')}
-              className="hover:text-accent-primary"
-            >
-              {isDark ? (
-                <Sun className="text-gray-900 dark:text-gray-100" />
-              ) : (
-                <Moon className="text-gray-900 dark:text-gray-100" />
-              )}
-            </button>
+            {mounted && (
+              <button
+                onClick={toggleMode}
+                title={t('toggle_theme')}
+                className="hover:text-accent-primary"
+              >
+                {isDark ? (
+                  <Sun className="text-gray-900 dark:text-gray-100" />
+                ) : (
+                  <Moon className="text-gray-900 dark:text-gray-100" />
+                )}
+              </button>
+            )}
             <NotificationBell />
           </>
         )}
