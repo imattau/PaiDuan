@@ -237,17 +237,20 @@ export default function ProfilePage() {
       <div className="p-4 grid grid-cols-2 gap-4">
         {videos.map((v) =>
           v.posterUrl ? (
-            <Image
+            <div
               key={v.eventId}
-              src={v.posterUrl}
-              alt="poster"
-              width={1920}
-              height={1080}
-              className="w-full aspect-video object-cover cursor-pointer"
-              style={{ height: 'auto' }}
+              className="relative w-full aspect-video cursor-pointer"
               onClick={() => setSelected(v)}
-              unoptimized
-            />
+            >
+              <Image
+                src={v.posterUrl}
+                alt="poster"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+                unoptimized
+              />
+            </div>
           ) : (
             <div
               key={v.eventId}
