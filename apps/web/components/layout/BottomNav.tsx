@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import NextLink from 'next/link';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
-import { navigation } from '@/config/navigation';
+import { getNavigation } from '@/config/navigation';
 import { isRouteActive } from '@/utils/navigation';
 import { useLayout } from '@/context/LayoutContext';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Flex,
   Link as ChakraLink,
@@ -19,10 +20,13 @@ export default function BottomNav() {
   const params = useParams();
   const locale = (params?.locale as string) || undefined;
   const layout = useLayout();
+  const { state } = useAuth();
   const bg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const activeColor = useColorModeValue('blue.600', 'blue.300');
   const inactiveColor = useColorModeValue('gray.600', 'gray.400');
+
+  const navigation = useMemo(() => getNavigation(state.status === 'ready'), [state.status]);
 
   const prefetch = useCallback(
     (path: string) => {
@@ -52,7 +56,7 @@ export default function BottomNav() {
       window.removeEventListener('online', handlePrefetch);
       document.removeEventListener('visibilitychange', handlePrefetch);
     };
-  }, [router]);
+  }, [router, navigation]);
   if (layout === 'desktop') return null;
 
   return (

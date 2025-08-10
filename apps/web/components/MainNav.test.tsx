@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import MainNav from '@/components/layout/MainNav';
 import { LayoutContext, LayoutType } from '@/context/LayoutContext';
@@ -27,9 +27,16 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({}),
 }));
 
+const useAuthMock = vi.fn();
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => useAuthMock() }));
+
 (globalThis as any).React = React;
 
 describe('MainNav', () => {
+  beforeEach(() => {
+    useAuthMock.mockReturnValue({ state: { status: 'ready' } });
+  });
+
   (['desktop', 'tablet', 'mobile'] as LayoutType[]).forEach(layout => {
     it(`renders correctly on ${layout}`, () => {
       const html = renderToStaticMarkup(
@@ -40,5 +47,16 @@ describe('MainNav', () => {
       expect(html).toContain('/settings');
       expect(html).toContain('aria-current="page"');
     });
+  });
+
+  it('shows limited nav when signed out', () => {
+    useAuthMock.mockReturnValue({ state: { status: 'signedOut' } });
+    const html = renderToStaticMarkup(
+      <LayoutContext.Provider value="mobile">
+        <MainNav showSearch={false} showProfile={false} />
+      </LayoutContext.Provider>,
+    );
+    expect(html).toContain('/get-started');
+    expect(html).not.toContain('/settings');
   });
 });
