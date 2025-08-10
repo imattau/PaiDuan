@@ -32,39 +32,42 @@ export function useFollowerCount(pubkey?: string) {
 
   useEffect(() => {
     if (!pubkey) return;
+    setCount(0);
+
+    let sub: { close: () => void } | undefined;
     const cached = loadCache(pubkey);
     if (cached) {
       setCount(cached.count);
-      return;
+    } else {
+      const seen = new Set<string>();
+      sub = pool.subscribeMany(
+        getRelays(),
+        [{ kinds: [nostrKinds.Contacts], '#p': [pubkey] } as Filter],
+        {
+          onevent: (ev: any) => {
+            if (!seen.has(ev.pubkey)) {
+              seen.add(ev.pubkey);
+              setCount(seen.size);
+            }
+          },
+          oneose: () => {
+            if (typeof window !== 'undefined') {
+              const payload: FollowerCache = {
+                count: seen.size,
+                list: Array.from(seen),
+                ts: Date.now(),
+              };
+              window.localStorage.setItem(
+                `followers-${pubkey}`,
+                JSON.stringify(payload),
+              );
+            }
+            sub?.close();
+          },
+        },
+      );
     }
-    const seen = new Set<string>();
-    const sub = pool.subscribeMany(
-      getRelays(),
-      [{ kinds: [nostrKinds.Contacts], '#p': [pubkey] } as Filter],
-      {
-        onevent: (ev: any) => {
-          if (!seen.has(ev.pubkey)) {
-            seen.add(ev.pubkey);
-            setCount(seen.size);
-          }
-        },
-        oneose: () => {
-          if (typeof window !== 'undefined') {
-            const payload: FollowerCache = {
-              count: seen.size,
-              list: Array.from(seen),
-              ts: Date.now(),
-            };
-            window.localStorage.setItem(
-              `followers-${pubkey}`,
-              JSON.stringify(payload),
-            );
-          }
-          sub.close();
-        },
-      },
-    );
-    return () => sub.close();
+    return () => sub?.close();
   }, [pubkey]);
 
   return count;
