@@ -180,6 +180,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     }
   };
 
+  const source = adaptiveUrl ? adaptiveUrl : videoUrl;
+  const mime = adaptiveUrl ? 'application/x-mpegURL' : 'video/mp4';
+
   return (
     <motion.div
       ref={(el) => {
@@ -198,12 +201,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     >
       <VideoJsPlayer
         className="video-js pointer-events-none absolute inset-0 h-full w-full object-cover"
-        sources={[
-          {
-            src: manifestUrl ? adaptiveUrl || videoUrl : videoUrl,
-            type: manifestUrl ? 'application/x-mpegURL' : 'video/mp4',
-          },
-        ]}
+        sources={[{ src: source, type: mime }]}
         poster={posterUrl}
         controls={false}
         playsinline
