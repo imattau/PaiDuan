@@ -245,17 +245,31 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           muted={muted}
           playsInline
           poster={posterUrl}
-          autoPlay={isPlaying}
+          autoPlay
           src={!manifestUrl ? videoUrl : undefined}
           onLoadedData={() => {
             setLoaded(true);
             const video = getPlayer();
             if (video) {
-              video.muted = muted;
-              playback.play().catch(() => {
-                setShowPlayIndicator(true);
-                setIsPlaying(false);
-              });
+              // Autoplay handling: try with the user's mute preference first.
+              // If the browser blocks playback, retry while muted to satisfy
+              // autoplay policies, then restore the user's setting.
+              const originalMuted = muted;
+              video.muted = originalMuted;
+              video
+                .play()
+                .catch(() => {
+                  video.muted = true;
+                  return video.play();
+                })
+                .then(() => {
+                  video.muted = originalMuted;
+                })
+                .catch(() => {
+                  video.muted = originalMuted;
+                  setShowPlayIndicator(true);
+                  setIsPlaying(false);
+                });
             }
             onReady?.();
           }}
