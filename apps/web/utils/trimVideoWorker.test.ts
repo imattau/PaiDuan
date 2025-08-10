@@ -1,6 +1,13 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let includeDescription = true;
+let sampleList: any[] = [];
+beforeEach(() => {
+  sampleList = [
+    { data: new Uint8Array([0]), dts: 0, is_sync: true },
+    { data: new Uint8Array([1]), dts: 1000, is_sync: false },
+  ];
+});
 vi.mock('mp4box', () => ({
   createFile: () => {
     const track: any = {
@@ -14,10 +21,6 @@ vi.mock('mp4box', () => ({
         PPS: [new Uint8Array([0x68, 0xee, 0x3c, 0x80])],
       };
     }
-    const samps = [
-      { data: new Uint8Array([0]), dts: 0, is_sync: true },
-      { data: new Uint8Array([1]), dts: 1000, is_sync: false },
-    ];
     return {
       onReady: undefined as any,
       onSamples: undefined as any,
@@ -25,7 +28,7 @@ vi.mock('mp4box', () => ({
       start() {},
       appendBuffer() {
         this.onReady?.({ videoTracks: [track] });
-        this.onSamples?.(track.id, null, samps);
+        this.onSamples?.(track.id, null, sampleList);
       },
       flush() {},
     };
@@ -146,6 +149,74 @@ describe('trim', () => {
     const result = await trim(blob, { start: 0, end: 1 }, () => {});
     expect(result.type).toBe('video/mp4');
     expect(result.buffer.byteLength).toBeGreaterThan(0);
+  });
+
+  it('decodes when first sample is treated as key', async () => {
+    sampleList = [
+      { data: new Uint8Array([0]), dts: 0, is_sync: false },
+      { data: new Uint8Array([1]), dts: 1000, is_sync: false },
+    ];
+    class FakeVideoFrame {
+      timestamp: number;
+      codedWidth = 640;
+      codedHeight = 480;
+      constructor(ts: number) {
+        this.timestamp = ts;
+      }
+      close() {}
+    }
+    class FakeEncodedVideoChunk {
+      type: any;
+      timestamp: number;
+      byteLength: number;
+      data: Uint8Array;
+      constructor(init: any) {
+        this.type = init.type;
+        this.timestamp = init.timestamp;
+        this.data = init.data;
+        this.byteLength = init.data.length;
+      }
+      copyTo(arr: Uint8Array) {
+        arr.set(this.data);
+      }
+    }
+    const decodeTypes: any[] = [];
+    class FakeVideoDecoder {
+      static async isConfigSupported(config: any) {
+        return { supported: true, config };
+      }
+      private output: any;
+      constructor(init: any) {
+        this.output = init.output;
+      }
+      configure() {}
+      decode(chunk: any) {
+        decodeTypes.push(chunk.type);
+        this.output(new FakeVideoFrame(chunk.timestamp));
+      }
+      async flush() {}
+      close() {}
+    }
+    class FakeVideoEncoder {
+      constructor(private init: any) {}
+      configure() {}
+      encode(frame: any) {
+        this.init.output({
+          byteLength: 1,
+          copyTo: (arr: Uint8Array) => arr.set([1]),
+        });
+      }
+      async flush() {}
+      close() {}
+    }
+    (self as any).EncodedVideoChunk = FakeEncodedVideoChunk;
+    (self as any).VideoDecoder = FakeVideoDecoder;
+    (self as any).VideoEncoder = FakeVideoEncoder;
+
+    const blob = new Blob([new Uint8Array([0])], { type: 'video/mp4' });
+    const result = await trim(blob, { start: 0, end: 1 }, () => {});
+    expect(result.buffer.byteLength).toBeGreaterThan(0);
+    expect(decodeTypes[0]).toBe('key');
   });
 
   it('includes SPS/PPS description in decoder config', async () => {
