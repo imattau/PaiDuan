@@ -18,6 +18,8 @@ import { useFollowingStore } from '@/store/following';
 import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
 import PlaceholderVideo from './PlaceholderVideo';
+import VideoFallback from './VideoFallback';
+import { telemetry } from '@/agents/telemetry';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -79,6 +81,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPlayIndicator, setShowPlayIndicator] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [triedFallback, setTriedFallback] = useState(false);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
@@ -174,6 +177,38 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     });
   };
 
+  const handleVideoError = async () => {
+    setShowPlayIndicator(false);
+    setIsPlaying(false);
+    const primaryUrl = manifestUrl ?? videoUrl;
+    try {
+      const res = await fetch(primaryUrl, { method: 'HEAD' });
+      if (res.status === 404 && manifestUrl && !triedFallback) {
+        setTriedFallback(true);
+        setLoaded(false);
+        setErrorMessage(null);
+        const player = getPlayer();
+        if (player) {
+          playback.loadSource(player, { videoUrl, eventId });
+          playback.play().catch(() => {
+            setErrorMessage('Video unavailable');
+            telemetry.track('video.unavailable', { eventId, url: videoUrl, status: 'play_failed' });
+          });
+        }
+        return;
+      }
+      setErrorMessage('Video unavailable');
+      telemetry.track('video.unavailable', {
+        eventId,
+        url: primaryUrl,
+        status: res.status,
+      });
+    } catch {
+      setErrorMessage('Video unavailable');
+      telemetry.track('video.unavailable', { eventId, url: primaryUrl });
+    }
+  };
+
   return (
     <motion.div
       ref={(el) => {
@@ -215,7 +250,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             }
             onReady?.();
           }}
-          onError={() => setErrorMessage('Video playback error')}
+          onError={handleVideoError}
         />
       )}
 
@@ -238,19 +273,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </button>
       )}
 
-      {errorMessage && (
-        <>
-          <img
-            src={posterUrl || '/offline.jpg'}
-            alt="Video unavailable"
-            className="absolute inset-0 h-full w-full object-cover"
-            onError={(e) => (e.currentTarget.src = '/offline.jpg')}
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-4 text-center">
-            {errorMessage}
-          </div>
-        </>
-      )}
+      {errorMessage && <VideoFallback posterUrl={posterUrl} message={errorMessage} />}
 
       {showMenu && (
         <div className="absolute right-4 top-4">
