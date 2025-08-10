@@ -114,7 +114,10 @@ export default function useLightning() {
         const signed = await state.signer.signEvent(event);
         pool.publish(getRelays(), signed);
       } catch (err: any) {
-        alert(err.message || 'Sign-in required');
+        const w = typeof window !== 'undefined' ? window : undefined;
+        if (w && typeof w.alert === 'function') {
+          w.alert(err.message || 'Sign-in required');
+        }
       }
     }
 

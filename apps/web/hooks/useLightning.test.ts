@@ -8,6 +8,7 @@ const poolGetMock = vi.fn();
 const fetchPayDataMock = vi.fn();
 const requestInvoiceMock = vi.fn();
 let sendPaymentMock: ReturnType<typeof vi.fn>;
+let signEventMock: ReturnType<typeof vi.fn>;
 
 vi.mock('./useAuth', () => ({
   useAuth: () => ({
@@ -15,7 +16,7 @@ vi.mock('./useAuth', () => ({
       status: 'ready',
       pubkey: 'pk',
       signer: {
-        signEvent: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })),
+        signEvent: signEventMock,
       },
     },
   }),
@@ -40,6 +41,12 @@ describe('useLightning', () => {
     vi.resetAllMocks();
     vi.stubGlobal('fetch', vi.fn());
     sendPaymentMock = vi.fn();
+    signEventMock = vi.fn(async (e: any) => ({
+      ...e,
+      id: 'id',
+      sig: 'sig',
+      pubkey: 'pk',
+    }));
     if (typeof window === 'undefined') {
       // @ts-ignore
       global.window = {};
@@ -126,6 +133,21 @@ describe('useLightning', () => {
     expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
     expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not throw when alert is absent', async () => {
+    signEventMock.mockRejectedValueOnce(new Error('fail'));
+
+    fetchPayDataMock.mockResolvedValue({ pay: 'data' });
+    requestInvoiceMock.mockResolvedValue({ invoice: 'invoice' });
+    poolGetMock.mockResolvedValueOnce(null);
+    delete process.env.NEXT_PUBLIC_TREASURY_LNADDR;
+
+    const { createZap } = useLightning();
+
+    await expect(
+      createZap({ lightningAddress: 'user@example.com', amount: 100, pubkey: 'pk' }),
+    ).resolves.toEqual({ invoices: ['invoice'] });
   });
 });
 
