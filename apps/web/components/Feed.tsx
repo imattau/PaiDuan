@@ -1,6 +1,15 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+
+export function getCenteredVirtualItem(
+  virtualItems: VirtualItem[],
+  viewportHeight: number,
+  scrollOffset: number,
+): VirtualItem | undefined {
+  const center = scrollOffset + viewportHeight / 2;
+  return virtualItems.find((item) => item.start <= center && item.end >= center);
+}
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
 import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
@@ -46,15 +55,24 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 
   useEffect(() => {
     if (!virtualItems.length) return;
-    const first = virtualItems[0];
-    if (first.index >= items.length - 2) {
+    const viewportHeight =
+      rowVirtualizer.scrollRect?.height ?? parentRef.current?.clientHeight ?? 0;
+    const scrollOffset =
+      rowVirtualizer.scrollOffset ?? parentRef.current?.scrollTop ?? 0;
+    const middle = getCenteredVirtualItem(
+      virtualItems,
+      viewportHeight,
+      scrollOffset,
+    );
+    if (!middle) return;
+    if (middle.index >= items.length - 2) {
       loadMore?.();
     }
-    const current = items[first.index];
+    const current = items[middle.index];
     if (current && current.eventId !== selectedVideoId) {
       setSelectedVideo(current.eventId, current.pubkey);
     }
-  }, [virtualItems, items, loadMore, setSelectedVideo, selectedVideoId]);
+  }, [virtualItems, items, loadMore, setSelectedVideo, selectedVideoId, rowVirtualizer.scrollRect?.height, rowVirtualizer.scrollOffset]);
 
   if (loading) {
     return (
