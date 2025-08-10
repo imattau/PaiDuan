@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "pnpm run copy-workbox",
     "prebuild:pwa": "pnpm run copy-workbox",
     "build:pwa": "next build && next-pwa",
     "storybook": "storybook dev -p 6006",

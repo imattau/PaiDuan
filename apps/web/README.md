@@ -32,3 +32,7 @@ The **Publish** button remains disabled until a trimmed video is available and r
 By default, the application sends `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` on all routes. These headers enable cross-origin isolation for features like WebCodecs.
 
 Set `ENABLE_ISOLATION=false` to disable these headers and allow loading third-party resources that do not provide COEP/CORP.
+
+## Service worker
+
+The app expects `public/workbox-sw.js` to be present so requests to `/workbox-sw.js` succeed. This file is copied from `node_modules/workbox-sw/build/workbox-sw.js` during `postinstall`. Run `pnpm run copy-workbox` if you need to regenerate it manually.
