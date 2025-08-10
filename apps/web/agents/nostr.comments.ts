@@ -1,4 +1,4 @@
-import type { Event as NostrEvent } from 'nostr-tools/pure';
+import type { Event as NostrEvent, EventTemplate } from 'nostr-tools/pure';
 import type { Signer } from '@/lib/signers/types';
 import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
@@ -9,9 +9,21 @@ export function subscribe(
   onHide?: (id: string) => void,
 ): { close: () => void } {
   const relays = getRelays();
-  const sub = pool.subscribeMany(relays, [{ kinds: [1], '#e': [videoId] }], {
-    onevent: onEvent,
-  });
+  const sub = pool.subscribeMany(
+    relays,
+    [
+      {
+        kinds: [1],
+        '#e': [videoId],
+        since: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
+        limit: 200,
+      },
+    ],
+    {
+      onevent: onEvent,
+      oneose: () => sub.close(),
+    },
+  );
 
   let hideSub: { close: () => void } | undefined;
   if (onHide) {
@@ -44,7 +56,7 @@ export async function sendComment(
     tags.push(["e", replyTo.id]);
     tags.push(["p", replyTo.pubkey]);
   }
-  const event: any = {
+  const event: EventTemplate & { pubkey: string } = {
     kind: 1,
     created_at: Math.floor(Date.now() / 1000),
     tags,
