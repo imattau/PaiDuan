@@ -14,6 +14,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function FeedPage() {
+  const isClient = typeof window !== 'undefined';
   const { filterAuthor, setFilterAuthor } = useFeedSelection();
   const { state: auth } = useAuth();
   const { following } = useFollowing(
@@ -35,6 +36,8 @@ export default function FeedPage() {
   const { items: videos, loadMore, loading } = useFeed(
     mode,
     feedMode === 'following' && !filterAuthor ? following : [],
+    {},
+    isClient,
   );
   const me =
     auth.status === 'ready'
@@ -62,7 +65,11 @@ export default function FeedPage() {
         center={
           <div className="feed-container h-full">
             {/* tabs bar you already have can stay on top */}
-            <Feed items={videos} loadMore={loadMore} loading={loading} />
+            {isClient ? (
+              <Feed items={videos} loadMore={loadMore} loading={loading} />
+            ) : (
+              <Feed items={[]} loadMore={() => {}} loading />
+            )}
           </div>
         }
         right={<RightPanel onFilterByAuthor={filterByAuthor} />}

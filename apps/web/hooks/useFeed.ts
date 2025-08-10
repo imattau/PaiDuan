@@ -41,6 +41,7 @@ interface FeedResult {
   tags: string[];
   prepend: (item: VideoCardProps) => void;
   loadMore: () => void;
+  loading: boolean;
   error?: Error;
 }
 
@@ -123,6 +124,7 @@ export function useFeed(
   mode: FeedMode,
   authors: string[] = [],
   cursor: { since?: number; until?: number; limit?: number } = {},
+  enabled = true,
 ): FeedResult {
   const limit = cursor.limit ?? 20;
   const query = useInfiniteQuery({
@@ -131,12 +133,16 @@ export function useFeed(
     initialPageParam: cursor.until,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 60 * 5,
+    enabled,
   });
-  const items = query.data?.pages.flatMap((p) => p.items) ?? [];
-  const tags = query.data?.pages[0]?.tags ?? [];
-  const timedOut = query.data?.pages.some((p) => p.timedOut);
-  const loading = query.isPending || (query.isFetching && items.length === 0);
+  const items = enabled ? query.data?.pages.flatMap((p) => p.items) ?? [] : [];
+  const tags = enabled ? query.data?.pages[0]?.tags ?? [] : [];
+  const timedOut = enabled ? query.data?.pages.some((p) => p.timedOut) : false;
+  const loading = enabled
+    ? query.isPending || (query.isFetching && items.length === 0)
+    : false;
   const prepend = (item: VideoCardProps) => {
+    if (!enabled) return;
     queryClient.setQueryData(['feed', mode, authors.join(','), limit], (old: any) => {
       if (!old) return old;
       return {
@@ -149,7 +155,7 @@ export function useFeed(
     items,
     tags,
     prepend,
-    loadMore: () => query.fetchNextPage(),
+    loadMore: enabled ? () => query.fetchNextPage() : () => {},
     loading,
     error: timedOut ? new Error('Relay connection timed out') : undefined,
   };

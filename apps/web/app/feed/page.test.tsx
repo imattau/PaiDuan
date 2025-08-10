@@ -27,6 +27,6 @@ import FeedPage from './page';
 describe('FeedPage', () => {
   it('uses following authors when tab=following', () => {
     render(<FeedPage />);
-    expect(useFeedMock).toHaveBeenCalledWith('following', ['pk1', 'pk2']);
+    expect(useFeedMock).toHaveBeenCalledWith('following', ['pk1', 'pk2'], {}, true);
   });
 });
