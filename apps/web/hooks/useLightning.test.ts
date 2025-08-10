@@ -149,5 +149,32 @@ describe('useLightning', () => {
       createZap({ lightningAddress: 'user@example.com', amount: 100, pubkey: 'pk' }),
     ).resolves.toEqual({ invoices: ['invoice'] });
   });
+
+  it('throws if collaborator splits exceed 95%', async () => {
+    poolGetMock
+      .mockResolvedValueOnce({ tags: [] })
+      .mockResolvedValueOnce({
+        content: JSON.stringify({ zapSplits: [{ lnaddr: 'col@example.com', pct: 96 }] }),
+      });
+
+    process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
+
+    fetchPayDataMock.mockResolvedValue({ pay: 'data' });
+    requestInvoiceMock.mockResolvedValue({ invoice: 'invoice' });
+
+    const { createZap } = useLightning();
+
+    await expect(
+      createZap({
+        lightningAddress: 'user@example.com',
+        amount: 100,
+        eventId: 'note',
+        pubkey: 'pk',
+      }),
+    ).rejects.toThrow('Collaborator percentage exceeds 95%');
+
+    expect(fetchPayDataMock).not.toHaveBeenCalled();
+    expect(requestInvoiceMock).not.toHaveBeenCalled();
+  });
 });
 
