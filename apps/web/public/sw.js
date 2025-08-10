@@ -1,5 +1,5 @@
-// Use CDN-hosted Workbox script to avoid path issues on sub-path deployments.
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
+// Load locally bundled Workbox to ensure service worker availability offline.
+importScripts('./workbox-sw.js');
 
 workbox.loadModule('workbox-routing');
 workbox.loadModule('workbox-strategies');

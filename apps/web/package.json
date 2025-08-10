@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "node dev.js",
     "dev:lan": "PORT=3000 node dev.js",
+    "copy-workbox": "cp ./node_modules/workbox-sw/build/workbox-sw.js ./public/",
+    "prebuild": "pnpm run copy-workbox",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "prebuild:pwa": "pnpm run copy-workbox",
     "build:pwa": "next build && next-pwa",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build -o storybook-static"
@@ -61,6 +64,7 @@
     "threads": "^1.7.0",
     "web-push": "^3.6.0",
     "workbox-background-sync": "^7.3.0",
+    "workbox-sw": "^7.3.0",
     "workbox-window": "^7.3.0",
     "zod": "^4.0.16",
     "zustand": "^4.5.2"
