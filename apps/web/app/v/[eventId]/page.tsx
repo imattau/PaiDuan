@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import pool from '@/lib/relayPool';
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import VideoCard, { VideoCardProps } from '@/components/VideoCard';
+import ZapButton from '@/components/ZapButton';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { getRelays } from '@/lib/nostr';
 import CommentDrawer from '@/components/CommentDrawer';
 
@@ -11,6 +14,9 @@ export default function VideoPage() {
   const { eventId } = useParams<{ eventId?: string }>();
   const [video, setVideo] = useState<VideoCardProps | null>(null);
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
+  const { state } = useAuth();
+  const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
+  const hasWallet = !!profile?.wallets?.length;
 
   useEffect(() => {
     if (!eventId) return;
@@ -50,6 +56,16 @@ export default function VideoPage() {
           {...video}
           showMenu
           onComment={() => setCommentVideoId(video.eventId)}
+          zap={
+            <ZapButton
+              lightningAddress={video.lightningAddress}
+              pubkey={video.pubkey}
+              eventId={video.eventId}
+              total={video.zapTotal}
+              disabled={!hasWallet}
+              title={!hasWallet ? 'Add a wallet to zap' : undefined}
+            />
+          }
         />
       </div>
       <CommentDrawer

@@ -13,10 +13,14 @@ import SearchBar from '@/components/SearchBar';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
 import CommentDrawer from '@/components/CommentDrawer';
+import ZapButton from '@/components/ZapButton';
+import { useProfile } from '@/hooks/useProfile';
 
 export default function ProfilePage() {
   const { pubkey } = useParams<{ pubkey?: string }>();
   const { state } = useAuth();
+  const viewerProfile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
+  const hasWallet = !!viewerProfile?.wallets?.length;
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
   const [bio, setBio] = useState('');
@@ -259,6 +263,16 @@ export default function ProfilePage() {
               {...selected}
               showMenu
               onComment={() => setCommentVideoId(selected.eventId)}
+              zap={
+                <ZapButton
+                  lightningAddress={selected.lightningAddress}
+                  pubkey={selected.pubkey}
+                  eventId={selected.eventId}
+                  total={selected.zapTotal}
+                  disabled={!hasWallet}
+                  title={!hasWallet ? 'Add a wallet to zap' : undefined}
+                />
+              }
             />
             <button
               className="absolute right-4 top-4 text-white"

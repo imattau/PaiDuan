@@ -7,6 +7,9 @@ import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
 import Link from 'next/link';
 import { useFeedSelection } from '@/store/feedSelection';
 import CommentDrawer from './CommentDrawer';
+import ZapButton from './ZapButton';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 interface FeedProps {
   items: VideoCardProps[];
@@ -20,6 +23,9 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
   const rowRefs = useRef<(HTMLElement | null)[]>([]);
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
+  const { state } = useAuth();
+  const viewerProfile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
+  const hasWallet = !!viewerProfile?.wallets?.length;
 
   const rowVirtualizer = useVirtualizer({
     count: items.length,
@@ -106,6 +112,16 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
                     const el = rowRefs.current[index];
                     if (el) rowVirtualizer.measureElement(el);
                   }}
+                  zap={
+                    <ZapButton
+                      lightningAddress={item.lightningAddress}
+                      pubkey={item.pubkey}
+                      eventId={item.eventId}
+                      total={item.zapTotal}
+                      disabled={!hasWallet}
+                      title={!hasWallet ? 'Add a wallet to zap' : undefined}
+                    />
+                  }
                 />
               </div>
             );
