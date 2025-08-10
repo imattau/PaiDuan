@@ -24,6 +24,12 @@ export function useZapSplits(
   const { following } = useFollowing(state.status === 'ready' ? state.pubkey : undefined);
   const profiles = useProfiles(following);
 
+  useEffect(() => {
+    return () => {
+      profiles.forEach((p) => p.pictureRevoke?.());
+    };
+  }, [profiles]);
+
   const { fields, append, remove } = useFieldArray({ control, name: 'zapSplits' });
 
   const walletAddrs = Array.isArray(profile?.wallets) && profile.wallets.length > 0
