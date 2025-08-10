@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 export default async function CreatePage({
   params,
 }: {
-  params: { locale?: string };
+  params: Promise<{ locale?: string }>;
 }) {
-  const { locale = 'en' } = params;
+  const { locale = 'en' } = await params;
   const messages = await getMessages();
   const createMessages = (await import(`@/locales/${locale}/create.json`)).default;
 
