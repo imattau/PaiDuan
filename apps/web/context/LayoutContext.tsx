@@ -1,5 +1,6 @@
 'use client';
 
+import 'screen-orientation';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 export type LayoutType = 'desktop' | 'tablet' | 'mobile';
@@ -41,10 +42,32 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     setLayout(initial);
     writeStored(initial);
 
+    if (initial === 'mobile') {
+      try {
+        screen.orientation.lock('portrait');
+      } catch {
+        // ignore orientation lock failures
+      }
+    }
+
     const handleResize = () => {
       const value = getLayout(window.innerWidth, window.innerHeight);
       setLayout(value);
       writeStored(value);
+
+      if (value === 'mobile') {
+        try {
+          screen.orientation.lock('portrait');
+        } catch {
+          // ignore orientation lock failures
+        }
+      } else {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // ignore orientation unlock failures
+        }
+      }
     };
 
     const mql = window.matchMedia('(orientation: portrait)');
@@ -53,6 +76,11 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mql.removeEventListener('change', handleResize);
       window.removeEventListener('resize', handleResize);
+      try {
+        screen.orientation.unlock();
+      } catch {
+        // ignore orientation unlock failures
+      }
     };
   }, []);
 
