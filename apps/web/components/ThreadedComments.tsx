@@ -51,6 +51,7 @@ export default function ThreadedComments({ noteId }: { noteId?: string }) {
               <li
                 key={events[virtualRow.index].id}
                 ref={rowVirtualizer.measureElement}
+                data-index={virtualRow.index}
                 className="absolute top-0 left-0 w-full text-sm text-gray-800 dark:text-gray-200"
                 style={{
                   transform: `translateY(${virtualRow.start}px)`,

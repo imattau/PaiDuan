@@ -36,6 +36,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
           <div
             key={virtualRow.key}
             ref={rowVirtualizer.measureElement}
+            data-index={virtualRow.index}
             className="absolute top-0 left-0 w-full"
             style={{
               transform: `translateY(${virtualRow.start}px)`,

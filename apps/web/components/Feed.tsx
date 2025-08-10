@@ -79,6 +79,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
             <div
               key={item.eventId ?? virtualRow.index}
               ref={rowVirtualizer.measureElement}
+              data-index={virtualRow.index}
               className="snap-start min-h-screen"
             >
               <VideoCard {...item} showMenu />
