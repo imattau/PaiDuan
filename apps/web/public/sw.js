@@ -9,6 +9,14 @@ try {
 workbox.loadModule('workbox-routing');
 workbox.loadModule('workbox-strategies');
 workbox.loadModule('workbox-background-sync');
+workbox.loadModule('workbox-core');
+
+const CACHE_VERSION = 'v2';
+
+workbox.core.setCacheNameDetails({
+  prefix: 'workbox',
+  suffix: CACHE_VERSION,
+});
 
 self.addEventListener('install', () => {
   const manifest = (self.__WB_MANIFEST || []).filter(
@@ -17,13 +25,30 @@ self.addEventListener('install', () => {
   workbox.precaching.precacheAndRoute(manifest);
 });
 
-const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('apiQueue', {
-  maxRetentionTime: 24 * 60,
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => !key.includes(CACHE_VERSION))
+          .map((key) => caches.delete(key)),
+      ),
+    ),
+  );
 });
+
+const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin(
+  `apiQueue-${CACHE_VERSION}`,
+  {
+    maxRetentionTime: 24 * 60,
+  },
+);
 
 workbox.routing.registerRoute(
   ({ url }) => url.pathname.startsWith('/api/'),
-  new workbox.strategies.NetworkFirst({ cacheName: 'api-runtime' }),
+  new workbox.strategies.NetworkFirst({
+    cacheName: `api-runtime-${CACHE_VERSION}`,
+  }),
 );
 
 ['POST', 'PUT'].forEach((method) => {
@@ -36,7 +61,9 @@ workbox.routing.registerRoute(
 
 workbox.routing.registerRoute(
   ({ url }) => /\.(?:mp4|webm)$/.test(url.pathname),
-  new workbox.strategies.CacheFirst({ cacheName: 'video-cache' }),
+  new workbox.strategies.CacheFirst({
+    cacheName: `video-cache-${CACHE_VERSION}`,
+  }),
 );
 
 self.addEventListener('push', (event) => {
