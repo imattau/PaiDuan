@@ -79,6 +79,7 @@
     "@types/node": "^20.11.19",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
+    "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.4.16",
     "babel-loader": "^10.0.0",
     "daisyui": "^5.0.50",

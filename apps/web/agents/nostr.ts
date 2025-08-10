@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import type { Event as NostrEvent, EventTemplate } from 'nostr-tools/pure';
 import type { Signer } from '@/lib/signers/types';
@@ -36,7 +36,7 @@ export async function repost({
   let relayUrl: string | undefined;
 
   for (const r of relays) {
-    original = await pool.get([r], { ids: [eventId] });
+    original = (await pool.get([r], { ids: [eventId] })) as NostrEvent | null;
     if (original) {
       relayUrl = r;
       break;

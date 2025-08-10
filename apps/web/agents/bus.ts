@@ -10,7 +10,7 @@ export type Unsub = () => void;
 
 class EventBus {
   private listeners: {
-    [K in AppEvent['type']]?: Array<(e: Extract<AppEvent, { type: K }>) => void>;
+    [K in AppEvent['type']]?: Array<(e: any) => void>;
   } = {};
 
   emit<E extends AppEvent>(event: E): void {
@@ -21,7 +21,7 @@ class EventBus {
     type: T,
     cb: (event: Extract<AppEvent, { type: T }>) => void,
   ): Unsub {
-    (this.listeners[type] ??= []).push(cb as any);
+    (this.listeners[type] ??= [] as Array<(e: any) => void>).push(cb as any);
     return () => {
       const arr = this.listeners[type];
       if (!arr) return;

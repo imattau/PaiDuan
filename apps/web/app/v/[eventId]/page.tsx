@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import pool from '@/lib/relayPool';
@@ -21,24 +21,25 @@ export default function VideoPage() {
   useEffect(() => {
     if (!eventId) return;
     document.body.style.overflow = 'hidden';
-      const relays = getRelays();
-      pool.get(relays, { ids: [eventId] }).then((ev: NostrEvent | null) => {
-      if (!ev) return;
-      const videoTag = ev.tags.find((t) => t[0] === 'v');
+    const relays = getRelays();
+    pool.get(relays, { ids: [eventId] }).then((ev) => {
+      const event = ev as NostrEvent | null;
+      if (!event) return;
+      const videoTag = event.tags.find((t) => t[0] === 'v');
       if (!videoTag) return;
-      const posterTag = ev.tags.find((t) => t[0] === 'image');
-      const manifestTag = ev.tags.find((t) => t[0] === 'vman');
-      const zapTags = ev.tags.filter((t) => t[0] === 'zap');
-      const tTags = ev.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+      const posterTag = event.tags.find((t) => t[0] === 'image');
+      const manifestTag = event.tags.find((t) => t[0] === 'vman');
+      const zapTags = event.tags.filter((t) => t[0] === 'zap');
+      const tTags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
       setVideo({
         videoUrl: videoTag[1],
         posterUrl: posterTag ? posterTag[1] : undefined,
         manifestUrl: manifestTag ? manifestTag[1] : undefined,
-        author: ev.pubkey.slice(0, 8),
+        author: event.pubkey.slice(0, 8),
         caption: tTags.join(' '),
-        eventId: ev.id,
+        eventId: event.id,
         lightningAddress: zapTags.length ? zapTags[0][1] : '',
-        pubkey: ev.pubkey,
+        pubkey: event.pubkey,
         zapTotal: 0,
       });
     });
@@ -48,7 +49,11 @@ export default function VideoPage() {
   }, [eventId]);
 
   if (!video)
-    return <div className="flex min-h-screen items-center justify-center bg-black text-white">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
   return (
     <>
       <div className="flex h-[calc(100dvh-var(--top-nav-height,0)-var(--bottom-nav-height,0))] items-start justify-center lg:items-center">
@@ -58,7 +63,7 @@ export default function VideoPage() {
           onComment={() => setCommentVideoId(video.eventId)}
           zap={
             <ZapButton
-              lightningAddress={video.lightningAddress}
+              lightningAddress={video.lightningAddress ?? ''}
               pubkey={video.pubkey}
               eventId={video.eventId}
               total={video.zapTotal}

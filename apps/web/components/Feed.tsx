@@ -167,7 +167,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
                   }}
                   zap={
                     <ZapButton
-                      lightningAddress={item.lightningAddress}
+                      lightningAddress={item.lightningAddress ?? ''}
                       pubkey={item.pubkey}
                       eventId={item.eventId}
                       total={item.zapTotal}

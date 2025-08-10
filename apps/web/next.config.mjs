@@ -7,7 +7,7 @@ const isProd = process.env.NODE_ENV === 'production';
 const baseConfig = {
   experimental: { esmExternals: 'loose' },
   reactStrictMode: true,
-  typescript: { ignoreBuildErrors: true },
+  typescript: { ignoreBuildErrors: false },
   transpilePackages: ['@paiduan/ui'],
   images: {
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
