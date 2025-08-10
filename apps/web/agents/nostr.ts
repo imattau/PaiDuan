@@ -5,6 +5,7 @@ import type { Signer } from '@/lib/signers/types';
 import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
 import comments from './nostr.comments';
+import { bus } from './bus';
 
 /**
  * Repost a Nostr event by ID.
@@ -61,9 +62,24 @@ export async function repost({
   await pool.publish(relays, signed);
 }
 
+export async function publishEvent(
+  event: EventTemplate & { pubkey: string },
+  signer: Signer,
+): Promise<void> {
+  try {
+    const signed = await signer.signEvent(event);
+    await pool.publish(getRelays(), signed);
+    bus.emit({ type: 'nostr.published', id: signed.id });
+  } catch (err: any) {
+    bus.emit({ type: 'nostr.error', error: err?.message || 'publish failed' });
+    throw err;
+  }
+}
+
 export const nostr = {
   repost,
   comments,
+  publishEvent,
 };
 
 export default nostr;

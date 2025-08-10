@@ -8,8 +8,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useProfiles } from '../../hooks/useProfiles';
 import useFollowing from '../../hooks/useFollowing';
-import { getRelays } from '../../lib/nostr';
-import pool from '../../lib/relayPool';
+import upload from '../../agents/upload';
+import media from '../../agents/media';
+import { nostr } from '../../agents/nostr';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -247,55 +248,26 @@ export default function CreateVideoForm() {
       if (values.lightningAddress) form.append('zap', values.lightningAddress);
       if (values.zapSplits.length) form.append('zapSplits', JSON.stringify(values.zapSplits));
 
-      const res = await fetch('https://nostr.media/api/upload', {
-        method: 'POST',
-        body: form,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const { video, poster, manifest } = await res.json();
-
-      const topicList = values.topics
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean);
-      const totalPctSubmit = values.zapSplits.reduce((sum, s) => sum + s.pct, 0);
-      const dim = `${dimensions.width}x${dimensions.height}`;
-      const tags: string[][] = [
-        ['title', values.caption],
-        ['published_at', Math.floor(Date.now() / 1000).toString()],
-        ['imeta', `dim ${dim}`, `url ${video}`, mimeTag, `image ${poster}`],
-        ...topicList.map((t) => ['t', t]),
-      ];
-      if (manifest) {
-        tags.push([
-          'imeta',
-          `dim ${dim}`,
-          `url ${manifest}`,
-          'm application/x-mpegURL',
-          `image ${poster}`,
-        ]);
-      }
-      const creatorPct = Math.max(0, 100 - totalPctSubmit);
-      if (values.lightningAddress)
-        tags.push(['zap', values.lightningAddress, creatorPct.toString()]);
-      values.zapSplits.forEach((s) => {
-        if (s.lnaddr && s.pct > 0) tags.push(['zap', s.lnaddr, s.pct.toString()]);
-      });
-      if (nsfw) tags.push(['content-warning', 'nsfw']);
-      if (licenseValue) tags.push(['copyright', licenseValue]);
+      const { video, poster, manifest } = await upload.uploadVideo(form);
 
       if (state.status !== 'ready') throw new Error('signer required');
-      const kind = dimensions.width >= dimensions.height ? 21 : 22;
-      const event: any = {
-        kind,
-        created_at: Math.floor(Date.now() / 1000),
-        content: values.caption,
-        tags,
-        pubkey: state.pubkey,
-      };
 
-      const signed = await state.signer.signEvent(event);
-      await pool.publish(getRelays(), signed);
+      const event = media.createVideoEvent({
+        caption: values.caption,
+        topics: values.topics,
+        license: licenseValue,
+        lightningAddress: values.lightningAddress,
+        zapSplits: values.zapSplits,
+        nsfw,
+        dimensions,
+        video,
+        poster,
+        manifest,
+        mimeTag,
+        pubkey: state.pubkey,
+      });
+
+      await nostr.publishEvent(event, state.signer);
       alert('Posted to Nostr');
     } catch (e: any) {
       alert(e.message || 'Failed to post');
