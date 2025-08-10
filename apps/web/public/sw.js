@@ -5,6 +5,7 @@ workbox.loadModule('workbox-routing');
 workbox.loadModule('workbox-strategies');
 workbox.loadModule('workbox-background-sync');
 workbox.loadModule('workbox-core');
+workbox.loadModule('workbox-expiration');
 
 const CACHE_VERSION = 'v2';
 
@@ -58,6 +59,19 @@ workbox.routing.registerRoute(
   ({ url }) => /\.(?:mp4|webm)$/.test(url.pathname),
   new workbox.strategies.CacheFirst({
     cacheName: `video-cache-${CACHE_VERSION}`,
+  }),
+);
+
+workbox.routing.registerRoute(
+  ({ url }) => /\.(?:m4s|ts)$/.test(url.pathname),
+  new workbox.strategies.CacheFirst({
+    cacheName: `segment-cache-${CACHE_VERSION}`,
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 60,
+        maxAgeSeconds: 5 * 60,
+      }),
+    ],
   }),
 );
 

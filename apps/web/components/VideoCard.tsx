@@ -97,7 +97,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   useEffect(() => {
     const video = playerRef.current;
     if (!video) return;
-    playback.loadSource(video, { videoUrl, manifestUrl });
+    playback.loadSource(video, { videoUrl, manifestUrl, eventId });
     const offState = playback.onStateChange((state) => {
       setIsPlaying(state === 'playing');
     });

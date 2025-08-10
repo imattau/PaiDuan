@@ -40,7 +40,7 @@ vi.mock('@/store/playbackPrefs', () => {
   return { usePlaybackPrefs };
 });
 let currentVideo: HTMLVideoElement | null = null;
-const loadSource = vi.fn((video: HTMLVideoElement) => {
+const loadSource = vi.fn((video: HTMLVideoElement, _opts: any) => {
   if (currentVideo && currentVideo !== video) currentVideo.pause();
   currentVideo = video;
 });
