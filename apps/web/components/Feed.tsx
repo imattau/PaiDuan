@@ -59,7 +59,10 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   }
 
   return (
-    <div ref={parentRef} className="relative h-full w-full overflow-auto">
+    <div
+      ref={parentRef}
+      className="relative h-full w-full overflow-auto snap-y snap-mandatory scrollbar-none"
+    >
       <div
         style={{
           height: rowVirtualizer.getTotalSize(),
@@ -73,7 +76,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
             <div
               key={item.eventId ?? virtualRow.index}
               ref={rowVirtualizer.measureElement}
-              className="absolute top-0 left-0 w-full"
+              className="absolute top-0 left-0 w-full snap-start"
               style={{
                 transform: `translateY(${virtualRow.start}px)`,
                 height: `${virtualRow.size}px`,
