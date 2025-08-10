@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation';
 import Thread from '@/components/comments/Thread';
 import { useFeedSelection } from '@/store/feedSelection';
 import { useLayout } from '@/context/LayoutContext';
+import { useProfile } from '@/hooks/useProfile';
+import useFollowerCount from '@/hooks/useFollowerCount';
 import {
   Box,
-  Button,
   Stack,
   Drawer,
   DrawerContent,
@@ -16,24 +17,36 @@ import {
   DrawerBody,
   useColorModeValue,
   useDisclosure,
+  Button,
 } from '@chakra-ui/react';
 
 export default function RightPanel({
-  author,
   onFilterByAuthor,
   forceDrawer = false,
 }: {
-  author?: { avatar: string; name: string; username: string; pubkey: string; followers: number };
   onFilterByAuthor: (pubkey: string) => void;
   forceDrawer?: boolean;
 }) {
   const { selectedVideoId, selectedVideoAuthor } = useFeedSelection();
   const router = useRouter();
   const layout = useLayout();
+  const { isOpen, onClose } = useDisclosure();
   const isDesktop = layout === 'desktop' && !forceDrawer;
+  const shouldLoad = isDesktop || isOpen;
+  const profile = useProfile(shouldLoad ? selectedVideoAuthor : undefined);
+  const followers = useFollowerCount(shouldLoad ? selectedVideoAuthor : undefined);
+  const author =
+    selectedVideoAuthor && profile
+      ? {
+          avatar: profile.picture || `/api/avatar/${selectedVideoAuthor}`,
+          name: profile.name || selectedVideoAuthor.slice(0, 8),
+          username: profile.name || selectedVideoAuthor.slice(0, 8),
+          pubkey: selectedVideoAuthor,
+          followers,
+        }
+      : undefined;
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const cardBg = useColorModeValue('white', 'gray.800');
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const panelContent = (
     <Stack spacing={4}>
@@ -77,7 +90,7 @@ export default function RightPanel({
         </Box>
       )}
 
-      {selectedVideoId && (
+      {selectedVideoId && shouldLoad && (
         <Box bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="lg" p={0}>
           <Thread rootId={selectedVideoId} authorPubkey={selectedVideoAuthor} />
         </Box>
@@ -91,22 +104,10 @@ export default function RightPanel({
 
   return (
     <>
-      {(author || selectedVideoId) && (
-        <Button
-          position="fixed"
-          bottom={4}
-          right={4}
-          zIndex="overlay"
-          colorScheme="blue"
-          onClick={onOpen}
-        >
-          Comments
-        </Button>
-      )}
       <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent>
-          <DrawerBody p={4}>{panelContent}</DrawerBody>
+          {shouldLoad && <DrawerBody p={4}>{panelContent}</DrawerBody>}
         </DrawerContent>
       </Drawer>
     </>
