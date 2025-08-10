@@ -12,6 +12,7 @@ export default function useAdaptiveSource(
   useEffect(() => {
     if (!manifestUrl) return;
     let cancelled = false;
+    let id: ReturnType<typeof setInterval> | undefined;
     fetch(manifestUrl)
       .then((r) => r.json())
       .then((manifest) => {
@@ -23,7 +24,7 @@ export default function useAdaptiveSource(
         if (alwaysSD) return;
         let lastTotal = 0;
         let lastDropped = 0;
-        const interval = setInterval(() => {
+        id = setInterval(() => {
           const videoEl = playerRef.current?.el()?.getElementsByTagName('video')[0] as
             | HTMLVideoElement
             | undefined;
@@ -61,9 +62,9 @@ export default function useAdaptiveSource(
             stable = 0;
           }
         }, 5000);
-        return () => clearInterval(interval);
       });
     return () => {
+      clearInterval(id);
       cancelled = true;
     };
   }, [manifestUrl, playerRef, alwaysSD]);
