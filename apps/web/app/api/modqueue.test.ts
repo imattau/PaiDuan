@@ -2,11 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { createRes } from './test-utils';
-
-function createReq(method: string, body: any = {}) {
-  return { method, body } as any;
-}
 
 describe('modqueue API', () => {
   let tempDir: string;
@@ -26,18 +21,26 @@ describe('modqueue API', () => {
   });
 
   it('adds and removes reports', async () => {
-    const { default: handler } = await import('./modqueue');
+    const { POST, DELETE } = await import('./modqueue/route');
     const report = { targetId: '1', targetKind: 'video', reason: 'spam', reporterPubKey: 'a', ts: 1 };
-    let res = createRes();
-    await handler(createReq('POST', report), res);
-    expect(res.statusCode).toBe(200);
+    let res = await POST(
+      new Request('http://localhost/api/modqueue', {
+        method: 'POST',
+        body: JSON.stringify(report),
+      })
+    );
+    expect(res.status).toBe(200);
 
     let data = JSON.parse(fs.readFileSync(path.join(tempDir, 'apps/web/data/modqueue.json'), 'utf8'));
     expect(data.length).toBe(1);
 
-    res = createRes();
-    await handler(createReq('DELETE', { targetId: '1' }), res);
-    expect(res.statusCode).toBe(200);
+    res = await DELETE(
+      new Request('http://localhost/api/modqueue', {
+        method: 'DELETE',
+        body: JSON.stringify({ targetId: '1' }),
+      })
+    );
+    expect(res.status).toBe(200);
     data = JSON.parse(fs.readFileSync(path.join(tempDir, 'apps/web/data/modqueue.json'), 'utf8'));
     expect(data.length).toBe(0);
   });
