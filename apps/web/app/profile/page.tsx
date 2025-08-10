@@ -54,6 +54,8 @@ export default function Profile() {
                 height={96}
                 priority
                 className="h-24 w-24 rounded-full object-cover"
+                onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+                crossOrigin="anonymous"
               />
               <div className="text-lg font-semibold">{meta?.name || 'Anonymous'}</div>
             </div>

@@ -184,6 +184,8 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
               width={80}
               height={80}
               className="h-20 w-20 rounded-lg object-cover"
+              onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+              crossOrigin="anonymous"
             />
           </div>
         )}

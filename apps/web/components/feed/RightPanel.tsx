@@ -59,7 +59,8 @@ export default function RightPanel({
               width={48}
               height={48}
               style={{ borderRadius: '50%', objectFit: 'cover' }}
-              onError={(e) => (e.currentTarget.src = '/offline.jpg')}
+              onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+              crossOrigin="anonymous"
               unoptimized
             />
             <Box>

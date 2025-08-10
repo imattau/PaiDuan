@@ -92,6 +92,8 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
                     height={32}
                     className="h-8 w-8 rounded-full object-cover"
                     unoptimized
+                    onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+                    crossOrigin="anonymous"
                   />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-text-primary/20" />

@@ -92,6 +92,8 @@ export function ProfileCard() {
               width={80}
               height={80}
               className="h-20 w-20 rounded-full object-cover"
+              onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+              crossOrigin="anonymous"
             />
           )}
           <button

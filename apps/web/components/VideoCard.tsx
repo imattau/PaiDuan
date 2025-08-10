@@ -359,7 +359,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               height={40}
               className="h-10 w-10 rounded-full object-cover"
               unoptimized
-              onError={(e) => (e.currentTarget.src = '/offline.jpg')}
+              onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+              crossOrigin="anonymous"
             />
           ) : (
             <Skeleton className="h-10 w-10 rounded-full" />
