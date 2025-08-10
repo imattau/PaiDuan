@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('./useAuth', () => ({
   useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: { signEvent: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })) } } }),
@@ -13,11 +13,41 @@ vi.mock('@/lib/relayPool', () => ({
   },
 }));
 
+vi.mock('../lib/nostr', () => ({
+  getRelays: () => [],
+}));
+
 import useLightning from './useLightning';
+
+// Capture the existing window before any test runs
+const originalWindow: any = typeof window !== 'undefined' ? { ...window } : {};
+let sendPaymentMock: ReturnType<typeof vi.fn>;
 
 describe('useLightning', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    sendPaymentMock = vi.fn();
+    if (typeof window === 'undefined') {
+      // @ts-ignore
+      global.window = {};
+    }
+    Object.defineProperty(window, 'webln', {
+      value: { sendPayment: sendPaymentMock },
+      configurable: true,
+    });
+    window.open = vi.fn();
+  });
+
+  afterEach(() => {
+    if (originalWindow.open) {
+      window.open = originalWindow.open;
+    } else {
+      // @ts-ignore
+      delete window.open;
+    }
+    // Remove injected webln to avoid cross-test contamination
+    // @ts-ignore
+    delete window.webln;
   });
 
   it('splits zap using event zap tags', async () => {
@@ -39,12 +69,6 @@ describe('useLightning', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
     // @ts-ignore
     global.fetch = fetchMock;
-    const sendPaymentMock = vi.fn();
-    // @ts-ignore
-    global.window = {
-      webln: { sendPayment: sendPaymentMock },
-      open: vi.fn(),
-    };
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
@@ -78,12 +102,6 @@ describe('useLightning', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
     // @ts-ignore
     global.fetch = fetchMock;
-    const sendPaymentMock = vi.fn();
-    // @ts-ignore
-    global.window = {
-      webln: { sendPayment: sendPaymentMock },
-      open: vi.fn(),
-    };
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
