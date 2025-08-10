@@ -59,7 +59,7 @@ interface TrimOptions {
   bitrate?: number;
 }
 
-async function trim(
+export async function trim(
   blob: Blob,
   { start, end, width, height, bitrate }: TrimOptions,
   onProgress: (progress: number) => void = () => {},
@@ -142,9 +142,26 @@ async function trim(
       `Unsupported video codec: ${track.codecID || track.codec || blob.type || 'unknown'}`,
     );
   }
+  let description: Uint8Array | undefined;
+  const initData =
+    track.avcDecoderConfigRecord?.data ??
+    track.avcDecoderConfigRecord ??
+    track.codecPrivate;
+  if (initData) {
+    if (initData instanceof Uint8Array) {
+      description = initData;
+    } else if (initData instanceof ArrayBuffer) {
+      description = new Uint8Array(initData);
+    } else if (ArrayBuffer.isView(initData)) {
+      description = new Uint8Array(initData.buffer, initData.byteOffset, initData.byteLength);
+    }
+  }
+
   let support;
   try {
-    support = await (self as any).VideoDecoder.isConfigSupported({ codec });
+    const config: any = { codec };
+    if (description) config.description = description;
+    support = await (self as any).VideoDecoder.isConfigSupported(config);
   } catch (err: any) {
     fail('permission', err?.message ?? String(err));
   }
@@ -219,7 +236,9 @@ async function trim(
     },
   });
 
-  decoder.configure({ codec });
+  const decoderConfig: any = { codec };
+  if (description) decoderConfig.description = description;
+  decoder.configure(decoderConfig);
 
   const firstKey = samples.findIndex((s) => s.type === 'key');
   if (firstKey < 0) {
