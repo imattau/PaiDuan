@@ -30,7 +30,11 @@ async function connectNDK(attempt = 0): Promise<void> {
   try {
     await ndk.connect();
     if (ndk.pool.connectedRelays().length === 0) {
-      throw new Error('No relays connected');
+      console.warn('NDK connected with zero relays');
+      setStatus('error');
+      const delay = Math.min(1000 * 2 ** attempt, 30000);
+      retryTimeout = setTimeout(() => connectNDK(attempt + 1), delay);
+      return;
     }
     setStatus('connected');
   } catch (err) {
