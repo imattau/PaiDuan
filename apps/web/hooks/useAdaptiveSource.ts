@@ -62,6 +62,11 @@ export default function useAdaptiveSource(
             stable = 0;
           }
         }, 5000);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('failed to load adaptive manifest', err);
+        setSrc(undefined);
       });
     return () => {
       clearInterval(id);
