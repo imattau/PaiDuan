@@ -193,4 +193,23 @@ describe('VideoCard', () => {
     await user.click(screen.getByLabelText(/comments/i));
     expect(onComment).toHaveBeenCalled();
   });
+
+  it('renders action bar icons with responsive size classes', () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container } = render(<VideoCard {...props} />);
+    const icons = container.querySelectorAll('.action-bar-icon');
+    expect(icons).toHaveLength(3);
+    icons.forEach((icon) => {
+      const className = icon.getAttribute('class') || '';
+      expect(className).toContain('md:h-8');
+      expect(className).toContain('md:w-8');
+    });
+  });
 });
