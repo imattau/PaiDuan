@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { X, Sun, Moon } from 'lucide-react';
@@ -6,6 +6,7 @@ import useSearch from '../hooks/useSearch';
 import NotificationBell from './NotificationBell';
 import { useTheme } from 'next-themes';
 import useT from '../hooks/useT';
+import { useLayout } from '@/context/LayoutContext';
 
 const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) => {
   const [value, setValue] = useState('');
@@ -16,11 +17,25 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
   const isDark = resolvedTheme === 'dark';
   const toggleMode = () => setTheme(isDark ? 'light' : 'dark');
   const t = useT();
+  const layout = useLayout();
+  const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = setTimeout(() => setQuery(value.trim()), 300);
     return () => clearTimeout(handler);
   }, [value]);
+
+  useEffect(() => {
+    if (!barRef.current || layout === 'desktop') {
+      document.documentElement.style.removeProperty('--top-nav-height');
+      return;
+    }
+    const height = barRef.current.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--top-nav-height', `${height}px`);
+    return () => {
+      document.documentElement.style.removeProperty('--top-nav-height');
+    };
+  }, [layout]);
 
   const clear = () => {
     setValue('');
@@ -41,7 +56,10 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
 
   return (
     <>
-      <div className="fixed inset-x-0 top-0 z-20 flex h-12 items-center space-x-2 bg-background-primary/80 p-2 text-primary lg:static lg:max-w-[1400px] lg:mx-auto">
+      <div
+        ref={barRef}
+        className="fixed inset-x-0 top-0 z-20 flex h-12 items-center space-x-2 bg-background-primary/80 p-2 text-primary lg:static lg:max-w-[1400px] lg:mx-auto"
+      >
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
