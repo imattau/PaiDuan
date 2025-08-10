@@ -44,7 +44,7 @@ async function loadPicture(url: string) {
     }
   }
   const cached = await getCachedImage(target);
-  return cached || (await cacheImage(target));
+  return cached ?? (await cacheImage(target));
 }
 
 async function fetchProfile(pubkey: string): Promise<Profile> {
@@ -58,8 +58,12 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
       ensureWallets(content);
       if (content.picture) {
         const img = await loadPicture(content.picture);
-        content.picture = img.url;
-        content.pictureRevoke = img.revoke;
+        if (img) {
+          content.picture = img.url;
+          content.pictureRevoke = img.revoke;
+        } else {
+          delete content.picture;
+        }
       }
       return content;
     } catch {
@@ -91,8 +95,12 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
             ensureWallets(content);
             if (content.picture) {
               const img = await loadPicture(content.picture);
-              content.picture = img.url;
-              content.pictureRevoke = img.revoke;
+              if (img) {
+                content.picture = img.url;
+                content.pictureRevoke = img.revoke;
+              } else {
+                delete content.picture;
+              }
             }
             await saveEvent(ev);
             profile = content;
