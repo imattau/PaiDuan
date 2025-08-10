@@ -13,8 +13,9 @@ vi.mock('@/hooks/useAuth', () => ({
   }),
 }));
 
+let profileMock: any = { wallets: [] };
 vi.mock('@/hooks/useProfile', () => ({
-  useProfile: () => ({ wallets: [] }),
+  useProfile: () => profileMock,
 }));
 
 var publishMock: any;
@@ -41,10 +42,25 @@ describe('LightningCard', () => {
     writeTextMock.mockReset();
     (QRCode.toDataURL as any).mockReset();
     (QRCode.toDataURL as any).mockResolvedValue('data:image/png;base64,qr');
+    profileMock = { wallets: [] };
   });
 
   afterEach(() => {
     cleanup();
+  });
+
+  it('initializes wallet input from profile lud16', async () => {
+    profileMock = { lud16: 'user@example.com' };
+    render(<LightningCard />);
+    expect(await screen.findByDisplayValue('user@example.com')).toBeTruthy();
+  });
+
+  it('starts with empty wallet input when profile has none', async () => {
+    profileMock = {};
+    render(<LightningCard />);
+    fireEvent.click(screen.getByText('Add wallet'));
+    const addrInput = screen.getByPlaceholderText('name@example.com') as HTMLInputElement;
+    expect(addrInput.value).toBe('');
   });
 
   it('adds wallet and saves', async () => {

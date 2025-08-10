@@ -29,6 +29,8 @@ export function LightningCard() {
 
   useEffect(() => {
     if (Array.isArray(meta?.wallets)) setWallets(meta.wallets);
+    else if (typeof meta?.lud16 === 'string' && meta.lud16)
+      setWallets([{ label: '', lnaddr: meta.lud16, default: true }]);
     if (Array.isArray(meta?.zapSplits)) setZapSplits(meta.zapSplits);
   }, [meta]);
 
