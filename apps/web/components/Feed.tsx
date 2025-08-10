@@ -44,6 +44,10 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const hasWallet = !!viewerProfile?.wallets?.length;
   useLayout();
 
+  useEffect(() => {
+    loadMore?.();
+  }, [loadMore]);
+
   const didScrollToSelection = useRef(false);
   useEffect(() => {
     if (didScrollToSelection.current) return;
@@ -70,7 +74,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 
   const handleRangeChanged = (range: ListRange) => {
     const middleIndex = Math.floor((range.startIndex + range.endIndex) / 2);
-    if (middleIndex >= items.length - 2) {
+    if (range.endIndex >= Math.floor(items.length * 0.8)) {
       loadMore?.();
     }
     const current = items[middleIndex];
