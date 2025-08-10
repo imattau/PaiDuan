@@ -7,7 +7,7 @@ workbox.loadModule('workbox-background-sync');
 workbox.loadModule('workbox-core');
 workbox.loadModule('workbox-expiration');
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 
 workbox.core.setCacheNameDetails({
   prefix: 'workbox',
@@ -15,10 +15,16 @@ workbox.core.setCacheNameDetails({
 });
 
 self.addEventListener('install', () => {
+  self.skipWaiting();
   const manifest = (self.__WB_MANIFEST || []).filter(
     (entry) => !/app-build-manifest\.json$/.test(entry.url),
   );
-  workbox.precaching.precacheAndRoute(manifest);
+  try {
+    workbox.precaching.precacheAndRoute(manifest);
+    workbox.precaching.cleanupOutdatedCaches();
+  } catch (err) {
+    console.warn('Precache manifest missing entries', err);
+  }
 });
 
 self.addEventListener('activate', (event) => {
@@ -32,6 +38,8 @@ self.addEventListener('activate', (event) => {
     ),
   );
 });
+
+workbox.core.clientsClaim();
 
 const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin(
   `apiQueue-${CACHE_VERSION}`,
