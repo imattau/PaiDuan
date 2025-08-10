@@ -61,6 +61,7 @@ afterEach(() => {
   currentVideo = null;
   (HTMLMediaElement.prototype.pause as unknown as vi.Mock).mockClear();
   play.mockClear();
+  playbackPause.mockClear();
 });
 
 describe('VideoCard', () => {
@@ -208,5 +209,64 @@ describe('VideoCard', () => {
       expect(className).toContain('md:h-8');
       expect(className).toContain('md:w-8');
     });
+  });
+
+  it('toggles playback when tapping the central region', () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container } = render(<VideoCard {...props} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    fireEvent.loadedData(video);
+    const card = container.firstChild as HTMLElement;
+    card.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 100,
+      height: 100,
+      right: 100,
+      bottom: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    fireEvent.click(card, { clientX: 50, clientY: 50 });
+    expect(playbackPause).toHaveBeenCalledTimes(1);
+    fireEvent.click(card, { clientX: 50, clientY: 50 });
+    expect(play).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores taps outside the central region', () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container } = render(<VideoCard {...props} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    fireEvent.loadedData(video);
+    const card = container.firstChild as HTMLElement;
+    card.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 100,
+      height: 100,
+      right: 100,
+      bottom: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    fireEvent.click(card, { clientX: 10, clientY: 90 });
+    expect(playbackPause).not.toHaveBeenCalled();
+    expect(play).toHaveBeenCalledTimes(1);
   });
 });

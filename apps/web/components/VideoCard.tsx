@@ -68,7 +68,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
   const [reposted, setReposted] = useState(false);
-  const holdTimer = useRef<number>();
+  const speedTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
   const { following, follow } = useFollowingStore();
   const profile = useProfile(pubkey);
@@ -149,32 +149,41 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     { drag: { axis: 'x', filterTaps: true } },
   );
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handleSpeedPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = containerRef.current?.getBoundingClientRect();
     const isBottom = rect ? e.clientY > rect.top + rect.height * 0.75 : false;
-    holdTimer.current = window.setTimeout(() => {
-      if (isBottom) {
-        setSpeedMode(true);
-      } else {
-        playback.pause();
-        setIsPlaying(false);
-      }
-    }, 250);
+    if (isBottom) {
+      speedTimer.current = window.setTimeout(() => setSpeedMode(true), 250);
+    }
   };
 
-  const handlePointerUp = () => {
-    clearTimeout(holdTimer.current);
+  const handleSpeedPointerUp = () => {
+    clearTimeout(speedTimer.current);
     if (speedMode) {
       setSpeedMode(false);
       api.start({ opacity: 0 });
       setSeekPreview(0);
     }
-    setShowPlayIndicator(false);
-    setIsPlaying(true);
-    playback.play().catch(() => {
-      setShowPlayIndicator(true);
+  };
+
+  const handleTogglePlay = (e: React.MouseEvent<HTMLDivElement>) => {
+    setSelectedVideo(eventId, pubkey);
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    if (x < 0.25 || x > 0.75 || y < 0.25 || y > 0.75) return;
+    if (isPlaying) {
+      playback.pause();
       setIsPlaying(false);
-    });
+    } else {
+      setShowPlayIndicator(false);
+      setIsPlaying(true);
+      playback.play().catch(() => {
+        setShowPlayIndicator(true);
+        setIsPlaying(false);
+      });
+    }
   };
 
   const handleVideoError = async () => {
@@ -219,10 +228,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
       className="relative mx-auto w-full max-h-[calc(100dvh-var(--bottom-nav-height,0))] sm:max-h-[calc(100vh-var(--bottom-nav-height,0))] max-w-[calc((100dvh-var(--bottom-nav-height,0))*9/16)] sm:max-w-[calc((100vh-var(--bottom-nav-height,0))*9/16)] aspect-[9/16] overflow-hidden rounded-2xl bg-card text-white shadow-card"
-      onClick={() => setSelectedVideo(eventId, pubkey)}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
+      onClick={handleTogglePlay}
+      onPointerDown={handleSpeedPointerDown}
+      onPointerUp={handleSpeedPointerUp}
+      onPointerLeave={handleSpeedPointerUp}
       {...bind()}
     >
       {!loaded && !errorMessage && (
@@ -257,7 +266,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       {showPlayIndicator && !errorMessage && (
         <button
           className="absolute inset-0 flex items-center justify-center bg-black/50 text-white"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setShowPlayIndicator(false);
             setIsPlaying(true);
             getPlayer()
