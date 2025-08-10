@@ -56,7 +56,7 @@ export default function VideoPage() {
     );
   return (
     <>
-      <div className="flex h-[calc(100dvh-var(--top-nav-height,0)-var(--bottom-nav-height,0))] items-start justify-center lg:items-center">
+      <div className="flex h-screen items-start justify-center lg:items-center [height:calc(100dvh-var(--top-nav-height,0)-var(--bottom-nav-height,0))]">
         <VideoCard
           {...video}
           showMenu

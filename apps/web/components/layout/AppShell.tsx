@@ -59,7 +59,7 @@ export default function AppShell({
   const borderColor = useColorModeValue('gray.200', 'gray.700');
 
   return (
-    <Box minH="calc(100dvh - var(--bottom-nav-height, 0))" bg={bg}>
+    <Box minH="100vh" style={{ minHeight: 'calc(100dvh - var(--bottom-nav-height, 0))' }} bg={bg}>
       <Grid
         mx="auto"
         w="full"
@@ -76,7 +76,8 @@ export default function AppShell({
             borderColor={borderColor}
             position="sticky"
             top={0}
-            h="calc(100dvh - var(--bottom-nav-height, 0))"
+            h="100vh"
+            style={{ height: 'calc(100dvh - var(--bottom-nav-height, 0))' }}
             overflowY="auto"
             p={4}
           >
@@ -87,7 +88,8 @@ export default function AppShell({
         {/* Middle column: main feed */}
         <GridItem
           as="main"
-          h="calc(100dvh - var(--bottom-nav-height, 0))"
+          h="100vh"
+          style={{ height: 'calc(100dvh - var(--bottom-nav-height, 0))' }}
           overflow="hidden"
         >
           <Box maxW="2xl" mx="auto" h="full" px={4}>
@@ -103,7 +105,8 @@ export default function AppShell({
             borderColor={borderColor}
             position="sticky"
             top={0}
-            h="calc(100dvh - var(--bottom-nav-height, 0))"
+            h="100vh"
+            style={{ height: 'calc(100dvh - var(--bottom-nav-height, 0))' }}
             overflowY="auto"
           >
             {React.isValidElement(right)

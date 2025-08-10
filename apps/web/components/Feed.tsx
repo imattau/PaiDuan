@@ -100,7 +100,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 
   if (loading) {
     return (
-      <div className="h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100dvh-var(--bottom-nav-height,0))] w-full">
+      <div className="h-screen w-full [height:calc(100dvh-var(--bottom-nav-height,0))]">
         <SkeletonVideoCard />
       </div>
     );
@@ -108,7 +108,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 
   if (items.length === 0) {
     return (
-      <div className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100dvh-var(--bottom-nav-height,0))] w-full flex-col items-center justify-center text-white">
+      <div className="flex h-screen w-full flex-col items-center justify-center text-white [height:calc(100dvh-var(--bottom-nav-height,0))]">
         <EmptyState />
         <Link href="/create" className="btn btn-primary mt-4" prefetch>
           Upload your first video
@@ -122,13 +122,13 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
       <Virtuoso
         ref={virtuosoRef}
         totalCount={items.length}
-        className="h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100dvh-var(--bottom-nav-height,0))] w-full overflow-auto snap-y snap-mandatory scrollbar-none"
+        className="h-screen w-full overflow-auto snap-y snap-mandatory scrollbar-none [height:calc(100dvh-var(--bottom-nav-height,0))]"
         endReached={loadMore}
         rangeChanged={handleRangeChanged}
         itemContent={(index) => {
           const item = items[index];
           return (
-            <div className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100dvh-var(--bottom-nav-height,0))] w-full snap-start snap-always items-start justify-center lg:items-center">
+            <div className="flex h-screen w-full snap-start snap-always items-start justify-center lg:items-center [height:calc(100dvh-var(--bottom-nav-height,0))]">
               <VideoCard
                 {...item}
                 showMenu

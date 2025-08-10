@@ -255,7 +255,7 @@ export default function ProfilePage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/90 lg:items-center">
-          <div className="flex h-[calc(100dvh-var(--top-nav-height,0)-var(--bottom-nav-height,0))] w-full items-start justify-center relative lg:items-center">
+          <div className="flex h-screen w-full items-start justify-center relative lg:items-center [height:calc(100dvh-var(--top-nav-height,0)-var(--bottom-nav-height,0))]">
             <VideoCard
               {...selected}
               showMenu
