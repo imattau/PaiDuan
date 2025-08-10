@@ -21,7 +21,7 @@ function makeObjectUrl(blob: Blob): { url: string; revoke: () => void } {
 
 export async function cacheImage(
   url: string,
-): Promise<{ url: string; revoke: () => void }> {
+): Promise<{ url: string; revoke: () => void } | null> {
   const cache = await openCache();
   if (!cache) return { url, revoke: () => {} };
   try {
@@ -36,7 +36,12 @@ export async function cacheImage(
     }
 
     const res = await fetch(url, { mode: 'cors' });
-    if (!res.ok || res.type !== 'basic') return { url, revoke: () => {} };
+    if (
+      !res.ok ||
+      res.type !== 'basic' ||
+      !(res.headers.get('Content-Type') ?? '').startsWith('image/')
+    )
+      return null;
 
     const now = Date.now();
     const blob = await res.blob();
