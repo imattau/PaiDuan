@@ -1,18 +1,15 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Repeat2, Volume2, VolumeX, MoreVertical } from 'lucide-react';
-import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
-import CommentDrawer from './CommentDrawer';
 import ReportModal from './ReportModal';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from './ui/Skeleton';
 import useFollowing from '../hooks/useFollowing';
-import toast from 'react-hot-toast';
 import { useNetworkState } from 'react-use';
-import initHls from '../hooks/useAdaptiveSource';
+import { playback } from '@/agents/playback';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
@@ -20,7 +17,6 @@ import { useFeedSelection } from '@/store/feedSelection';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
-import { nostr } from '@/agents/nostr';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -29,10 +25,14 @@ export interface VideoCardProps {
   author: string;
   caption: string;
   eventId: string;
-  lightningAddress: string;
+  lightningAddress?: string;
   pubkey: string;
   zapTotal?: number;
   showMenu?: boolean;
+  commentCount?: number;
+  onComment?: () => void;
+  onRepost?: () => Promise<void> | void;
+  zap?: React.ReactNode;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({
@@ -42,10 +42,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   author,
   caption,
   eventId,
-  lightningAddress,
+  lightningAddress: _lightningAddress,
   pubkey,
-  zapTotal,
+  zapTotal: _zapTotal,
   showMenu = false,
+  commentCount = 0,
+  onComment,
+  onRepost,
+  zap,
 }) => {
   const router = useRouter();
   const playerRef = useRef<HTMLVideoElement>(null);
@@ -54,8 +58,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
-  const [commentCount, setCommentCount] = useState(0);
-  const [commentsOpen, setCommentsOpen] = useState(false);
   const [reposted, setReposted] = useState(false);
   const holdTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
@@ -88,16 +90,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   useEffect(() => {
     const video = playerRef.current;
     if (!video) return;
-
-    let hls: ReturnType<typeof initHls> = null;
-    if (manifestUrl) {
-      hls = initHls(manifestUrl, video);
-    } else {
-      video.src = videoUrl;
-    }
-
+    playback.loadSource(video, { videoUrl, manifestUrl });
+    const off = playback.onStateChange((state) => {
+      setIsPlaying(state === 'playing');
+    });
     return () => {
-      hls?.destroy();
+      off();
     };
   }, [manifestUrl, videoUrl]);
 
@@ -109,21 +107,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
 
   const handleRepost = async () => {
-    if (auth.status !== 'ready') return;
+    if (!onRepost) return;
     if (!window.confirm('Repost this video?')) return;
-    try {
-      await nostr.repost({
-        eventId,
-        originalPubkey: pubkey,
-        myPubkey: auth.pubkey,
-        signer: auth.signer,
-      });
-      setReposted(true);
-      toast.success('Reposted');
-    } catch (e) {
-      console.error(e);
-      toast.error('Repost failed');
-    }
+    await onRepost();
+    setReposted(true);
   };
 
   const bind = useGesture(
@@ -155,7 +142,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       if (isBottom) {
         setSpeedMode(true);
       } else {
-        getPlayer()?.pause();
+        playback.pause();
         setIsPlaying(false);
       }
     }, 250);
@@ -170,8 +157,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     }
     setShowPlayIndicator(false);
     setIsPlaying(true);
-    getPlayer()
-      ?.play()
+    playback
+      .play()
       .catch(() => {
         setShowPlayIndicator(true);
         setIsPlaying(false);
@@ -208,7 +195,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             const video = getPlayer();
             if (video) {
               video.muted = true;
-              video
+              playback
                 .play()
                 .catch(() => {
                   setShowPlayIndicator(true);
@@ -292,7 +279,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </button>
         <button
           className="relative hover:text-accent-primary disabled:opacity-50 lg:hidden"
-          onClick={() => online && setCommentsOpen(true)}
+          onClick={() => online && onComment?.()}
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
           aria-label="Comments"
@@ -302,21 +289,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
           )}
         </button>
-        <CommentDrawer
-          videoId={eventId}
-          onCountChange={setCommentCount}
-          open={commentsOpen}
-          onOpenChange={setCommentsOpen}
-          autoFocus={false}
-        />
-        <ZapButton
-          lightningAddress={lightningAddress}
-          eventId={eventId}
-          pubkey={pubkey}
-          total={zapTotal}
-          disabled={!online}
-          title={!online ? 'Offline – reconnect to interact.' : undefined}
-        />
+        {zap}
         <button
           onClick={handleRepost}
           className="hover:text-accent-primary disabled:opacity-50"

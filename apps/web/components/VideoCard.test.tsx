@@ -2,7 +2,7 @@
 import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
-import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
@@ -16,9 +16,6 @@ Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
   value: vi.fn(),
 });
 
-vi.mock('./ZapButton', () => ({ default: () => <div /> }));
-const mockCommentDrawer = vi.fn((props: any) => <div data-open={props.open} />);
-vi.mock('./CommentDrawer', () => ({ default: mockCommentDrawer }));
 vi.mock('./ReportModal', () => ({ default: () => null }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ prefetch: () => {} }) }));
 
@@ -33,10 +30,13 @@ vi.mock('@/store/feedSelection', () => ({
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: {} } }) }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: 'author' }) }));
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
-vi.mock('@/agents/nostr', () => ({ nostr: { repost: () => Promise.resolve() } }));
-
-const fetchMock = vi.fn();
-vi.stubGlobal('fetch', fetchMock);
+const loadSource = vi.fn();
+const play = vi.fn(() => Promise.resolve());
+const pause = vi.fn();
+const onStateChange = vi.fn(() => () => {});
+vi.mock('@/agents/playback', () => ({
+  playback: { loadSource, play, pause, onStateChange },
+}));
 
 const { default: VideoCard } = await import('./VideoCard');
 
@@ -46,61 +46,28 @@ afterEach(() => {
 });
 
 describe('VideoCard', () => {
-  it('mounts and unmounts without throwing NotFoundError', () => {
-    fetchMock.mockResolvedValue({ headers: new Headers({ 'content-type': 'video/mp4' }) });
-    const div = document.createElement('div');
-    document.body.appendChild(div);
-    const root = createRoot(div);
+  it('mounts and unmounts without throwing', () => {
     const props = {
       videoUrl: 'video.mp4',
       author: 'author',
       caption: 'caption',
       eventId: 'event',
-      lightningAddress: 'la',
       pubkey: 'pk',
+      zap: <div />,
     };
-    expect(() => {
-      root.render(<VideoCard {...props} />);
-      root.unmount();
-    }).not.toThrow();
-  });
-
-  it('aborts in-flight requests on unmount', async () => {
-    const abortSpy = vi.fn();
-    fetchMock.mockImplementation((_url, options: any) => {
-      return new Promise((_resolve, reject) => {
-        options?.signal?.addEventListener('abort', () => {
-          abortSpy();
-          reject(new DOMException('Aborted', 'AbortError'));
-        });
-      });
-    });
-    const div = document.createElement('div');
-    document.body.appendChild(div);
-    const root = createRoot(div);
-    const props = {
-      videoUrl: 'video.mp4',
-      author: 'author',
-      caption: 'caption',
-      eventId: 'event',
-      lightningAddress: 'la',
-      pubkey: 'pk',
-    };
-    root.render(<VideoCard {...props} />);
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    root.unmount();
-    expect(abortSpy).toHaveBeenCalled();
+    const { unmount } = render(<VideoCard {...props} />);
+    expect(loadSource).toHaveBeenCalled();
+    expect(() => unmount()).not.toThrow();
   });
 
   it('toggles mute state with action bar button', async () => {
-    fetchMock.mockResolvedValue({ headers: new Headers({ 'content-type': 'video/mp4' }) });
     const props = {
       videoUrl: 'video.mp4',
       author: 'author',
       caption: 'caption',
       eventId: 'event',
-      lightningAddress: 'la',
       pubkey: 'pk',
+      zap: <div />,
     };
     render(<VideoCard {...props} />);
     const user = userEvent.setup();
@@ -108,21 +75,22 @@ describe('VideoCard', () => {
     await screen.findByRole('button', { name: /mute/i });
   });
 
-  it('shows action bar with z-index and opens comments', async () => {
+  it('shows action bar with z-index and triggers comment callback', async () => {
+    const onComment = vi.fn();
     const props = {
       videoUrl: 'video.mp4',
       author: 'author',
       caption: 'caption',
       eventId: 'event',
-      lightningAddress: 'la',
       pubkey: 'pk',
+      onComment,
+      zap: <div />,
     };
     render(<VideoCard {...props} />);
     const volumeButton = await screen.findByRole('button', { name: /unmute/i });
     expect(volumeButton.parentElement?.className).toMatch(/z-10/);
     const user = userEvent.setup();
     await user.click(screen.getByLabelText(/comments/i));
-    const lastCall = mockCommentDrawer.mock.calls.at(-1)?.[0];
-    expect(lastCall.open).toBe(true);
+    expect(onComment).toHaveBeenCalled();
   });
 });
