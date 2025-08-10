@@ -13,15 +13,12 @@ vi.mock('@/lib/relayPool', () => ({
   },
 }));
 
-vi.mock('../lib/nostr', () => ({
-  getRelays: () => [],
+
 }));
 
 import useLightning from './useLightning';
 
-// Capture the existing window before any test runs
-const originalWindow: any = typeof window !== 'undefined' ? { ...window } : {};
-let sendPaymentMock: ReturnType<typeof vi.fn>;
+
 
 describe('useLightning', () => {
   beforeEach(() => {
@@ -49,6 +46,9 @@ describe('useLightning', () => {
     // @ts-ignore
     delete window.webln;
   });
+  afterEach(() => {
+    global.window = originalWindow;
+  });
 
   it('splits zap using event zap tags', async () => {
     poolGetMock.mockResolvedValueOnce({
@@ -59,16 +59,7 @@ describe('useLightning', () => {
     });
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb3' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
-    // @ts-ignore
-    global.fetch = fetchMock;
+
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
@@ -80,7 +71,8 @@ describe('useLightning', () => {
 
     expect(poolGetMock).toHaveBeenCalledTimes(1);
     expect(invoices.length).toBe(3);
-    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
+    expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
   });
 
@@ -92,16 +84,7 @@ describe('useLightning', () => {
       });
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb3' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
-    // @ts-ignore
-    global.fetch = fetchMock;
+
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
@@ -113,7 +96,8 @@ describe('useLightning', () => {
 
     expect(poolGetMock).toHaveBeenCalledTimes(2);
     expect(invoices.length).toBe(3);
-    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
+    expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
   });
 });

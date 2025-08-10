@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { AxiosError } from 'axios';
+import { sanitizeAxiosError } from '@/utils/sanitizeAxiosError';
 import handler from './event';
 import { createRes } from './test-utils';
 
@@ -25,7 +27,9 @@ describe('event API', () => {
 
   it('still ends when fetch fails', async () => {
     process.env.NEXT_PUBLIC_ANALYTICS = 'enabled';
-    const fetchMock = vi.spyOn(global, 'fetch').mockRejectedValue(new Error('network'));
+    const fetchMock = vi
+      .spyOn(global, 'fetch')
+      .mockRejectedValue(sanitizeAxiosError(new AxiosError('network')));
     const req = createReq({ event: 'test' }, { 'user-agent': 'ua', 'x-forwarded-for': 'ip' });
     const res = createRes();
     await handler(req, res);
