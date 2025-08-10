@@ -52,14 +52,23 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 }) => {
   const router = useRouter();
   const playerRef = useRef<videojs.Player | null>(null);
+  const getPlayer = () => {
+    const player = playerRef.current as any;
+    if (player && typeof player.dispose !== 'function') {
+      console.warn('playerRef.current is not a videojs.Player', player);
+      return null;
+    }
+    return player as videojs.Player | null;
+  };
   useEffect(() => {
     return () => {
       // @videojs-player/react disposes the player for us. Only dispose
       // manually if the element is still attached to the DOM to avoid
       // NotFoundError exceptions.
-      const el = playerRef.current?.el();
-      if (el?.parentNode) {
-        playerRef.current?.dispose();
+      const player = getPlayer();
+      const el = player?.el();
+      if (el?.parentNode && typeof player?.dispose === 'function') {
+        player.dispose();
       }
       playerRef.current = null;
     };
@@ -90,7 +99,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   useEffect(() => {
     if (!errorMessage) return;
-    const player = playerRef.current;
+    const player = getPlayer();
     const err =
       player && typeof (player as any).error === 'function'
         ? (player as any).error()
@@ -182,7 +191,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         const delta = (mx / 60) * 3;
         setSeekPreview(delta);
         if (!down) {
-          const player = playerRef.current;
+          const player = getPlayer();
           if (player) {
             const newTime = Math.max(0, player.currentTime() + delta);
             player.currentTime(newTime);
@@ -201,7 +210,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     const rect = containerRef.current?.getBoundingClientRect();
     const isBottom = rect ? e.clientY > rect.top + rect.height * 0.75 : false;
     holdTimer.current = window.setTimeout(() => {
-      const player = playerRef.current;
+      const player = getPlayer();
       if (isBottom) {
         player?.playbackRate(2);
         setSpeedMode(true);
@@ -213,7 +222,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   const handlePointerUp = () => {
     clearTimeout(holdTimer.current);
-    const player = playerRef.current;
+    const player = getPlayer();
     if (speedMode) {
       player?.playbackRate(1);
       setSpeedMode(false);
@@ -263,6 +272,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           playsinline
           loop
           onReady={(player) => {
+            if (playerRef.current && playerRef.current !== player) {
+              console.warn('playerRef.current was unexpectedly set before onReady', playerRef.current);
+            }
             playerRef.current = player;
             if (typeof (player as any).muted === 'function') {
               (player as any).muted(true);
@@ -287,7 +299,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           className="absolute inset-0 flex items-center justify-center bg-black/50 text-white"
           onClick={() => {
             setShowPlayIndicator(false);
-            const player = playerRef.current;
+            const player = getPlayer();
             if (player && typeof (player as any).play === 'function') {
               player.play().catch(() => {
                 setShowPlayIndicator(true);
@@ -348,7 +360,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <button
           className="hover:text-accent-primary"
           onClick={() => {
-            const player = playerRef.current;
+            const player = getPlayer();
             if (!player) return;
             const next = !player.muted();
             player.muted(next);
