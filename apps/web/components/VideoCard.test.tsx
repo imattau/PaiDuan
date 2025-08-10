@@ -61,7 +61,8 @@ describe('VideoCard', () => {
     expect(() => unmount()).not.toThrow();
   });
 
-  it('shows and hides placeholder around video load', async () => {
+  it('shows and hides placeholder around video load and fires onReady', async () => {
+    const onReady = vi.fn();
     const props = {
       videoUrl: 'video.mp4',
       author: 'author',
@@ -69,6 +70,7 @@ describe('VideoCard', () => {
       eventId: 'event',
       pubkey: 'pk',
       zap: <div />,
+      onReady,
     };
     const { container } = render(<VideoCard {...props} />);
     await screen.findByText('Loading video…');
@@ -76,6 +78,7 @@ describe('VideoCard', () => {
     fireEvent.loadedData(video);
     await waitFor(() => {
       expect(screen.queryByText('Loading video…')).toBeNull();
+      expect(onReady).toHaveBeenCalled();
     });
   });
 

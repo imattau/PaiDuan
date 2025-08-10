@@ -34,6 +34,11 @@ export interface VideoCardProps {
   onComment?: () => void;
   onRepost?: () => Promise<void> | void;
   zap?: React.ReactNode;
+  /**
+   * Fired when the underlying video element has loaded enough data to play.
+   * Useful for triggering measurements or other side effects once the video is ready.
+   */
+  onReady?: () => void;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({
@@ -51,6 +56,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   onComment,
   onRepost,
   zap,
+  onReady,
 }) => {
   const router = useRouter();
   const playerRef = useRef<HTMLVideoElement>(null);
@@ -180,7 +186,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="relative w-full h-full max-h-full overflow-hidden rounded-2xl bg-card text-white shadow-card"
+      className="relative w-full h-screen overflow-hidden rounded-2xl bg-card text-white shadow-card"
       onClick={() => setSelectedVideo(eventId, pubkey)}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
@@ -212,6 +218,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
                   setIsPlaying(false);
                 });
             }
+            onReady?.();
           }}
           onError={() => setErrorMessage('Video playback error')}
         />
