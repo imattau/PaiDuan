@@ -6,6 +6,9 @@ import { act } from 'react';
 import CreateVideoForm from './CreateVideoForm';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../../lib/queryClient';
+import { NextIntlClientProvider } from 'next-intl';
+import common from '../../locales/en/common.json';
+import create from '../../locales/en/create.json';
 const following = ['pk1', 'pk2'];
 let onEvents: ((ev: any) => void)[] = [];
 const subscribeMany = vi.fn((relays: any, filters: any, opts: any) => {
@@ -13,6 +16,17 @@ const subscribeMany = vi.fn((relays: any, filters: any, opts: any) => {
   return { close: vi.fn() };
 });
 (globalThis as any).React = React;
+
+const messages = { common, create };
+const renderForm = (root: any) => {
+  root.render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <QueryClientProvider client={queryClient}>
+        <CreateVideoForm />
+      </QueryClientProvider>
+    </NextIntlClientProvider>,
+  );
+};
 
 describe('CreateVideoForm profiles', () => {
 
@@ -40,11 +54,7 @@ describe('CreateVideoForm profiles', () => {
     const container = document.createElement('div');
     const root = createRoot(container);
     await act(async () => {
-      root.render(
-        <QueryClientProvider client={queryClient}>
-          <CreateVideoForm />
-        </QueryClientProvider>,
-      );
+      renderForm(root);
     });
     await Promise.resolve();
     expect(subscribeMany).toHaveBeenCalledTimes(following.length);
