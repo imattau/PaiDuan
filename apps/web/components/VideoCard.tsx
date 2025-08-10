@@ -23,8 +23,7 @@ import { useFeedSelection } from '@/store/feedSelection';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
-import pool from '@/lib/relayPool';
-import { getRelays } from '@/lib/nostr';
+import { nostr } from '@/agents/nostr';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -143,31 +142,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     if (auth.status !== 'ready') return;
     if (!window.confirm('Repost this video?')) return;
     try {
-      const relays = getRelays();
-      let original: any = null;
-      let relayUrl: string | undefined;
-      for (const r of relays) {
-        original = await pool.get([r], { ids: [eventId] });
-        if (original) {
-          relayUrl = r;
-          break;
-        }
-      }
-      if (!original || !relayUrl) {
-        throw new Error('Original event not found');
-      }
-      const event: any = {
-        kind: 6,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ['e', eventId, relayUrl],
-          ['p', pubkey],
-        ],
-        content: JSON.stringify(original),
-        pubkey: auth.pubkey,
-      };
-      const signed = await auth.signer.signEvent(event);
-      await pool.publish(relays, signed);
+      await nostr.repost({
+        eventId,
+        originalPubkey: pubkey,
+        myPubkey: auth.pubkey,
+        signer: auth.signer,
+      });
       setReposted(true);
       toast.success('Reposted');
     } catch (e) {
