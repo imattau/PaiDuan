@@ -59,6 +59,9 @@ afterEach(() => {
   usePlaybackPrefs.setState({ isMuted: true });
   useFollowingStore.setState({ following: [] });
   currentVideo = null;
+  const htmlPlay = HTMLMediaElement.prototype.play as unknown as vi.Mock;
+  htmlPlay.mockReset();
+  htmlPlay.mockImplementation(() => Promise.resolve());
   (HTMLMediaElement.prototype.pause as unknown as vi.Mock).mockClear();
   play.mockClear();
   playbackPause.mockClear();
@@ -173,6 +176,26 @@ describe('VideoCard', () => {
     expect(screen.getAllByRole('button', { name: /mute/i })).toHaveLength(2);
   });
 
+  it('retries autoplay muted before showing overlay', async () => {
+    usePlaybackPrefs.setState({ isMuted: false });
+    const playMock = HTMLMediaElement.prototype.play as unknown as vi.Mock;
+    playMock.mockRejectedValueOnce(new Error('blocked')).mockResolvedValueOnce(undefined);
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container, queryByText } = render(<VideoCard {...props} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    fireEvent.loadedData(video);
+    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(2));
+    expect(queryByText('Tap to play')).toBeNull();
+    expect(video.muted).toBe(false);
+  });
+
   it('shows action bar with z-index and triggers comment callback', async () => {
     const onComment = vi.fn();
     const props = {
@@ -238,7 +261,7 @@ describe('VideoCard', () => {
     fireEvent.click(card, { clientX: 50, clientY: 50 });
     expect(playbackPause).toHaveBeenCalledTimes(1);
     fireEvent.click(card, { clientX: 50, clientY: 50 });
-    expect(play).toHaveBeenCalledTimes(2);
+    expect(play).toHaveBeenCalledTimes(1);
   });
 
   it('ignores taps outside the central region', () => {
@@ -267,6 +290,6 @@ describe('VideoCard', () => {
     });
     fireEvent.click(card, { clientX: 10, clientY: 90 });
     expect(playbackPause).not.toHaveBeenCalled();
-    expect(play).toHaveBeenCalledTimes(1);
+    expect(play).toHaveBeenCalledTimes(0);
   });
 });
