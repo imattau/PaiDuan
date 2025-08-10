@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import pool from '@/lib/relayPool';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { getRelays } from '@/lib/nostr';
 import Overlay from './ui/Overlay';
+import { modqueue } from '@/agents/modqueue';
 
 interface Props {
   targetId: string;
@@ -22,24 +21,15 @@ function ReportModalContent({ targetId, targetKind, onClose }: Props) {
       return;
     }
     try {
-      const reporterPubKey = state.pubkey;
-      const ts = Math.floor(Date.now() / 1000);
-      const report = { targetId, targetKind, reason, reporterPubKey, ts, details };
-      const event = { kind: 30041, created_at: ts, content: JSON.stringify(report), pubkey: reporterPubKey } as any;
-      const signed = await state.signer.signEvent(event);
-      const relays = getRelays();
-      try {
-        await pool.publish(relays, signed);
-      } catch (err) {
-        console.error('Failed to publish report', err);
-        throw err;
-      }
-      await fetch('/api/modqueue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(report),
+      await modqueue.submitReport({
+        targetId,
+        targetKind,
+        reason,
+        reporterPubKey: state.pubkey,
+        ts: Math.floor(Date.now() / 1000),
+        details,
+        signer: state.signer,
       });
-      window.dispatchEvent(new Event('modqueue'));
       toast.success('Reported');
       Overlay.close();
       onClose?.();
