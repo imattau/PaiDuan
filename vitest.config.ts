@@ -10,7 +10,7 @@ export default defineConfig({
   },
 
   test: {
-    exclude: [...defaultExclude, 'apps/web/components/create/CreateVideoForm*.test.tsx'],
+    exclude: [...defaultExclude],
   },
 
 });

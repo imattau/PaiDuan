@@ -16,6 +16,7 @@
   "webcodecs_unavailable": "WebCodecs unavailable in this browser.",
   "conversion_failed": "Conversion failed.",
   "process_video_first": "Please process a video first",
+  "video_must_be_portrait": "Video must be vertical (at least 9:16)",
   "caption_placeholder": "Caption",
   "topics_placeholder": "Topic tags (comma separated)",
   "lightning_address": "Lightning address",

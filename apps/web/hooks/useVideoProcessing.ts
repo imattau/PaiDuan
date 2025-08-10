@@ -54,6 +54,13 @@ export function useVideoProcessing(t: (key: string) => string) {
         URL.revokeObjectURL(url);
         video.remove();
 
+        // Enforce portrait orientation of at least 9:16
+        if (!height || !width || width / height > 9 / 16) {
+          setErr(t('video_must_be_portrait'));
+          setProgress(0);
+          return;
+        }
+
         let blob: Blob | null = null;
         try {
           blob = await trimVideoWebCodecs(

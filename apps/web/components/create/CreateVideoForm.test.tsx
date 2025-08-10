@@ -29,11 +29,11 @@ vi.mock('../../hooks/useProfile', () => ({ useProfile: () => profileMock }));
 vi.mock('../../hooks/useFollowing', () => ({ default: () => ({ following: [] }) }));
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
 
-const mockPublish = vi.fn();
+const mockPublish = vi.hoisted(() => vi.fn());
 vi.mock('../../lib/relayPool', () => ({ default: { publish: mockPublish } }));
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn() }) }));
-const mockToast = { success: vi.fn(), error: vi.fn() };
+const mockToast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('react-hot-toast', () => ({ toast: mockToast }));
 let origCreateElement: any;
 
@@ -186,6 +186,39 @@ describe('CreateVideoForm', () => {
     await Promise.resolve();
 
     expect(mockTrim).toHaveBeenCalledWith(file, { start: 0, end: 300 }, expect.any(Function));
+  });
+
+  it('rejects landscape videos', async () => {
+    (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
+    (document.createElement as any).mockImplementation((tag: any, opts?: any) => {
+      const el = origCreateElement(tag, opts) as any;
+      if (tag === 'video') {
+        Object.defineProperty(el, 'videoWidth', { configurable: true, value: 1920 });
+        Object.defineProperty(el, 'videoHeight', { configurable: true, value: 1080 });
+        Object.defineProperty(el, 'duration', { configurable: true, value: 10 });
+        setTimeout(() => el.onloadedmetadata?.(new Event('loadedmetadata')));
+      }
+      return el;
+    });
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    act(() => {
+      renderForm(root);
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['x'], 'video.mp4', { type: 'video/mp4' });
+
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await Promise.resolve();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(container.textContent).toContain('Video must be vertical');
+    expect(mockTrim).not.toHaveBeenCalled();
   });
 
   it('prefills lightning address with lud16 when wallets empty', async () => {

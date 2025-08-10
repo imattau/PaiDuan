@@ -16,6 +16,7 @@
   "webcodecs_unavailable": "WebCodecs غير متاحة في هذا المتصفح.",
   "conversion_failed": "فشل التحويل.",
   "process_video_first": "يرجى معالجة الفيديو أولاً",
+  "video_must_be_portrait": "يجب أن يكون الفيديو عموديًا (على الأقل بنسبة 9:16)",
   "caption_placeholder": "العنوان",
   "topics_placeholder": "وسوم المواضيع (مفصولة بفواصل)",
   "lightning_address": "عنوان Lightning",
