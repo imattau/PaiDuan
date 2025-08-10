@@ -106,6 +106,9 @@ body {
   .icon {
     @apply transition-colors duration-200 ease-in-out;
   }
+  .action-bar-icon {
+    @apply h-6 w-6 md:h-8 md:w-8;
+  }
   .feed-container {
     @apply lg:mt-4;
   }

@@ -273,7 +273,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </div>
       )}
 
-      <div className="absolute right-4 bottom-24 z-10 flex flex-col items-center space-y-4">
+      <div className="absolute right-4 bottom-24 z-10 flex flex-col items-center space-y-4 lg:right-6 lg:bottom-32 lg:space-y-6">
         <button
           type="button"
           className="hover:text-accent-primary"
@@ -287,7 +287,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           aria-label={muted ? 'Unmute' : 'Mute'}
           aria-pressed={!muted}
         >
-          {muted ? <VolumeX className="icon" /> : <Volume2 className="icon" />}
+          {muted ? (
+            <VolumeX className="icon action-bar-icon md:h-8 md:w-8" />
+          ) : (
+            <Volume2 className="icon action-bar-icon md:h-8 md:w-8" />
+          )}
         </button>
         <button
           className="relative hover:text-accent-primary disabled:opacity-50 lg:hidden"
@@ -296,7 +300,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           title={!online ? 'Offline – reconnect to interact.' : undefined}
           aria-label="Comments"
         >
-          <MessageCircle className="icon" />
+          <MessageCircle className="icon action-bar-icon md:h-8 md:w-8" />
           {commentCount > 0 && (
             <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
           )}
@@ -310,7 +314,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             !online ? 'Offline – reconnect to interact.' : reposted ? 'Already reposted' : undefined
           }
         >
-          <Repeat2 className="icon" />
+          <Repeat2 className="icon action-bar-icon md:h-8 md:w-8" />
         </button>
       </div>
 
