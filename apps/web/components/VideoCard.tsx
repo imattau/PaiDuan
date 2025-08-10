@@ -247,7 +247,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="relative mx-auto h-[calc(100dvh-var(--bottom-nav-height,0))] w-auto max-w-[calc((100dvh-var(--bottom-nav-height,0))*9/16)] sm:h-[calc(100vh-var(--bottom-nav-height,0))] sm:max-w-[calc((100vh-var(--bottom-nav-height,0))*9/16)] aspect-[9/16] overflow-hidden rounded-2xl bg-card text-white shadow-card"
+      className="relative mx-auto h-[calc(100dvh-var(--bottom-nav-height,0))] w-full max-w-[calc((100dvh-var(--bottom-nav-height,0))*9/16)] sm:h-[calc(100vh-var(--bottom-nav-height,0))] sm:max-w-[calc((100vh-var(--bottom-nav-height,0))*9/16)] aspect-[9/16] overflow-hidden rounded-2xl bg-card text-white shadow-card"
       onClick={handleTogglePlay}
       onPointerDown={handleSpeedPointerDown}
       onPointerUp={handleSpeedPointerUp}
@@ -260,7 +260,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       {!errorMessage && (
         <video
           ref={playerRef}
-          className={`pointer-events-none absolute inset-0 h-full w-full object-contain ${loaded ? '' : 'hidden'}`}
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${loaded ? '' : 'hidden'}`}
           loop
           muted={muted}
           playsInline
