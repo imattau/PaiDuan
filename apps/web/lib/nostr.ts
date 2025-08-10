@@ -47,12 +47,16 @@ async function connectNDK(attempt = 0): Promise<void> {
 }
 
 // establish connections eagerly so hooks/components can use it immediately
-void connectNDK();
+if (typeof window !== 'undefined') {
+  void connectNDK();
+}
 
 // update relay connections when the list changes
 bus.on('nostr.relays.changed', ({ relays }) => {
   ndk.explicitRelayUrls = relays;
-  void connectNDK();
+  if (typeof window !== 'undefined') {
+    void connectNDK();
+  }
 });
 
 const LS_KEY = 'pd.auth.v1';
