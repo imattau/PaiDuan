@@ -11,6 +11,7 @@ interface Props {
   videoRef: RefObject<HTMLVideoElement>;
   noVideoMessage: string;
   dropMessage: string;
+  dimensions: { width: number; height: number };
 }
 
 export default function VideoPreview({
@@ -23,12 +24,17 @@ export default function VideoPreview({
   videoRef,
   noVideoMessage,
   dropMessage,
+  dimensions,
 }: Props) {
+  const aspectRatio =
+    dimensions.width && dimensions.height
+      ? `${dimensions.width} / ${dimensions.height}`
+      : '9 / 16';
   return (
     <div className="space-y-4">
       <div
         {...getRootProps({
-          className: 'relative h-full w-full max-h-[70vh] overflow-hidden rounded-xl',
+
         })}
       >
         <input {...getInputProps()} />

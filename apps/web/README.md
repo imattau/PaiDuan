@@ -12,7 +12,6 @@ Set `NEXT_PUBLIC_UPLOAD_URL` to change the upload API endpoint. It defaults to `
 
 - Accepted formats: mp4 and webm
 - Maximum length: 5 minutes
-- Required aspect ratio: 9:16
 - Trimming performed via WebCodecs
 
 ### Automatic trimming
