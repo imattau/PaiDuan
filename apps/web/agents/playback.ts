@@ -15,48 +15,68 @@ const errorListeners = new Set<ErrorListener>();
 const STORAGE_KEY = 'lastPlaybackPosition';
 const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24h
 
-function saveProgress() {
-  if (!video || !currentEventId) return;
+type ProgressEntry = { currentTime: number; timestamp: number };
+type ProgressMap = Record<string, ProgressEntry>;
+
+function loadStore(): ProgressMap {
   try {
-    sessionStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        eventId: currentEventId,
-        currentTime: video.currentTime,
-        timestamp: Date.now(),
-      }),
-    );
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as ProgressMap;
+  } catch {
+    return {};
+  }
+}
+
+function saveStore(store: ProgressMap) {
+  try {
+    if (Object.keys(store).length === 0) {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } else {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    }
   } catch {
     // ignore storage failures
   }
 }
 
-function loadProgress(eventId: string): number | undefined {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return undefined;
-    const data = JSON.parse(raw) as {
-      eventId: string;
-      currentTime: number;
-      timestamp: number;
-    };
-    if (data.eventId !== eventId) return undefined;
-    if (Date.now() - data.timestamp > EXPIRY_MS) {
-      sessionStorage.removeItem(STORAGE_KEY);
-      return undefined;
+function pruneExpired(store: ProgressMap) {
+  const now = Date.now();
+  for (const [id, entry] of Object.entries(store)) {
+    if (now - entry.timestamp > EXPIRY_MS) {
+      delete store[id];
     }
-    return data.currentTime;
-  } catch {
-    return undefined;
   }
 }
 
-function clearProgress() {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // ignore
+function saveProgress() {
+  if (!video || !currentEventId) return;
+  const store = loadStore();
+  pruneExpired(store);
+  store[currentEventId] = { currentTime: video.currentTime, timestamp: Date.now() };
+  saveStore(store);
+}
+
+function loadProgress(eventId: string): number | undefined {
+  const store = loadStore();
+  const entry = store[eventId];
+  if (!entry) return undefined;
+  if (Date.now() - entry.timestamp > EXPIRY_MS) {
+    delete store[eventId];
+    saveStore(store);
+    return undefined;
   }
+  return entry.currentTime;
+}
+
+function clearProgress(eventId?: string) {
+  const store = loadStore();
+  if (eventId) {
+    delete store[eventId];
+  } else {
+    for (const id of Object.keys(store)) delete store[id];
+  }
+  saveStore(store);
 }
 
 function emit(state: PlaybackState) {
@@ -123,7 +143,7 @@ function handlePause() {
 
 function handleEnded() {
   emit('paused');
-  clearProgress();
+  if (currentEventId) clearProgress(currentEventId);
 }
 
 function play() {
