@@ -7,7 +7,7 @@ import pool from '@/lib/relayPool';
 type Nip46Session = {
   remotePubkey: string;
   relays: string[];
-  myPrivkey: string;
+  myPrivkey: Uint8Array;
 };
 
 export class Nip46Signer implements Signer {
@@ -92,17 +92,22 @@ export class Nip46Signer implements Signer {
       throw new Error('Failed to connect to any relays');
 
     const reply = await new Promise<any>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('NIP-46 RPC timeout')), 8000);
+      const timeout = setTimeout(
+        () => reject(new Error('NIP-46 RPC timeout')),
+        8000,
+      );
       const sub = pool.subscribeMany(
         this.session.relays,
-        [{
-          kinds: [24133],
-          authors: [this.session.remotePubkey],
-          '#p': [myPub],
-          since: ev.created_at,
-        }],
+        [
+          {
+            kinds: [24133],
+            authors: [this.session.remotePubkey],
+            '#p': [myPub],
+            since: ev.created_at,
+          },
+        ],
         {
-          onevent: async (msg) => {
+          onevent: async (msg: any) => {
             try {
               const plain = await nip04.decrypt(
                 this.session.myPrivkey,

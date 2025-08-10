@@ -1,7 +1,7 @@
-import {defineConfig} from 'next-intl';
-import {locales} from './utils/locales';
+import { defineRouting } from 'next-intl/routing';
+import { locales } from './utils/locales';
 
-export default defineConfig({
+export default defineRouting({
   locales,
-  defaultLocale: 'en'
+  defaultLocale: 'en',
 });

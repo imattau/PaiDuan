@@ -41,6 +41,7 @@ interface FeedResult {
   tags: string[];
   prepend: (item: VideoCardProps) => void;
   loadMore: () => void;
+  loading: boolean;
   error?: Error;
 }
 
@@ -125,13 +126,13 @@ export function useFeed(
   cursor: { since?: number; until?: number; limit?: number } = {},
 ): FeedResult {
   const limit = cursor.limit ?? 20;
-  const query = useInfiniteQuery({
-    queryKey: ['feed', mode, authors.join(','), limit],
-    queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
-    initialPageParam: cursor.until,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    staleTime: 1000 * 60 * 5,
-  });
+    const query = useInfiniteQuery({
+      queryKey: ['feed', mode, authors.join(','), limit],
+      queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
+      initialPageParam: cursor.until,
+      getNextPageParam: (lastPage: { nextCursor?: number | null }) => (lastPage.nextCursor ?? null) as any,
+      staleTime: 1000 * 60 * 5,
+    });
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
   const tags = query.data?.pages[0]?.tags ?? [];
   const timedOut = query.data?.pages.some((p) => p.timedOut);
@@ -156,13 +157,13 @@ export function useFeed(
 }
 
 export function prefetchFeed(mode: FeedMode, authors: string[] = [], limit = 20) {
-  return queryClient.prefetchInfiniteQuery({
-    queryKey: ['feed', mode, authors.join(','), limit],
-    queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
-    initialPageParam: undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    staleTime: 1000 * 60 * 5,
-  });
+    return queryClient.prefetchInfiniteQuery({
+      queryKey: ['feed', mode, authors.join(','), limit],
+      queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
+      initialPageParam: undefined,
+      getNextPageParam: (lastPage: { nextCursor?: number | null }) => (lastPage.nextCursor ?? null) as any,
+      staleTime: 1000 * 60 * 5,
+    });
 }
 
 export default useFeed;

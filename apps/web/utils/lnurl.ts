@@ -3,12 +3,8 @@ import {
   requestInvoiceWithServiceParams,
   utils,
 } from 'lnurl-pay';
-import type {
-  LnUrlPayServiceResponse,
-  LnUrlRequestInvoiceResponse,
-} from 'lnurl-pay';
 
-export type PayData = LnUrlPayServiceResponse;
+export type PayData = Awaited<ReturnType<typeof requestPayServiceParams>>;
 
 export async function fetchPayData(address: string): Promise<PayData> {
   return requestPayServiceParams({ lnUrlOrAddress: address });
@@ -18,10 +14,10 @@ export async function requestInvoice(
   payData: PayData,
   sats: number,
   comment?: string,
-): Promise<LnUrlRequestInvoiceResponse> {
+) {
   return requestInvoiceWithServiceParams({
     params: payData,
-    tokens: sats,
+    tokens: utils.toSats(sats),
     comment,
   });
 }

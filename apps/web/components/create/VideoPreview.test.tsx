@@ -20,7 +20,7 @@ describe('VideoPreview', () => {
           getRootProps={() => ({})}
           getInputProps={() => ({})}
           isDragActive={false}
-          videoRef={{ current: null }}
+            videoRef={{ current: null } as React.RefObject<HTMLVideoElement | null>}
           noVideoMessage="no video"
           dropMessage="drop"
         />,
@@ -41,7 +41,7 @@ describe('VideoPreview', () => {
           getRootProps={() => ({})}
           getInputProps={() => ({})}
           isDragActive={false}
-          videoRef={{ current: null } as any}
+            videoRef={{ current: null } as React.RefObject<HTMLVideoElement | null>}
           noVideoMessage="no video"
           dropMessage="drop"
         />,

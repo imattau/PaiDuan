@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useInstallPrompt from '../hooks/useInstallPrompt';
 import analytics from '../utils/analytics';
 import useT from '../hooks/useT';
 import useFocusTrap from '../hooks/useFocusTrap';
 
-export default function InstallBanner() {
-  const { canInstall, showPrompt } = useInstallPrompt();
-  const [visible, setVisible] = useState(false);
-  const bannerRef = useRef<HTMLDivElement>(null);
-  const t = useT();
+  export default function InstallBanner() {
+    const { canInstall, showPrompt } = useInstallPrompt();
+    const [visible, setVisible] = useState(false);
+    const bannerRef = useRef<HTMLDivElement>(null);
+    const t = useT();
 
-  useFocusTrap(visible, bannerRef);
+    useFocusTrap(visible, bannerRef as unknown as React.RefObject<HTMLElement>);
 
   useEffect(() => {
     const dismissed = localStorage.getItem('installDismissed');

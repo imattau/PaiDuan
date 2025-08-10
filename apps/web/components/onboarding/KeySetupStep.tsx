@@ -9,11 +9,11 @@ import { Button } from '@paiduan/ui';
 
 function privHexFrom(input: string): string {
   const s = input.trim();
-  if (/^nsec1/i.test(s)) {
-    const { type, data } = nip19.decode(s);
-    if (type !== 'nsec') throw new Error('Invalid nsec');
-    return typeof data === 'string' ? data.toLowerCase() : bytesToHex(data);
-  }
+    if (/^nsec1/i.test(s)) {
+      const { type, data } = nip19.decode(s);
+      if (type !== 'nsec') throw new Error('Invalid nsec');
+      return bytesToHex(data);
+    }
   if (/^[0-9a-f]{64}$/i.test(s)) return s.toLowerCase();
   throw new Error('Unsupported private key format');
 }

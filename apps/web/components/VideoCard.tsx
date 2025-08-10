@@ -65,8 +65,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
-  const [reposted, setReposted] = useState(false);
-  const holdTimer = useRef<number>();
+    const [reposted, setReposted] = useState(false);
+    const holdTimer = useRef<number | null>(null);
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
   const { state: auth } = useAuth();
   const { following, follow } = useFollowing(auth.status === 'ready' ? auth.pubkey : undefined);
@@ -161,7 +161,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   };
 
   const handlePointerUp = () => {
-    clearTimeout(holdTimer.current);
+      if (holdTimer.current !== null) clearTimeout(holdTimer.current);
     if (speedMode) {
       setSpeedMode(false);
       api.start({ opacity: 0 });
@@ -169,16 +169,18 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     }
     setShowPlayIndicator(false);
     setIsPlaying(true);
-    playback
-      .play()
-      .catch(() => {
-        setShowPlayIndicator(true);
-        setIsPlaying(false);
-      });
+      playback
+        .play()
+        ?.catch(() => {
+          setShowPlayIndicator(true);
+          setIsPlaying(false);
+        });
   };
 
-  return (
-    <motion.div
+    const AnimatedDiv: any = animated.div;
+
+    return (
+      <motion.div
       ref={(el) => {
         containerRef.current = el;
         ref(el);
@@ -211,12 +213,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             const video = getPlayer();
             if (video) {
               video.muted = true;
-              playback
-                .play()
-                .catch(() => {
-                  setShowPlayIndicator(true);
-                  setIsPlaying(false);
-                });
+                playback
+                  .play()
+                  ?.catch(() => {
+                    setShowPlayIndicator(true);
+                    setIsPlaying(false);
+                  });
             }
             onReady?.();
           }}
@@ -355,17 +357,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <div className="meta-info mt-1">{caption}</div>
       </div>
 
-      <animated.div
-        style={{ opacity }}
-        className="absolute bottom-1/4 left-0 right-0 h-1 bg-text-primary/50"
-      >
-        <div className="absolute left-1/2 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-text-primary" />
-        <div className="absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-background-primary/50 px-1 text-xs">
-          {seekPreview.toFixed(1)}s
-        </div>
-      </animated.div>
-    </motion.div>
-  );
-};
+        <AnimatedDiv
+          style={{ opacity }}
+          className="absolute bottom-1/4 left-0 right-0 h-1 bg-text-primary/50"
+        >
+          <div className="absolute left-1/2 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-text-primary" />
+          <div className="absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-background-primary/50 px-1 text-xs">
+            {seekPreview.toFixed(1)}s
+          </div>
+        </AnimatedDiv>
+      </motion.div>
+    );
+  };
 
 export default VideoCard;

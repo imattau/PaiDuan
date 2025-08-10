@@ -40,11 +40,10 @@ describe('useLightning', () => {
     // @ts-ignore
     global.fetch = fetchMock;
     const sendPaymentMock = vi.fn();
-    // @ts-ignore
-    global.window = {
-      webln: { sendPayment: sendPaymentMock },
-      open: vi.fn(),
-    };
+      (global as any).window = {
+        webln: { sendPayment: sendPaymentMock } as any,
+        open: vi.fn(),
+      };
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
@@ -79,11 +78,10 @@ describe('useLightning', () => {
     // @ts-ignore
     global.fetch = fetchMock;
     const sendPaymentMock = vi.fn();
-    // @ts-ignore
-    global.window = {
-      webln: { sendPayment: sendPaymentMock },
-      open: vi.fn(),
-    };
+      (global as any).window = {
+        webln: { sendPayment: sendPaymentMock } as any,
+        open: vi.fn(),
+      };
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({

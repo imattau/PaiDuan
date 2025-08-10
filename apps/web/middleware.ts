@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { locales } from './utils/locales';
+import { locales, type Locale } from './utils/locales';
 const PUBLIC_FILE = /\.(.*)$/;
 
-function getLocale(req: NextRequest): string {
-  const cookieLocale = req.cookies.get('locale')?.value;
+function getLocale(req: NextRequest): Locale {
+  const cookieLocale = req.cookies.get('locale')?.value as Locale | undefined;
   if (cookieLocale && locales.includes(cookieLocale)) return cookieLocale;
   const accept = req.headers.get('accept-language');
   if (accept) {
-    const lang = accept.split(',')[0].split('-')[0];
+    const lang = accept.split(',')[0].split('-')[0] as Locale;
     if (locales.includes(lang)) return lang;
   }
   return 'en';

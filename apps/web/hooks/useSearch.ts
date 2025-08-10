@@ -48,7 +48,7 @@ export function useSearch(query: string): SearchResults {
   const [videos, setVideos] = useState<VideoCardProps[]>([]);
   const [creators, setCreators] = useState<CreatorResult[]>([]);
   const subRef = useRef<{ close: () => void } | null>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     subRef.current?.close();

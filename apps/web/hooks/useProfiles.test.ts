@@ -8,6 +8,7 @@ import { prefetchProfile } from './useProfiles';
 import { queryClient } from '@/lib/queryClient';
 import relayPool from '@/lib/relayPool';
 import { getEventsByPubkey } from '@/lib/db';
+const mockedGetEventsByPubkey = vi.mocked(getEventsByPubkey);
 
 const subscribeMany = relayPool.subscribeMany as any;
 
@@ -18,7 +19,7 @@ describe('fetchProfile', () => {
   });
 
   it('returns lud16 and wallets when cached event has only lud16', async () => {
-    getEventsByPubkey.mockResolvedValueOnce([
+      mockedGetEventsByPubkey.mockResolvedValueOnce([
       { kind: nostrKinds.Metadata, content: JSON.stringify({ lud16: 'alice@test' }) },
     ]);
 
@@ -32,7 +33,7 @@ describe('fetchProfile', () => {
   });
 
   it('sets lud16 from default wallet when missing', async () => {
-    getEventsByPubkey.mockResolvedValueOnce([
+      mockedGetEventsByPubkey.mockResolvedValueOnce([
       {
         kind: nostrKinds.Metadata,
         content: JSON.stringify({ wallets: [{ label: 'Main', lnaddr: 'bob@test', default: true }] }),

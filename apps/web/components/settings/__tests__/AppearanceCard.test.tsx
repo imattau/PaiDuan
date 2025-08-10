@@ -24,11 +24,11 @@ Object.defineProperty(window, 'matchMedia', {
 
 describe('AppearanceCard', () => {
   it('updates data-theme on selection', () => {
-    render(
-      <ThemeProvider attribute="data-theme" themes={themes} defaultTheme="light">
-        <AppearanceCard />
-      </ThemeProvider>
-    );
+      render(
+        <ThemeProvider attribute="data-theme" themes={Array.from(themes)} defaultTheme="light">
+          <AppearanceCard />
+        </ThemeProvider>
+      );
 
     const select = screen.getByRole('combobox');
     for (const theme of themes) {

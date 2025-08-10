@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Event, type Filter, finalizeEvent } from 'nostr-tools';
+import { hexToBytes } from '@noble/hashes/utils';
 import * as nostrKinds from 'nostr-tools/kinds';
 import { getRelays, getMyPrivkey, getMyPubkey } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
@@ -34,7 +35,7 @@ export function useThread(rootEventId?: string) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const subRef = useRef<() => void>();
+  const subRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!rootEventId) return;
@@ -52,10 +53,10 @@ export function useThread(rootEventId?: string) {
         setNotes(parseThread(evs));
       },
       oneventOK: () => {},
-      onerror: (e) => {
-        console.error(e);
-        setErr('Subscription error');
-      },
+        onerror: (e: unknown) => {
+          console.error(e);
+          setErr('Subscription error');
+        },
       oneose: () => setLoading(false),
     });
 
@@ -82,7 +83,7 @@ export function useThread(rootEventId?: string) {
       pubkey: pk,
     };
 
-    const ev = finalizeEvent(draft, sk);
+      const ev = finalizeEvent(draft, hexToBytes(sk));
     // optimistic
     setNotes((prev) => [
       ...prev,

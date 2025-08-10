@@ -1,6 +1,6 @@
 "use client";
 
-import { bytesToHex } from '@noble/hashes/utils';
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import * as nip19 from 'nostr-tools/nip19';
 import type { Signer } from './types';
@@ -12,7 +12,7 @@ function privHexFrom(input: string): string {
   if (/^nsec1/i.test(s)) {
     const { type, data } = nip19.decode(s);
     if (type !== 'nsec') throw new Error('Invalid nsec');
-    return typeof data === 'string' ? data.toLowerCase() : bytesToHex(data);
+    return bytesToHex(data);
   }
   if (/^[0-9a-f]{64}$/i.test(s)) return s.toLowerCase();
   throw new Error('Unsupported private key format');
@@ -23,13 +23,25 @@ export class LocalSigner implements Signer {
   constructor(private privkeyHex: string) {}
 
   async getPublicKey() {
-    return getPublicKey(this.privkeyHex);
+    return getPublicKey(hexToBytes(this.privkeyHex));
   }
 
-  async signEvent(evt: any) {
+  async signEvent<
+    T extends {
+      kind: number;
+      created_at: number;
+      tags: string[][];
+      content: string;
+      pubkey?: string;
+    },
+  >(evt: T): Promise<T & { id: string; sig: string; pubkey: string }> {
     const pubkey = await this.getPublicKey();
     const prepared = { ...evt, pubkey };
-    return finalizeEvent(prepared, this.privkeyHex);
+    return finalizeEvent(prepared, hexToBytes(this.privkeyHex)) as unknown as T & {
+      id: string;
+      sig: string;
+      pubkey: string;
+    };
   }
 }
 

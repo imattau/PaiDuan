@@ -8,7 +8,7 @@ interface Props {
   getRootProps: any;
   getInputProps: any;
   isDragActive: boolean;
-  videoRef: RefObject<HTMLVideoElement>;
+    videoRef: RefObject<HTMLVideoElement | null>;
   noVideoMessage: string;
   dropMessage: string;
 }

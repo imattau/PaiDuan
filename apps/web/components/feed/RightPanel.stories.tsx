@@ -6,8 +6,10 @@ import { useFeedSelection } from '@/store/feedSelection';
 const meta = { title: 'Feed/RightPanel' };
 export default meta;
 
-const Template = (layout: LayoutType) => {
-  const Story = () => {
+type StoryFn = React.FC & { parameters?: Record<string, unknown> };
+
+const Template = (layout: LayoutType): StoryFn => {
+  const Story: StoryFn = () => {
     const setSelected = useFeedSelection((s) => s.setSelectedVideo);
     useEffect(() => {
       setSelected('vid1', 'pubkey');
@@ -22,12 +24,12 @@ const Template = (layout: LayoutType) => {
   return Story;
 };
 
-export const Desktop = Template('desktop');
-Desktop.parameters = { viewport: { defaultViewport: 'desktop' } };
+  export const Desktop = Template('desktop');
+  Desktop.parameters = { viewport: { defaultViewport: 'desktop' } };
 
-export const Tablet = Template('tablet');
-Tablet.parameters = { viewport: { defaultViewport: 'tablet' } };
+  export const Tablet = Template('tablet');
+  Tablet.parameters = { viewport: { defaultViewport: 'tablet' } };
 
-export const Mobile = Template('mobile');
-Mobile.parameters = { viewport: { defaultViewport: 'mobile' } };
+  export const Mobile = Template('mobile');
+  Mobile.parameters = { viewport: { defaultViewport: 'mobile' } };
 

@@ -5,8 +5,10 @@ import { LayoutContext, LayoutType } from '@/context/LayoutContext';
 const meta = { title: 'Layout/AppShell' };
 export default meta;
 
-const Template = (layout: LayoutType) => {
-  const Story = () => (
+type StoryFn = React.FC & { parameters?: Record<string, unknown> };
+
+const Template = (layout: LayoutType): StoryFn => {
+  const Story: StoryFn = () => (
     <LayoutContext.Provider value={layout}>
       <AppShell left={<div>Left</div>} center={<div>Center</div>} right={<div>Right</div>} />
     </LayoutContext.Provider>

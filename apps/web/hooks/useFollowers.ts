@@ -39,8 +39,8 @@ export function useFollowers(pubkey?: string) {
     const sub = pool.subscribeMany(
       getRelays(),
       [{ kinds: [nostrKinds.Contacts], '#p': [pubkey] } as Filter],
-      {
-        onevent: (ev) => {
+        {
+          onevent: (ev: any) => {
           if (!seen.has(ev.pubkey)) {
             seen.add(ev.pubkey);
             setFollowers(Array.from(seen));

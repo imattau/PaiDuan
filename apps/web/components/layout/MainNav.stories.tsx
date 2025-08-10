@@ -12,8 +12,10 @@ const me = {
   stats: { followers: 123, following: 45 },
 };
 
-const Template = (layout: LayoutType) => {
-  const Story = () => (
+type StoryFn = React.FC & { parameters?: Record<string, unknown> };
+
+const Template = (layout: LayoutType): StoryFn => {
+  const Story: StoryFn = () => (
     <LayoutContext.Provider value={layout}>
       <MainNav me={me} />
     </LayoutContext.Provider>

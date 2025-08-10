@@ -3,12 +3,12 @@ import { useNotifications } from '../hooks/useNotifications';
 import { useRouter } from 'next/navigation';
 import useFocusTrap from '../hooks/useFocusTrap';
 
-const NotificationDrawer: React.FC = () => {
-  const { notifications, open, setOpen, markAsRead, markAllAsRead } = useNotifications();
-  const router = useRouter();
-  const drawerRef = useRef<HTMLDivElement>(null);
+  const NotificationDrawer: React.FC = () => {
+    const { notifications, open, setOpen, markAsRead, markAllAsRead } = useNotifications();
+    const router = useRouter();
+    const drawerRef = useRef<HTMLDivElement>(null);
 
-  useFocusTrap(open, drawerRef);
+    useFocusTrap(open, drawerRef as unknown as React.RefObject<HTMLElement>);
 
   const handleClick = (id: string, noteId: string) => {
     markAsRead(id);

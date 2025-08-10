@@ -28,7 +28,7 @@ function ColorModeSync() {
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ChakraProvider theme={theme}>
-      <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem themes={themes}>
+        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem themes={Array.from(themes)}>
         <ColorModeSync />
         <GestureProvider>
           <ModqueueProvider>

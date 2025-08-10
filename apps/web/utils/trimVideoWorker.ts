@@ -1,4 +1,4 @@
-import { createFile } from 'mp4box';
+import MP4Box from 'mp4box';
 import JsWebm from 'jswebm';
 import * as Comlink from 'comlink';
 
@@ -100,8 +100,8 @@ async function trim(
     } catch (err) {
       demuxError = err;
     }
-  } else {
-    const mp4box = createFile();
+    } else {
+      const mp4box = MP4Box.createFile();
     mp4box.onError = (err: any) => {
       demuxError = err;
     };

@@ -9,15 +9,11 @@ interface Split {
   lnaddr: string;
   pct: number;
 }
-interface FormValues {
-  lightningAddress: string;
-  zapSplits: Split[];
-}
 
 export function useZapSplits(
-  control: Control<FormValues>,
-  watch: UseFormWatch<FormValues>,
-  setValue: UseFormSetValue<FormValues>,
+  control: Control<any>,
+  watch: UseFormWatch<any>,
+  setValue: UseFormSetValue<any>,
 ) {
   const { state } = useAuth();
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
@@ -43,8 +39,8 @@ export function useZapSplits(
         : []),
     ]),
   );
-  const lightningAddress = watch('lightningAddress');
-  const zapSplits = watch('zapSplits') || [];
+    const lightningAddress = watch('lightningAddress');
+    const zapSplits = watch('zapSplits') || [];
   const selectedZapOption = zapOptions.includes(lightningAddress) ? lightningAddress : '';
   const showZapSelect =
     (profile?.zapSplits && profile.zapSplits.length > 0) || zapOptions.length > 1;

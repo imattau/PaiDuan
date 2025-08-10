@@ -37,10 +37,10 @@ export function LightningCard() {
   const defaultAddress = wallets.find((w) => w.default)?.lnaddr;
 
   useEffect(() => {
-    if (defaultAddress) {
-      QRCode.toDataURL(defaultAddress)
-        .then((url) => setQr(url))
-        .catch(() => setQr(''));
+      if (defaultAddress) {
+        QRCode.toDataURL(defaultAddress)
+          .then((url: string) => setQr(url))
+          .catch(() => setQr(''));
     } else {
       setQr('');
     }

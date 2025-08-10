@@ -15,9 +15,10 @@ function ensureConnected(op: string): boolean {
 // SimplePool is used directly, otherwise the shared NDK instance
 // handles routing.
 
-export default {
-  subscribeMany(relays: (string | Relay)[] = [], filters: any[], handlers: any) {
-    if (relays.length > 0) return simplePool.subscribeMany(relays, filters, handlers);
+  export default {
+    subscribeMany(relays: (string | Relay)[] = [], filters: any[], handlers: any) {
+      if (relays.length > 0)
+        return simplePool.subscribeMany(relays as string[], filters, handlers);
 
     if (!ensureConnected('subscribeMany')) return { close: () => {} } as { close: () => void };
 
@@ -31,8 +32,13 @@ export default {
     return { close: () => sub.stop() } as { close: () => void };
   },
 
-  async list(relays: (string | Relay)[] = [], filters: any[]) {
-    if (relays.length > 0) return simplePool.list(relays, filters);
+    async list(relays: (string | Relay)[] = [], filters: any[]) {
+      if (relays.length > 0) {
+        const results = await Promise.all(
+          filters.map((f) => simplePool.querySync(relays as string[], f)),
+        );
+        return results.flat();
+      }
 
     if (!ensureConnected('list')) return [];
 
@@ -40,24 +46,24 @@ export default {
     return Array.from(events).map((e: any) => (e.rawEvent ? e.rawEvent() : e));
   },
 
-  async get(relays: (string | Relay)[] = [], filter: any) {
-    if (relays.length > 0) return simplePool.get(relays, filter);
+    async get(relays: (string | Relay)[] = [], filter: any) {
+      if (relays.length > 0) return simplePool.get(relays as string[], filter);
 
-    if (!ensureConnected('get')) return null;
+      if (!ensureConnected('get')) return null;
 
-    const ev = await ndk.fetchEvent(filter);
-    return ev ? (ev.rawEvent ? ev.rawEvent() : ev) : null;
-  },
+      const ev = await ndk.fetchEvent(filter);
+      return ev ? ((ev as any).rawEvent ? (ev as any).rawEvent() : ev) : null;
+    },
 
-  async publish(relays: (string | Relay)[] = [], event: any) {
-    if (relays.length > 0) {
-      const raw = event instanceof NDKEvent ? event.rawEvent() : event;
-      return simplePool.publish(relays, raw);
-    }
+    async publish(relays: (string | Relay)[] = [], event: any) {
+      if (relays.length > 0) {
+        const raw = event instanceof NDKEvent ? event.rawEvent() : event;
+        return simplePool.publish(relays as string[], raw);
+      }
 
     if (!ensureConnected('publish')) return;
 
-    const ndkEvent = event instanceof NDKEvent ? event : new NDKEvent(ndk, event);
-    await ndk.publish(ndkEvent);
-  },
-};
+      const ndkEvent = event instanceof NDKEvent ? event : new NDKEvent(ndk, event);
+      await ndkEvent.publish();
+    },
+  };

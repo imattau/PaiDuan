@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import webpush from 'web-push';
 
-const subscriptions: webpush.PushSubscription[] = [];
+const subscriptions: any[] = [];
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
