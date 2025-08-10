@@ -218,7 +218,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="relative mx-auto w-full max-w-[calc((100dvh-var(--bottom-nav-height,0))*9/16)] aspect-[9/16] overflow-hidden rounded-2xl bg-card text-white shadow-card"
+      className="relative mx-auto w-full max-w-[calc((100dvh-var(--bottom-nav-height,0))*9/16)] sm:max-w-[calc((100vh-var(--bottom-nav-height,0))*9/16)] aspect-[9/16] overflow-hidden rounded-2xl bg-card text-white shadow-card"
       onClick={() => setSelectedVideo(eventId, pubkey)}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
