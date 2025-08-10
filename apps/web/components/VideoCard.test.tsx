@@ -5,25 +5,13 @@ import { createRoot } from 'react-dom/client';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
-
-vi.mock('react-player', () => {
-  const React = require('react');
-  return {
-    default: React.forwardRef((props: any, ref: any) => {
-      React.useImperativeHandle(ref, () => ({
-        getCurrentTime: () => 0,
-        seekTo: () => {},
-        getInternalPlayer: () => ({
-          play: () => ({ catch: () => {} }),
-          pause: () => {},
-        }),
-      }));
-      React.useEffect(() => {
-        props.onReady?.();
-      }, []);
-      return <div />;
-    }),
-  };
+Object.defineProperty(HTMLMediaElement.prototype, 'play', {
+  configurable: true,
+  value: vi.fn(() => Promise.resolve()),
+});
+Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
+  configurable: true,
+  value: vi.fn(),
 });
 
 vi.mock('./ZapButton', () => ({ default: () => <div /> }));
