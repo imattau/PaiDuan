@@ -26,6 +26,10 @@ function loadSource(
   if (video) {
     video.removeEventListener('play', handlePlay);
     video.removeEventListener('pause', handlePause);
+    video.pause();
+    video.removeAttribute('src');
+    // Force the browser to stop loading the previous source
+    video.load();
   }
   hls?.destroy();
   video = el;
