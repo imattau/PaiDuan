@@ -403,12 +403,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           onClick={() => online && onComment?.()}
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
-          aria-label="Comments"
+          aria-label={`Comments (${commentCount})`}
         >
           <MessageCircle className="icon action-bar-icon md:h-8 md:w-8" />
-          {commentCount > 0 && (
-            <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
-          )}
+          <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
         </button>
         {zap}
         <button
