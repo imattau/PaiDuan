@@ -60,7 +60,7 @@ const baseConfig = {
 const withPWAConfig = withPWA({
   dest: 'public',
   runtimeCaching,
-  buildExcludes: [/middleware-manifest\.json$/, /app-build-manifest\.json$/],
+  buildExcludes: [/middleware-manifest\.json$/],
   fallbacks: {
     image: '/offline.jpg',
     document: '/offline.html',
