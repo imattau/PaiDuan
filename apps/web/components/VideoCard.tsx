@@ -104,8 +104,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         try {
           const res = await fetch(adaptiveUrl, { method: 'HEAD' });
           const type = res.headers.get('content-type')?.toLowerCase() || '';
+          const canPlayHls = videoEl.canPlayType('application/x-mpegURL');
+          console.debug('checkSources HLS', { type, canPlayHls });
           if (type.includes('application/x-mpegurl') || type.includes('application/vnd.apple.mpegurl')) {
-            if (videoEl.canPlayType('application/x-mpegURL')) {
+            if (canPlayHls) {
+              // load HTTP streaming plugin before player creation
               await import('@videojs/http-streaming');
               if (!cancelled) {
                 setSource({ src: adaptiveUrl, type: 'application/x-mpegURL' });
@@ -121,7 +124,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       try {
         const res = await fetch(videoUrl, { method: 'HEAD' });
         const type = res.headers.get('content-type')?.toLowerCase() || '';
-        if (type.includes('video/mp4') && videoEl.canPlayType('video/mp4')) {
+        const canPlayMp4 = videoEl.canPlayType('video/mp4');
+        console.debug('checkSources MP4', { type, canPlayMp4 });
+        if (type.includes('video/mp4') && canPlayMp4) {
           if (!cancelled) {
             setSource({ src: videoUrl, type: 'video/mp4' });
             return;
