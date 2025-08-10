@@ -1,25 +1,28 @@
-"use client";
-import dynamic from 'next/dynamic';
-import SearchBar from '@/components/SearchBar';
-import MiniProfileCard from '@/components/MiniProfileCard';
+import { NextIntlClientProvider, getMessages } from 'next-intl/server';
+import type { Metadata } from 'next';
+import { locales } from '@/utils/locales';
+import CreatePageClient from './CreatePageClient';
 
-const CreatorWizard = dynamic(() => import('@/components/create/CreatorWizard'), { ssr: false });
+export const metadata: Metadata = {
+  alternates: {
+    languages: Object.fromEntries(
+      locales.map((locale) => [locale, `/${locale}/create`]),
+    ),
+  },
+};
 
-export default function CreatePage() {
+export default async function CreatePage({
+  params,
+}: {
+  params: Promise<{ locale?: string }>;
+}) {
+  const { locale = 'en' } = await params;
+  const messages = await getMessages();
+  const createMessages = (await import(`@/locales/${locale}/create.json`)).default;
+
   return (
-    <div className="box-border min-h-screen h-screen">
-      <main className="mx-auto max-w-[1400px] px-4 h-full">
-        <div className="grid h-full gap-6 grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_340px]">
-          <aside className="hidden lg:block self-start sticky top-20 space-y-4">
-            <SearchBar />
-            <MiniProfileCard />
-          </aside>
-
-          <section className="xl:col-span-2">
-            <CreatorWizard />
-          </section>
-        </div>
-      </main>
-    </div>
+    <NextIntlClientProvider locale={locale} messages={{ ...messages, create: createMessages }}>
+      <CreatePageClient />
+    </NextIntlClientProvider>
   );
 }
