@@ -8,11 +8,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   try {
     const upstream = await fetch(url);
-    const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
+    if (!upstream.ok || !(upstream.headers.get('content-type') ?? '').startsWith('image/')) {
+      res.status(404).send('Not an image');
+      return;
+    }
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Content-Type', contentType);
-    const arrayBuffer = await upstream.arrayBuffer();
-    res.status(upstream.status).send(Buffer.from(arrayBuffer));
+    res.setHeader('Content-Type', upstream.headers.get('content-type') ?? 'application/octet-stream');
+    res.status(200).send(Buffer.from(await upstream.arrayBuffer()));
   } catch {
     res.status(502).send('Bad Gateway');
   }
