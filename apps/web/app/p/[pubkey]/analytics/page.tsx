@@ -10,7 +10,7 @@ export default function CreatorAnalytics() {
   const downloadCsv = () => {
     if (!data) return;
     const header = ['date', 'views', 'zapsSats', 'comments', 'followerDelta', 'revenueAud'];
-    const rows = data.dailySeries.map((d: any) =>
+    const rows = data.dailySeries.map((d) =>
       [d.date, d.views, d.zapsSats, d.comments, d.followerDelta, d.revenueAud].join(',')
     );
     const csv = [header.join(','), ...rows].join('\n');
