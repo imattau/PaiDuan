@@ -194,8 +194,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     setShowPlayIndicator(false);
     setIsPlaying(false);
     const primaryUrl = manifestUrl ?? videoUrl;
+    const isOnline = online ?? (typeof navigator !== 'undefined' ? navigator.onLine : true);
+    if (!isOnline) {
+      setErrorMessage('Network timeout—check connection');
+      telemetry.track('video.unavailable', { eventId, url: primaryUrl, status: 'offline' });
+      return;
+    }
     try {
-      const res = await fetch(primaryUrl, { method: 'HEAD' });
+      const res = await fetch(primaryUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
       if (res.status === 404 && manifestUrl && !triedFallback) {
         setTriedFallback(true);
         setLoaded(false);
@@ -216,9 +222,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         url: primaryUrl,
         status: res.status,
       });
-    } catch {
-      setErrorMessage('Video unavailable');
-      telemetry.track('video.unavailable', { eventId, url: primaryUrl });
+    } catch (err) {
+      if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+        setErrorMessage('Network timeout—check connection');
+        telemetry.track('video.unavailable', { eventId, url: primaryUrl, status: 'timeout' });
+      } else {
+        setErrorMessage('Video unavailable');
+        telemetry.track('video.unavailable', { eventId, url: primaryUrl });
+      }
     }
   };
 
