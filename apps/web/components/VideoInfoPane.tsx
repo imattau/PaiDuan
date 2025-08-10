@@ -2,18 +2,14 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import type { Event } from 'nostr-tools/pure';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
-import { useFollowing } from '../hooks/useFollowing';
 import ZapButton from './ZapButton';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
-import { useAuth } from '@/hooks/useAuth';
+import { useFollowingStore } from '@/store/following';
 
 export default function VideoInfoPane() {
   const { current } = useCurrentVideo();
-  const { state: auth } = useAuth();
-  const { following, follow, unfollow } = useFollowing(
-    auth.status === 'ready' ? auth.pubkey : undefined,
-  );
+  const { following, follow, unfollow } = useFollowingStore();
   const [meta, setMeta] = useState<any>(null);
   const [comments, setComments] = useState<Event[]>([]);
 
