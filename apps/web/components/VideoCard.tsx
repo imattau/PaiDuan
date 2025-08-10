@@ -52,6 +52,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 }) => {
   const router = useRouter();
   const playerRef = useRef<videojs.Player | null>(null);
+  useEffect(() => {
+    return () => {
+      playerRef.current?.dispose();
+      playerRef.current = null;
+    };
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
