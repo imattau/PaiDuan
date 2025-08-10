@@ -14,7 +14,13 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
   });
 
   if (videos.length === 0) {
-    return <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />;
+    return (
+      <PlaceholderVideo
+        className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary"
+        message="No videos yet"
+        busy={false}
+      />
+    );
   }
 
   return (
@@ -36,7 +42,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
               height: `${virtualRow.size}px`,
             }}
           >
-            <PlaceholderVideo className="w-full" />
+            <PlaceholderVideo className="w-full" message="Loading video…" />
           </div>
         ))}
       </div>

@@ -9,6 +9,6 @@ import VideoFeed from './VideoFeed';
 describe('VideoFeed', () => {
   it('renders placeholder when no videos', () => {
     const html = renderToStaticMarkup(<VideoFeed onAuthorClick={() => {}} />);
-    expect(html).toContain('<svg');
+    expect(html).toContain('No videos yet');
   });
 });

@@ -487,7 +487,11 @@ export default function CreateVideoForm() {
                 className="absolute inset-0 h-full w-full object-cover pointer-events-none"
               />
             ) : (
-              <PlaceholderVideo className="absolute inset-0 h-full w-full object-cover" />
+              <PlaceholderVideo
+                className="absolute inset-0 h-full w-full object-cover"
+                message="No video selected"
+                busy={false}
+              />
             )}
             {isDragActive && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">
