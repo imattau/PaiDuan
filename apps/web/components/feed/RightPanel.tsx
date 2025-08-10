@@ -21,14 +21,16 @@ import {
 export default function RightPanel({
   author,
   onFilterByAuthor,
+  forceDrawer = false,
 }: {
   author?: { avatar: string; name: string; username: string; pubkey: string; followers: number };
   onFilterByAuthor: (pubkey: string) => void;
+  forceDrawer?: boolean;
 }) {
   const { selectedVideoId, selectedVideoAuthor } = useFeedSelection();
   const router = useRouter();
   const layout = useLayout();
-  const isDesktop = layout === 'desktop';
+  const isDesktop = layout === 'desktop' && !forceDrawer;
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const cardBg = useColorModeValue('white', 'gray.800');
 
