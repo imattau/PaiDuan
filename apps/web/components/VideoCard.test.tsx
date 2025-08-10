@@ -54,6 +54,8 @@ const onError = vi.fn(() => () => {});
 vi.mock('@/agents/playback', () => ({
   playback: { loadSource, play, pause: playbackPause, onStateChange, onError },
 }));
+const telemetryTrack = vi.fn();
+vi.mock('@/agents/telemetry', () => ({ telemetry: { track: telemetryTrack } }));
 
 const { default: VideoCard } = await import('./VideoCard');
 
@@ -68,6 +70,7 @@ afterEach(() => {
   (HTMLMediaElement.prototype.pause as unknown as vi.Mock).mockClear();
   play.mockClear();
   playbackPause.mockClear();
+  telemetryTrack.mockClear();
 });
 
 describe('VideoCard', () => {
@@ -295,5 +298,48 @@ describe('VideoCard', () => {
     fireEvent.click(card, { clientX: 10, clientY: 90 });
     expect(playbackPause).not.toHaveBeenCalled();
     expect(play).toHaveBeenCalledTimes(0);
+  });
+
+  it('renders network error fallback and tracks telemetry', async () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container } = render(<VideoCard {...props} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    Object.defineProperty(video, 'error', { value: { code: 2 }, configurable: true });
+    fireEvent.error(video);
+    await screen.findByText('Network error—check connection');
+    expect(telemetryTrack).toHaveBeenCalledWith('video.unavailable', {
+      eventId: 'event',
+      url: 'video.mp4',
+      errorCode: 2,
+      status: 'network',
+    });
+  });
+
+  it('renders unavailable fallback and tracks telemetry for source errors', async () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container } = render(<VideoCard {...props} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    Object.defineProperty(video, 'error', { value: { code: 4 }, configurable: true });
+    fireEvent.error(video);
+    await screen.findByText('Video unavailable');
+    expect(telemetryTrack).toHaveBeenCalledWith('video.unavailable', {
+      eventId: 'event',
+      url: 'video.mp4',
+      errorCode: 4,
+    });
   });
 });
