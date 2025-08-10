@@ -10,7 +10,6 @@
   "license_required": "License is required",
   "split_total_max": "Total split percentage must be 95% or less",
   "posted_to_nostr": "Posted to Nostr",
-  "video_must_be_916": "Video must be 9:16 aspect ratio.",
   "cannot_trim_no_keyframe": "Cannot trim this video because it lacks a key frame.",
   "failed_read_video": "Failed to read video file.",
   "video_processing_failed": "Video processing failed. Relax Shields or try again.",

@@ -23,7 +23,8 @@ describe('VideoPreview', () => {
           videoRef={{ current: null }}
           noVideoMessage="no video"
           dropMessage="drop"
-        />,
+          dimensions={{ width: 0, height: 0 }}
+        />, 
       );
     });
     expect(container.textContent).toContain('no video');
@@ -44,7 +45,8 @@ describe('VideoPreview', () => {
           videoRef={{ current: null } as any}
           noVideoMessage="no video"
           dropMessage="drop"
-        />,
+          dimensions={{ width: 0, height: 0 }}
+        />, 
       );
     });
     const bar = container.querySelector('.bg-blue-500');
