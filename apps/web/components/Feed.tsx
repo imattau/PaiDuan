@@ -37,6 +37,9 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
+  const setLastPosition = useFeedSelection((s) => s.setLastPosition);
+  const lastIndex = useFeedSelection((s) => s.lastIndex);
+  const lastCursor = useFeedSelection((s) => s.lastCursor);
   const hasRestoredRef = useRef(false);
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
   const { state } = useAuth();
@@ -63,14 +66,22 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     if (hasRestoredRef.current) return;
     if (!useFeedSelection.persist.hasHydrated()) return;
     if (!items.length) return;
-    if (selectedVideoId) {
+    if (lastIndex !== undefined) {
+      virtuosoRef.current?.scrollToIndex({ index: lastIndex, align: 'start' });
+    } else if (selectedVideoId) {
       const index = items.findIndex((i) => i.eventId === selectedVideoId);
       if (index >= 0) {
         virtuosoRef.current?.scrollToIndex({ index, align: 'start' });
       }
     }
     hasRestoredRef.current = true;
-  }, [items, selectedVideoId]);
+  }, [items, selectedVideoId, lastIndex]);
+
+  useEffect(() => {
+    if (!lastCursor) return;
+    if (items.find((i) => i.eventId === lastCursor)) return;
+    loadMore?.();
+  }, [items, lastCursor, loadMore]);
 
   const handleRangeChanged = (range: ListRange) => {
     const middleIndex = Math.floor((range.startIndex + range.endIndex) / 2);
@@ -80,6 +91,10 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     const current = items[middleIndex];
     if (current && current.eventId !== selectedVideoId) {
       setSelectedVideo(current.eventId, current.pubkey);
+    }
+    const cursor = items[items.length - 1]?.eventId;
+    if (cursor) {
+      setLastPosition(middleIndex, cursor);
     }
   };
 
