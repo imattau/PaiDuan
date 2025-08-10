@@ -6,28 +6,23 @@ import { createRoot } from 'react-dom/client';
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
 
-vi.mock('@videojs-player/react', () => {
+vi.mock('react-player', () => {
   const React = require('react');
   return {
-    VideoPlayer: ({ onReady }: any) => {
-      const element: any = { parentNode: {} };
-      const player = {
-        el: () => element,
-        dispose: vi.fn(() => {
-          if (!element.parentNode) {
-            throw new DOMException('NotFoundError');
-          }
-          element.parentNode = null;
+    default: React.forwardRef((props: any, ref: any) => {
+      React.useImperativeHandle(ref, () => ({
+        getCurrentTime: () => 0,
+        seekTo: () => {},
+        getInternalPlayer: () => ({
+          play: () => ({ catch: () => {} }),
+          pause: () => {},
         }),
-        muted: () => {},
-        play: () => ({ catch: () => {} }),
-      } as any;
+      }));
       React.useEffect(() => {
-        onReady?.(player);
-        return () => player.dispose();
+        props.onReady?.();
       }, []);
       return <div />;
-    },
+    }),
   };
 });
 

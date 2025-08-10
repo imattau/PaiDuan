@@ -1,11 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import { VideoPlayer as VideoJsPlayer } from '@videojs-player/react';
-import type videojs from 'video.js';
-import 'video.js/dist/video-js.css';
-// Register VHS (Video.js HTTP Streaming) before any player is created so HLS
-// playback works and avoids MEDIA_ERR_SRC_NOT_SUPPORTED errors.
-import '@videojs/http-streaming';
+import ReactPlayer from 'react-player';
 import { MessageCircle, Repeat2, Volume2, VolumeX, MoreVertical } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
@@ -54,28 +49,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   showMenu = false,
 }) => {
   const router = useRouter();
-  const playerRef = useRef<videojs.Player | null>(null);
-  const getPlayer = () => {
-    const player = playerRef.current as any;
-    if (player && typeof player.dispose !== 'function') {
-      console.warn('playerRef.current is not a videojs.Player', player);
-      return null;
-    }
-    return player as videojs.Player | null;
-  };
-  useEffect(() => {
-    return () => {
-      // @videojs-player/react disposes the player for us. Only dispose
-      // manually if the element is still attached to the DOM to avoid
-      // NotFoundError exceptions.
-      const player = getPlayer();
-      const el = player?.el();
-      if (el?.parentNode && typeof player?.dispose === 'function') {
-        player.dispose();
-      }
-      playerRef.current = null;
-    };
-  }, []);
+  const playerRef = useRef<ReactPlayer>(null);
+  const getPlayer = () =>
+    playerRef.current?.getInternalPlayer() as HTMLVideoElement | null;
   const containerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
@@ -96,17 +72,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPlayIndicator, setShowPlayIndicator] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
 
   useEffect(() => {
     if (!errorMessage) return;
-    const player = getPlayer();
-    const err =
-      player && typeof (player as any).error === 'function'
-        ? (player as any).error()
-        : (player as any)?.error;
+    const err = getPlayer()?.error;
     if (err) console.error('Video playback error:', err);
   }, [errorMessage]);
 
@@ -190,10 +163,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         const delta = (mx / 60) * 3;
         setSeekPreview(delta);
         if (!down) {
-          const player = getPlayer();
+          const player = playerRef.current;
           if (player) {
-            const newTime = Math.max(0, player.currentTime() + delta);
-            player.currentTime(newTime);
+            const newTime = Math.max(0, player.getCurrentTime() + delta);
+            player.seekTo(newTime);
           }
           setSeekPreview(0);
           api.start({ opacity: 0 });
@@ -209,41 +182,30 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     const rect = containerRef.current?.getBoundingClientRect();
     const isBottom = rect ? e.clientY > rect.top + rect.height * 0.75 : false;
     holdTimer.current = window.setTimeout(() => {
-      const player = getPlayer();
       if (isBottom) {
-        player?.playbackRate(2);
         setSpeedMode(true);
       } else {
-        player?.pause();
+        getPlayer()?.pause();
+        setIsPlaying(false);
       }
     }, 250);
   };
 
   const handlePointerUp = () => {
     clearTimeout(holdTimer.current);
-    const player = getPlayer();
     if (speedMode) {
-      player?.playbackRate(1);
       setSpeedMode(false);
       api.start({ opacity: 0 });
       setSeekPreview(0);
     }
-    if (player && typeof (player as any).play === 'function') {
-      setShowPlayIndicator(false);
-      player.play().catch(() => {
+    setShowPlayIndicator(false);
+    setIsPlaying(true);
+    getPlayer()
+      ?.play()
+      .catch(() => {
         setShowPlayIndicator(true);
+        setIsPlaying(false);
       });
-    } else if (player && typeof (player as any).el === 'function') {
-      const videoEl = (player as any).el().querySelector('video');
-      if (videoEl && typeof (videoEl as any).play === 'function') {
-        setShowPlayIndicator(false);
-        (videoEl as HTMLVideoElement)
-          .play()
-          .catch(() => {
-            setShowPlayIndicator(true);
-          });
-      }
-    }
   };
 
   return (
@@ -263,33 +225,30 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       {...bind()}
     >
       {source && !errorMessage && (
-        <VideoJsPlayer
-          className="video-js pointer-events-none absolute inset-0 h-full w-full object-cover"
-          sources={[source]}
-          poster={posterUrl}
-          controls={false}
-          playsinline
+        <ReactPlayer
+          ref={playerRef}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          url={source.src}
+          width="100%"
+          height="100%"
+          muted={muted}
+          playing={isPlaying}
+          playbackRate={speedMode ? 2 : 1}
           loop
-          onReady={(player) => {
-            if (playerRef.current && playerRef.current !== player) {
-              console.warn('playerRef.current was unexpectedly set before onReady', playerRef.current);
-            }
-            playerRef.current = player;
-            if (typeof (player as any).muted === 'function') {
-              (player as any).muted(true);
-            } else {
-              (player as any).muted = true;
-            }
-            if (typeof (player as any).play === 'function') {
-              setShowPlayIndicator(false);
-              (player as any)
+          onReady={() => {
+            const video = getPlayer();
+            if (video) {
+              video.muted = true;
+              video
                 .play()
                 .catch(() => {
                   setShowPlayIndicator(true);
+                  setIsPlaying(false);
                 });
             }
           }}
           onError={() => setErrorMessage('Video playback error')}
+          config={{ file: { forceHLS: true, attributes: { poster: posterUrl, playsInline: true } } }}
         />
       )}
 
@@ -298,21 +257,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           className="absolute inset-0 flex items-center justify-center bg-black/50 text-white"
           onClick={() => {
             setShowPlayIndicator(false);
-            const player = getPlayer();
-            if (player && typeof (player as any).play === 'function') {
-              player.play().catch(() => {
+            setIsPlaying(true);
+            getPlayer()
+              ?.play()
+              .catch(() => {
                 setShowPlayIndicator(true);
+                setIsPlaying(false);
               });
-            } else if (player && typeof (player as any).el === 'function') {
-              const videoEl = (player as any).el().querySelector('video');
-              if (videoEl && typeof (videoEl as any).play === 'function') {
-                (videoEl as HTMLVideoElement)
-                  .play()
-                  .catch(() => {
-                    setShowPlayIndicator(true);
-                  });
-              }
-            }
           }}
           aria-label="Play video"
         >
@@ -359,11 +310,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <button
           className="hover:text-accent-primary"
           onClick={() => {
-            const player = getPlayer();
-            if (!player) return;
-            const next = !player.muted();
-            player.muted(next);
+            const next = !muted;
             setMuted(next);
+            const player = getPlayer();
+            if (player) player.muted = next;
           }}
           title={muted ? 'Unmute' : 'Mute'}
           aria-label={muted ? 'Unmute' : 'Mute'}
