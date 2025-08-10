@@ -19,6 +19,10 @@ Client-side video trimming relies on the [WebCodecs API](https://developer.mozil
 
 Override the default Nostr relays with the `NEXT_PUBLIC_RELAYS` environment variable or by editing `apps/web/relays.json`. The environment variable accepts a comma‑separated list or a JSON array. If neither is provided, the app falls back to `wss://relay.damus.io`, `wss://nos.lol` and `wss://relay.snort.social`.
 
+## Feed configuration
+
+Control how many events are requested per page by setting `NEXT_PUBLIC_FEED_LIMIT` (defaults to `20`).
+
 ## PWA features
 
 The web client ships as a Progressive Web App:

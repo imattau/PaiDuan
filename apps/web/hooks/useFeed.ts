@@ -7,6 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
 
+export const FEED_PAGE_LIMIT = Number(process.env.NEXT_PUBLIC_FEED_LIMIT ?? '20') || 20;
 function parseImeta(tags: string[][]) {
   let videoUrl: string | undefined;
   let manifestUrl: string | undefined;
@@ -126,7 +127,7 @@ export function useFeed(
   cursor: { since?: number; until?: number; limit?: number } = {},
   enabled = true,
 ): FeedResult {
-  const limit = cursor.limit ?? 20;
+  const limit = cursor.limit ?? FEED_PAGE_LIMIT;
   const query = useInfiniteQuery({
     queryKey: ['feed', mode, authors.join(','), limit],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
@@ -155,13 +156,19 @@ export function useFeed(
     items,
     tags,
     prepend,
-    loadMore: enabled ? () => query.fetchNextPage() : () => {},
+    loadMore: enabled
+      ? () => query.fetchNextPage({ cancelRefetch: false })
+      : () => {},
     loading,
     error: timedOut ? new Error('Relay connection timed out') : undefined,
   };
 }
 
-export function prefetchFeed(mode: FeedMode, authors: string[] = [], limit = 20) {
+export function prefetchFeed(
+  mode: FeedMode,
+  authors: string[] = [],
+  limit = FEED_PAGE_LIMIT,
+) {
   return queryClient.prefetchInfiniteQuery({
     queryKey: ['feed', mode, authors.join(','), limit],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
