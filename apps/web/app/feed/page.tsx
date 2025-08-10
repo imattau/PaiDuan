@@ -10,13 +10,11 @@ import useFollowerCount from '@/hooks/useFollowerCount';
 import { useProfile } from '@/hooks/useProfile';
 import { useFeedSelection } from '@/store/feedSelection';
 import { CurrentVideoProvider } from '@/hooks/useCurrentVideo';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function FeedPage() {
   const { filterAuthor, setFilterAuthor } = useFeedSelection();
-  const { items: videos, loadMore, loading } = useFeed(
-    filterAuthor ? { author: filterAuthor } : 'all',
-  );
-
   const { state: auth } = useAuth();
   const { following } = useFollowing(
     auth.status === 'ready' ? auth.pubkey : undefined,
@@ -25,6 +23,19 @@ export default function FeedPage() {
     auth.status === 'ready' ? auth.pubkey : undefined,
   );
   const meProfile = useProfile(auth.status === 'ready' ? auth.pubkey : undefined);
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab');
+  const feedMode = tab === 'following' ? 'following' : 'all';
+
+  useEffect(() => {
+    setFilterAuthor(undefined);
+  }, [feedMode, setFilterAuthor]);
+
+  const mode = filterAuthor ? { author: filterAuthor } : feedMode;
+  const { items: videos, loadMore, loading } = useFeed(
+    mode,
+    feedMode === 'following' && !filterAuthor ? following : [],
+  );
   const me =
     auth.status === 'ready'
       ? {
