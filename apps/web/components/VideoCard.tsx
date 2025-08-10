@@ -77,7 +77,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   useEffect(() => {
     if (!videoError) return;
-    const err = playerRef.current?.error();
+    const player = playerRef.current;
+    const err =
+      player && typeof (player as any).error === 'function'
+        ? (player as any).error()
+        : (player as any)?.error;
     if (err) console.error('Video playback error:', err);
   }, [videoError]);
 
