@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import type {
+  AggregatedStats as BaseStats,
+  DailyEntry as BaseDailyEntry,
+} from '../lib/creatorStatsStore';
 
-export interface CreatorStats {
-  totals: {
-    views: number;
-    zapsSats: number;
-    comments: number;
-    followerDelta: number;
-    revenueAud: number;
-  };
-  dailySeries: any[];
+export type DailyStat = BaseDailyEntry & Record<string, unknown>;
+export interface CreatorStats extends BaseStats {
+  dailySeries: DailyStat[];
 }
 
 export default function useCreatorAnalytics(pubkey?: string) {
@@ -64,7 +62,7 @@ export default function useCreatorAnalytics(pubkey?: string) {
         if (!res.ok) throw new Error(String(res.status));
         return res.json();
       })
-      .then((json) => {
+      .then((json: CreatorStats) => {
         setData(json);
         if (typeof window !== 'undefined') {
           try {
@@ -83,7 +81,7 @@ export default function useCreatorAnalytics(pubkey?: string) {
     es = new EventSource(`/api/creator-stats?pubkey=${pubkey}&stream=1`);
     es.onmessage = (ev) => {
       try {
-        const json = JSON.parse(ev.data);
+        const json = JSON.parse(ev.data) as CreatorStats;
         setData(json);
         if (typeof window !== 'undefined') {
           try {

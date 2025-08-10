@@ -11,19 +11,22 @@ import {
   Tooltip,
 } from 'recharts';
 
-interface LineDef {
-  dataKey: string;
+interface LineDef<T extends Record<string, unknown>> {
+  dataKey: keyof T;
   color: string;
   type?: 'line' | 'area';
   stackId?: string;
 }
 
-interface Props {
-  data: any[];
-  lines: LineDef[];
+interface Props<T extends Record<string, unknown>> {
+  data: T[];
+  lines: LineDef<T>[];
 }
 
-export function TimeSeriesChart({ data, lines }: Props) {
+export function TimeSeriesChart<T extends Record<string, unknown>>({
+  data,
+  lines,
+}: Props<T>) {
   const hasArea = lines.some((l) => l.type === 'area');
   if (hasArea) {
     return (
@@ -35,9 +38,9 @@ export function TimeSeriesChart({ data, lines }: Props) {
           <Tooltip />
           {lines.map((l) => (
             <Area
-              key={l.dataKey}
+              key={String(l.dataKey)}
               type="monotone"
-              dataKey={l.dataKey}
+              dataKey={String(l.dataKey)}
               stackId={l.stackId}
               stroke={l.color}
               fill={l.color}
@@ -55,7 +58,12 @@ export function TimeSeriesChart({ data, lines }: Props) {
         <YAxis />
         <Tooltip />
         {lines.map((l) => (
-          <Line key={l.dataKey} type="monotone" dataKey={l.dataKey} stroke={l.color} />
+          <Line
+            key={String(l.dataKey)}
+            type="monotone"
+            dataKey={String(l.dataKey)}
+            stroke={l.color}
+          />
         ))}
       </LineChart>
     </ResponsiveContainer>
