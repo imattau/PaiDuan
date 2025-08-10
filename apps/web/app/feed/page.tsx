@@ -7,7 +7,7 @@ import Feed from '@/components/Feed';
 import useFeed from '@/hooks/useFeed';
 import { useAuth } from '@/hooks/useAuth';
 import useFollowing from '@/hooks/useFollowing';
-import useFollowers from '@/hooks/useFollowers';
+import useFollowerCount from '@/hooks/useFollowerCount';
 import { useProfile } from '@/hooks/useProfile';
 import { useFeedSelection } from '@/store/feedSelection';
 import { CurrentVideoProvider } from '@/hooks/useCurrentVideo';
@@ -22,8 +22,10 @@ export default function FeedPage() {
   const { following } = useFollowing(
     auth.status === 'ready' ? auth.pubkey : undefined,
   );
-  const myFollowers = useFollowers(auth.status === 'ready' ? auth.pubkey : undefined);
-  const authorFollowers = useFollowers(selectedVideoAuthor);
+  const myFollowerCount = useFollowerCount(
+    auth.status === 'ready' ? auth.pubkey : undefined,
+  );
+  const authorFollowerCount = useFollowerCount(selectedVideoAuthor);
   const meProfile = useProfile(auth.status === 'ready' ? auth.pubkey : undefined);
   const me =
     auth.status === 'ready'
@@ -31,7 +33,7 @@ export default function FeedPage() {
           avatar: meProfile?.picture || `/api/avatar/${auth.pubkey}`,
           name: meProfile?.name || auth.pubkey.slice(0, 8),
           username: meProfile?.name || auth.pubkey.slice(0, 8),
-          stats: { followers: myFollowers.length, following: following.length },
+          stats: { followers: myFollowerCount, following: following.length },
         }
       : {
           avatar: '/api/avatar/me',
@@ -48,7 +50,7 @@ export default function FeedPage() {
           name: authorProfile.name || selectedVideoAuthor.slice(0, 8),
           username: authorProfile.name || selectedVideoAuthor.slice(0, 8),
           pubkey: selectedVideoAuthor,
-          followers: authorFollowers.length,
+          followers: authorFollowerCount,
         }
       : undefined;
 
