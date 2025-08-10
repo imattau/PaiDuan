@@ -1,6 +1,10 @@
 const CACHE_NAME = 'profile-pictures';
 const TTL = 1000 * 60 * 5; // 5 minutes
 
+// Hosts that explicitly allow cross-origin image caching.
+// Add domains here to permit caching from those origins.
+const TRUSTED_HOSTS: string[] = [];
+
 async function openCache(): Promise<Cache | null> {
   if (typeof caches === 'undefined') return null;
   try {
@@ -14,8 +18,13 @@ export async function cacheImage(url: string): Promise<string> {
   const cache = await openCache();
   if (!cache) return url;
   try {
-    const now = Date.now();
+    const { hostname } = new URL(url);
+    if (TRUSTED_HOSTS.length && !TRUSTED_HOSTS.includes(hostname)) return url;
+
     const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok || res.type !== 'basic') return url;
+
+    const now = Date.now();
     const blob = await res.blob();
     const headers = new Headers(res.headers);
     headers.set('X-Cache-Time', String(now));
@@ -55,7 +64,7 @@ export async function cleanupImageCache(): Promise<void> {
       if (!ts || Date.now() - ts > TTL) {
         await cache.delete(req);
       }
-    })
+    }),
   );
 }
 
