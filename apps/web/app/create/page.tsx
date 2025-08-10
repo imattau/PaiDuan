@@ -1,5 +1,4 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { locales } from '@/utils/locales';
 import CreatePageClient from './CreatePageClient';
@@ -18,11 +17,14 @@ export default async function CreatePage({
   params: Promise<{ locale?: string }>;
 }) {
   const { locale = 'en' } = await params;
-  const messages = await getMessages();
   const createMessages = (await import(`@/locales/${locale}/create.json`)).default;
+  const commonMessages = (await import(`@/locales/${locale}/common.json`)).default;
 
   return (
-    <NextIntlClientProvider locale={locale} messages={{ ...messages, create: createMessages }}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={{ common: commonMessages, create: createMessages }}
+    >
       <CreatePageClient />
     </NextIntlClientProvider>
   );
