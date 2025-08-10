@@ -1,7 +1,7 @@
 {
   "name": "PaiDuan",
   "short_name": "PaiDuan",
-  "id": "/",
+  "id": "paiduan",
   "start_url": "/feed",
   "scope": "/",
   "display": "standalone",
