@@ -9,7 +9,6 @@ import { useLayout } from '@/context/LayoutContext';
 import {
   Box,
   Button,
-  Link as ChakraLink,
   Stack,
   Drawer,
   DrawerContent,
@@ -57,18 +56,16 @@ export default function RightPanel({
                 {author.followers.toLocaleString()} followers
               </Box>
               <Stack mt={3} direction="row" spacing={2}>
-                <ChakraLink
+                <Button
                   as={NextLink}
                   href={`/p/${author.pubkey}`}
                   prefetch={false}
                   onMouseEnter={() => router.prefetch(`/p/${author.pubkey}`)}
-                  px={3}
-                  py={1.5}
-                  borderWidth="1px"
-                  borderRadius="md"
+                  size="sm"
+                  colorScheme="blue"
                 >
                   View profile
-                </ChakraLink>
+                </Button>
                 <Button size="sm" colorScheme="blue" onClick={() => onFilterByAuthor(author.pubkey)}>
                   Filter by author
                 </Button>
