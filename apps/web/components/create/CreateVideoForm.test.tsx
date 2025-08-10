@@ -202,7 +202,7 @@ describe('CreateVideoForm', () => {
     expect(lightningInput.value).toBe('alice@test');
   });
 
-  it('rejects non-9:16 aspect ratio', async () => {
+  it('accepts non-9:16 aspect ratio', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
     (document.createElement as any).mockImplementation((tag: any, opts?: any) => {
       const el = origCreateElement(tag, opts) as any;
@@ -213,6 +213,11 @@ describe('CreateVideoForm', () => {
         setTimeout(() => el.onloadedmetadata?.(new Event('loadedmetadata')));
       }
       return el;
+    });
+
+    mockTrim.mockImplementation((_f: any, _opts: any, onProgress: any) => {
+      onProgress?.(1);
+      return Promise.resolve(new Blob());
     });
 
     const container = document.createElement('div');
@@ -230,9 +235,9 @@ describe('CreateVideoForm', () => {
     });
     await Promise.resolve();
 
-    expect(mockTrim).not.toHaveBeenCalled();
+    expect(mockTrim).toHaveBeenCalled();
     const error = container.querySelector('p.text-red-500');
-    expect(error?.textContent).toContain('Video must be 9:16 aspect ratio.');
+    expect(error).toBeNull();
   });
 
   it('posts video when publish is clicked', async () => {

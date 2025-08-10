@@ -16,7 +16,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
   if (videos.length === 0) {
     return (
       <PlaceholderVideo
-        className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary"
+        className="h-[calc(100dvh-var(--bottom-nav-height,0))] w-full mx-auto text-primary"
         message="No videos yet"
         busy={false}
       />

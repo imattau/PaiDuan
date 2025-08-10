@@ -37,7 +37,7 @@ Replace “Enter Feed” with standard Nostr login flow, support new/imported ke
 
 ### Objective
 
-Modernise Creator Wizard UI, fix tool loading/trim bugs, and ensure WebM (9:16) is default format. Recording in the browser is currently out of scope.
+Modernise Creator Wizard UI, fix tool loading/trim bugs, and ensure WebM is the default format. Recording in the browser is currently out of scope.
 
 ### Tasks
 
@@ -46,7 +46,7 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, and ensure WebM (9:16) 
 | 12  | CreatorWizard UI   | Replace current 3-step flow with wizard that first asks “What do you want to do?” — options: **Upload existing** or **Import from URL**.                           |
 | 13  | Dynamic components | Load relevant step component depending on option (e.g., `UploadStep.tsx`).                                                                                |
 | 14  | Upload             | Existing file input flow; enforce ≤3 minutes; immediately transcode if not WebM.                                                                                |
-| 15  | Transcoding        | Use the WebCodecs API with a polyfill; default to WebM VP9, 9:16 crop. |
+| 15  | Transcoding        | Use the WebCodecs API with a polyfill; default to WebM VP9, preserving original aspect ratio. |
 | 16  | Trim tool          | Ensure trim UI loads only after video metadata loaded; fix “pressing Next throws trim error” by validating clip bounds.                                                            |
 | 17  | Poster capture     | Frame capture via `<canvas>`; store as JPEG/WebP; attach to upload payload.                                                                                |
 | 18  | Upload flow        | POST video + poster to `nostr.media/api/upload`; show progress; capture `video`, `poster` & `manifest` URLs and publish kind‑30023 event with `v`, `image`, `vman`, optional `zap` and one `t` tag per topic.                                                            |
@@ -57,7 +57,7 @@ Modernise Creator Wizard UI, fix tool loading/trim bugs, and ensure WebM (9:16) 
 
 - CreatorWizard first screen is option chooser.
 - Uploading and importing work end-to-end; no in-browser recording is provided.
-- All videos output as WebM (VP9), 9:16 cropped if needed.
+- All videos output as WebM (VP9) preserving original aspect ratio.
 - Trim works without errors; poster capture succeeds.
 - UI looks modern, consistent with landing/auth redesign.
 - FFmpeg loads only when needed, no `createFFmpeg` import errors.

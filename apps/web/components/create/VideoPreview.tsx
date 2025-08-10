@@ -28,8 +28,7 @@ export default function VideoPreview({
     <div className="space-y-4">
       <div
         {...getRootProps({
-          className:
-            'relative aspect-[9/16] max-h-[70vh] w-full overflow-hidden rounded-xl',
+          className: 'relative h-[70vh] w-full overflow-hidden rounded-xl',
         })}
       >
         <input {...getInputProps()} />
