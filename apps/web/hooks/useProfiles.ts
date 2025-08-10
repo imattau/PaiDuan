@@ -6,6 +6,7 @@ import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
 import { getEventsByPubkey, saveEvent } from '@/lib/db';
 import { queryClient } from '@/lib/queryClient';
+import { cacheImage, getCachedImage } from '@/lib/imageCache';
 
 export type Profile = {
   name?: string;
@@ -38,6 +39,10 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
     try {
       const content = JSON.parse(latest.content);
       ensureWallets(content);
+      if (content.picture) {
+        const cached = await getCachedImage(content.picture);
+        content.picture = cached || (await cacheImage(content.picture));
+      }
       return content;
     } catch {
       /* ignore */
@@ -53,6 +58,10 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
           try {
             const content = JSON.parse(ev.content);
             ensureWallets(content);
+            if (content.picture) {
+              const cached = await getCachedImage(content.picture);
+              content.picture = cached || (await cacheImage(content.picture));
+            }
             await saveEvent(ev);
             profile = content;
           } catch {
