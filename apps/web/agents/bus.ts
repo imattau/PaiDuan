@@ -3,7 +3,8 @@ export type AppEvent =
   | { type: 'upload.complete'; id: string }
   | { type: 'upload.error'; id: string; error: string }
   | { type: 'nostr.published'; id?: string }
-  | { type: 'nostr.error'; error: string };
+  | { type: 'nostr.error'; error: string }
+  | { type: 'nostr.relays.changed'; relays: string[] };
 
 export type Unsub = () => void;
 

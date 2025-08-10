@@ -3,6 +3,7 @@ import NDK from '@nostr-dev-kit/ndk';
 import { getPublicKey } from 'nostr-tools/pure';
 import { hexToBytes, normalizeURL } from 'nostr-tools/utils';
 import relaysConfig from '../relays.json';
+import { bus } from '@/agents/bus';
 
 /**
  * Shared NDK instance initialised with the application's relay list.
@@ -49,13 +50,10 @@ async function connectNDK(attempt = 0): Promise<void> {
 void connectNDK();
 
 // update relay connections when the list changes
-if (typeof window !== 'undefined') {
-  window.addEventListener('pd.relays', (e) => {
-    const relays = (e as CustomEvent<string[]>).detail ?? getRelays();
-    ndk.explicitRelayUrls = relays;
-    void connectNDK();
-  });
-}
+bus.on('nostr.relays.changed', ({ relays }) => {
+  ndk.explicitRelayUrls = relays;
+  void connectNDK();
+});
 
 const LS_KEY = 'pd.auth.v1';
 
