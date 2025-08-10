@@ -4,13 +4,17 @@ import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
 import { useLayout } from '@/context/LayoutContext';
 
 export const estimateFeedItemSize = () => {
-  if (typeof window === 'undefined') return 0;
   const nav =
-    parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-height') || '0',
-      10,
-    ) || 0;
-  return Math.min(window.innerHeight - nav, (window.innerWidth * 16) / 9);
+    typeof window === 'undefined'
+      ? 0
+      :
+          parseInt(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              '--bottom-nav-height',
+            ) || '0',
+            10,
+          ) || 0;
+  return typeof window === 'undefined' ? 0 : window.innerHeight - nav;
 };
 
 import { VideoCard, type VideoCardProps } from './VideoCard';
