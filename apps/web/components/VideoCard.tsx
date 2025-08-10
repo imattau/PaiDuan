@@ -77,6 +77,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const { online } = useNetworkState();
   const [menuOpen, setMenuOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showPlayIndicator, setShowPlayIndicator] = useState(false);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
@@ -209,11 +210,19 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       setSeekPreview(0);
     }
     if (player && typeof (player as any).play === 'function') {
-      player.play();
+      setShowPlayIndicator(false);
+      player.play().catch(() => {
+        setShowPlayIndicator(true);
+      });
     } else if (player && typeof (player as any).el === 'function') {
       const videoEl = (player as any).el().querySelector('video');
       if (videoEl && typeof (videoEl as any).play === 'function') {
-        (videoEl as HTMLVideoElement).play();
+        setShowPlayIndicator(false);
+        (videoEl as HTMLVideoElement)
+          .play()
+          .catch(() => {
+            setShowPlayIndicator(true);
+          });
       }
     }
   };
@@ -250,11 +259,43 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               (player as any).muted = true;
             }
             if (typeof (player as any).play === 'function') {
-              (player as any).play();
+              setShowPlayIndicator(false);
+              (player as any)
+                .play()
+                .catch(() => {
+                  setShowPlayIndicator(true);
+                });
             }
           }}
           onError={() => setErrorMessage('Video playback error')}
         />
+      )}
+
+      {showPlayIndicator && !errorMessage && (
+        <button
+          className="absolute inset-0 flex items-center justify-center bg-black/50 text-white"
+          onClick={() => {
+            setShowPlayIndicator(false);
+            const player = playerRef.current;
+            if (player && typeof (player as any).play === 'function') {
+              player.play().catch(() => {
+                setShowPlayIndicator(true);
+              });
+            } else if (player && typeof (player as any).el === 'function') {
+              const videoEl = (player as any).el().querySelector('video');
+              if (videoEl && typeof (videoEl as any).play === 'function') {
+                (videoEl as HTMLVideoElement)
+                  .play()
+                  .catch(() => {
+                    setShowPlayIndicator(true);
+                  });
+              }
+            }
+          }}
+          aria-label="Play video"
+        >
+          Tap to play
+        </button>
       )}
 
       {errorMessage && (
