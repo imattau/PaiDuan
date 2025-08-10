@@ -15,47 +15,58 @@ const errorListeners = new Set<ErrorListener>();
 const STORAGE_KEY = 'lastPlaybackPosition';
 const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24h
 
+type ProgressEntry = { currentTime: number; timestamp: number };
+type ProgressMap = Record<string, ProgressEntry>;
+
+function writeMap(map: ProgressMap) {
+  try {
+    if (Object.keys(map).length) {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    } else {
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function readMap(): ProgressMap {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const map = JSON.parse(raw) as ProgressMap;
+    const now = Date.now();
+    let changed = false;
+    for (const [id, { timestamp }] of Object.entries(map)) {
+      if (now - timestamp > EXPIRY_MS) {
+        delete map[id];
+        changed = true;
+      }
+    }
+    if (changed) writeMap(map);
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 function saveProgress() {
   if (!video || !currentEventId) return;
-  try {
-    sessionStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        eventId: currentEventId,
-        currentTime: video.currentTime,
-        timestamp: Date.now(),
-      }),
-    );
-  } catch {
-    // ignore storage failures
-  }
+  const map = readMap();
+  map[currentEventId] = { currentTime: video.currentTime, timestamp: Date.now() };
+  writeMap(map);
 }
 
 function loadProgress(eventId: string): number | undefined {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return undefined;
-    const data = JSON.parse(raw) as {
-      eventId: string;
-      currentTime: number;
-      timestamp: number;
-    };
-    if (data.eventId !== eventId) return undefined;
-    if (Date.now() - data.timestamp > EXPIRY_MS) {
-      sessionStorage.removeItem(STORAGE_KEY);
-      return undefined;
-    }
-    return data.currentTime;
-  } catch {
-    return undefined;
-  }
+  const map = readMap();
+  return map[eventId]?.currentTime;
 }
 
-function clearProgress() {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // ignore
+function clearProgress(eventId: string) {
+  const map = readMap();
+  if (eventId in map) {
+    delete map[eventId];
+    writeMap(map);
   }
 }
 
@@ -123,7 +134,7 @@ function handlePause() {
 
 function handleEnded() {
   emit('paused');
-  clearProgress();
+  if (currentEventId) clearProgress(currentEventId);
 }
 
 function play() {
