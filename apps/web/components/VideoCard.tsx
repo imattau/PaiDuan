@@ -168,8 +168,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         if (!down) {
           const player = playerRef.current;
           if (player) {
-            const newTime = Math.max(0, player.getCurrentTime() + delta);
-            player.seekTo(newTime);
+            const newTime = Math.max(0, player.currentTime + delta);
+            player.currentTime = newTime;
           }
           setSeekPreview(0);
           api.start({ opacity: 0 });
@@ -310,6 +310,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
       <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-4">
         <button
+          type="button"
           className="hover:text-accent-primary"
           onClick={() => {
             const next = !muted;
@@ -319,6 +320,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           }}
           title={muted ? 'Unmute' : 'Mute'}
           aria-label={muted ? 'Unmute' : 'Mute'}
+          aria-pressed={!muted}
         >
           {muted ? <VolumeX className="icon" /> : <Volume2 className="icon" />}
         </button>
