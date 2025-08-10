@@ -76,6 +76,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
 
   useEffect(() => {
+    if (!videoError) return;
+    const err = playerRef.current?.error();
+    if (err) console.error('Video playback error:', err);
+  }, [videoError]);
+
+  useEffect(() => {
     if (inView) {
       setCurrent({ eventId, pubkey, caption, posterUrl });
       setSelectedVideo(eventId, pubkey);
@@ -192,7 +198,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     >
       <VideoJsPlayer
         className="video-js pointer-events-none absolute inset-0 h-full w-full object-cover"
-        sources={[{ src: manifestUrl ? adaptiveUrl || videoUrl : videoUrl }]}
+        sources={[
+          {
+            src: manifestUrl ? adaptiveUrl || videoUrl : videoUrl,
+            type: manifestUrl ? 'application/x-mpegURL' : 'video/mp4',
+          },
+        ]}
         poster={posterUrl}
         controls={false}
         playsinline
