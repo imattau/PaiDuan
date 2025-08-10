@@ -17,6 +17,7 @@ vi.mock('@chakra-ui/react', () => {
     DrawerContent: ({ children, ...props }: any) => <div data-content {...props}>{children}</div>,
     DrawerBody: ({ children, ...props }: any) => <div data-body {...props}>{children}</div>,
     useColorModeValue: (v: any) => v,
+    useDisclosure: () => ({ isOpen: false, onOpen: vi.fn(), onClose: vi.fn() }),
   };
 });
 

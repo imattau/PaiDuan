@@ -15,6 +15,7 @@ import {
   DrawerOverlay,
   DrawerBody,
   useColorModeValue,
+  useDisclosure,
 } from '@chakra-ui/react';
 
 export default function RightPanel({
@@ -32,6 +33,7 @@ export default function RightPanel({
   const isDesktop = layout === 'desktop' && !forceDrawer;
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const cardBg = useColorModeValue('white', 'gray.800');
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const panelContent = (
     <Stack spacing={4}>
@@ -87,13 +89,26 @@ export default function RightPanel({
     return panelContent;
   }
 
-  const isOpen = !!(author || selectedVideoId);
   return (
-    <Drawer isOpen={isOpen} placement="right" onClose={() => {}}>
-      <DrawerOverlay />
-      <DrawerContent>
-        <DrawerBody p={4}>{panelContent}</DrawerBody>
-      </DrawerContent>
-    </Drawer>
+    <>
+      {(author || selectedVideoId) && (
+        <Button
+          position="fixed"
+          bottom={4}
+          right={4}
+          zIndex="overlay"
+          colorScheme="blue"
+          onClick={onOpen}
+        >
+          Comments
+        </Button>
+      )}
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerBody p={4}>{panelContent}</DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }
