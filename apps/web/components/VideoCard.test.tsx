@@ -35,13 +35,25 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: 'author' }) }));
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
-const loadSource = vi.fn();
+vi.mock('@/store/playbackPrefs', () => {
+  const { create } = require('zustand');
+  const usePlaybackPrefs = create((set: any) => ({
+    isMuted: true,
+    setMuted: (isMuted: boolean) => set({ isMuted }),
+  }));
+  return { usePlaybackPrefs };
+});
+let currentVideo: HTMLVideoElement | null = null;
+const loadSource = vi.fn((video: HTMLVideoElement) => {
+  if (currentVideo && currentVideo !== video) currentVideo.pause();
+  currentVideo = video;
+});
 const play = vi.fn(() => Promise.resolve());
-const pause = vi.fn();
+const playbackPause = vi.fn();
 const onStateChange = vi.fn(() => () => {});
 const onError = vi.fn(() => () => {});
 vi.mock('@/agents/playback', () => ({
-  playback: { loadSource, play, pause, onStateChange, onError },
+  playback: { loadSource, play, pause: playbackPause, onStateChange, onError },
 }));
 
 const { default: VideoCard } = await import('./VideoCard');
@@ -49,6 +61,9 @@ const { default: VideoCard } = await import('./VideoCard');
 afterEach(() => {
   cleanup();
   usePlaybackPrefs.setState({ isMuted: true });
+  currentVideo = null;
+  (HTMLMediaElement.prototype.pause as unknown as vi.Mock).mockClear();
+  play.mockClear();
 });
 
 describe('VideoCard', () => {
@@ -118,6 +133,46 @@ describe('VideoCard', () => {
     unmount();
     render(<VideoCard {...props} />);
     await screen.findByRole('button', { name: /mute/i });
+  });
+
+  it('pauses first video when second loads and retains mute preference', async () => {
+    const props1 = {
+      videoUrl: 'video1.mp4',
+      author: 'author1',
+      caption: 'caption1',
+      eventId: 'event1',
+      pubkey: 'pk1',
+      zap: <div />,
+    };
+    const props2 = {
+      videoUrl: 'video2.mp4',
+      author: 'author2',
+      caption: 'caption2',
+      eventId: 'event2',
+      pubkey: 'pk2',
+      zap: <div />,
+    };
+    const Wrapper = ({ showSecond }: { showSecond: boolean }) => (
+      <>
+        <VideoCard {...props1} />
+        {showSecond && <VideoCard {...props2} />}
+      </>
+    );
+    const user = userEvent.setup();
+    const { container, rerender } = render(<Wrapper showSecond={false} />);
+    const video1 = container.querySelector('video') as HTMLVideoElement;
+    fireEvent.loadedData(video1);
+    await user.click(await screen.findByRole('button', { name: /unmute/i }));
+    await screen.findByRole('button', { name: /mute/i });
+    rerender(<Wrapper showSecond={true} />);
+    expect(
+      HTMLMediaElement.prototype.pause as unknown as vi.Mock
+    ).toHaveBeenCalledTimes(1);
+    const videos = container.querySelectorAll('video');
+    const video2 = videos[1] as HTMLVideoElement;
+    fireEvent.loadedData(video2);
+    expect(video2.muted).toBe(false);
+    expect(screen.getAllByRole('button', { name: /mute/i })).toHaveLength(2);
   });
 
   it('shows action bar with z-index and triggers comment callback', async () => {
