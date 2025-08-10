@@ -35,4 +35,27 @@ describe('ZapSplitFields', () => {
     container.querySelectorAll('button')[zapFields.length]?.click();
     expect(addSplit).toHaveBeenCalled();
   });
+
+  it('deduplicates lnaddrOptions', () => {
+    const zapFields = [] as any;
+    const register = vi.fn();
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <ZapSplitFields
+          zapFields={zapFields}
+          register={register as any}
+          removeSplit={vi.fn()}
+          addSplit={vi.fn()}
+          totalPct={0}
+          canAddMore={false}
+          lnaddrOptions={['a@example.com', 'b@example.com', 'a@example.com']}
+          t={t}
+        />,
+      );
+    });
+    const options = container.querySelectorAll('#lnaddr-options option');
+    expect(options.length).toBe(2);
+  });
 });

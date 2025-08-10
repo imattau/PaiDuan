@@ -1,4 +1,5 @@
 import { FieldArrayWithId, UseFormRegister } from 'react-hook-form';
+import { useMemo } from 'react';
 
 interface Props {
   zapFields: FieldArrayWithId<any, 'zapSplits', 'id'>[];
@@ -23,6 +24,7 @@ export default function ZapSplitFields({
   lnaddrOptions,
   t,
 }: Props) {
+  const uniqueLnaddrOptions = useMemo(() => Array.from(new Set(lnaddrOptions)), [lnaddrOptions]);
   return (
     <>
       {zapFields.map((field, i) => (
@@ -51,11 +53,9 @@ export default function ZapSplitFields({
           {t('add_collaborator')}
         </button>
       )}
-      {zapFields.length > 0 && (
-        <div className="text-sm">{t('total_pct', { pct: totalPct })}</div>
-      )}
+      {zapFields.length > 0 && <div className="text-sm">{t('total_pct', { pct: totalPct })}</div>}
       <datalist id="lnaddr-options">
-        {lnaddrOptions.map((addr) => (
+        {uniqueLnaddrOptions.map((addr) => (
           <option key={addr} value={addr}>
             {addr}
           </option>
