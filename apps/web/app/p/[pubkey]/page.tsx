@@ -8,7 +8,7 @@ import type { Filter } from 'nostr-tools/filter';
 import { toast } from 'react-hot-toast';
 import VideoCard, { VideoCardProps } from '@/components/VideoCard';
 import useFollowing from '@/hooks/useFollowing';
-import useFollowers from '@/hooks/useFollowers';
+import useFollowerCount from '@/hooks/useFollowerCount';
 import SearchBar from '@/components/SearchBar';
 import { useAuth } from '@/hooks/useAuth';
 import { getRelays } from '@/lib/nostr';
@@ -26,7 +26,7 @@ export default function ProfilePage() {
   const { following, follow, unfollow } = useFollowing(
     state.status === 'ready' ? state.pubkey : undefined,
   );
-  const followers = useFollowers(pubkey);
+  const followerCount = useFollowerCount(pubkey);
 
   const isFollowing = pubkey ? following.includes(pubkey) : false;
 
@@ -178,7 +178,7 @@ export default function ProfilePage() {
             >
               {isFollowing ? 'Unfollow' : 'Follow'}
             </button>
-            <div className="text-sm">{followers.length} followers</div>
+            <div className="text-sm">{followerCount} followers</div>
           </div>
         </div>
       </div>

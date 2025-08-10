@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import * as nostrKinds from 'nostr-tools/kinds';
 import type { Filter } from 'nostr-tools/filter';
@@ -26,13 +27,14 @@ function loadCache(pubkey: string): FollowerCache | null {
   }
 }
 
-export function useFollowers(pubkey?: string) {
-  const [followers, setFollowers] = useState<string[]>([]);
+export function useFollowerCount(pubkey?: string) {
+  const [count, setCount] = useState(0);
+
   useEffect(() => {
     if (!pubkey) return;
     const cached = loadCache(pubkey);
-    if (cached?.list) {
-      setFollowers(cached.list);
+    if (cached) {
+      setCount(cached.count);
       return;
     }
     const seen = new Set<string>();
@@ -40,10 +42,10 @@ export function useFollowers(pubkey?: string) {
       getRelays(),
       [{ kinds: [nostrKinds.Contacts], '#p': [pubkey] } as Filter],
       {
-        onevent: (ev) => {
+        onevent: (ev: any) => {
           if (!seen.has(ev.pubkey)) {
             seen.add(ev.pubkey);
-            setFollowers(Array.from(seen));
+            setCount(seen.size);
           }
         },
         oneose: () => {
@@ -64,7 +66,8 @@ export function useFollowers(pubkey?: string) {
     );
     return () => sub.close();
   }, [pubkey]);
-  return followers;
+
+  return count;
 }
 
-export default useFollowers;
+export default useFollowerCount;
