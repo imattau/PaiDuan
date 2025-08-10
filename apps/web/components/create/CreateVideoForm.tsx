@@ -85,7 +85,7 @@ export default function CreateVideoForm() {
   const { following } = useFollowing(state.status === 'ready' ? state.pubkey : undefined);
   const profiles = useProfiles(following);
 
-  const walletAddrs = Array.isArray(profile?.wallets)
+  const walletAddrs = Array.isArray(profile?.wallets) && profile.wallets.length > 0
     ? [
         ...profile.wallets.filter((w: any) => w?.default).map((w: any) => w.lnaddr),
         ...profile.wallets.filter((w: any) => !w?.default).map((w: any) => w.lnaddr),
@@ -113,9 +113,10 @@ export default function CreateVideoForm() {
 
   useEffect(() => {
     if (!lightningAddress) {
-      const def = Array.isArray(profile?.wallets)
-        ? profile.wallets.find((w: any) => w?.default)?.lnaddr
-        : profile?.lud16;
+      const def =
+        Array.isArray(profile?.wallets) && profile.wallets.length > 0
+          ? profile.wallets.find((w: any) => w?.default)?.lnaddr
+          : profile?.lud16;
       if (def) setValue('lightningAddress', def);
     }
   }, [profile, lightningAddress, setValue]);

@@ -16,6 +16,19 @@ export type Profile = {
   zapSplits?: { lnaddr: string; pct: number }[];
 };
 
+function ensureWallets(content: any) {
+  if (Array.isArray(content.wallets) && content.wallets.length > 0) {
+    if (typeof content.lud16 !== 'string' || !content.lud16) {
+      const def = content.wallets.find((w: any) => w?.default)?.lnaddr || content.wallets[0]?.lnaddr;
+      if (def) content.lud16 = def;
+    }
+  } else if (typeof content.lud16 === 'string' && content.lud16) {
+    content.wallets = [{ label: 'Default', lnaddr: content.lud16, default: true }];
+  } else {
+    content.wallets = [];
+  }
+}
+
 async function fetchProfile(pubkey: string): Promise<Profile> {
   const events = await getEventsByPubkey(pubkey);
   const latest = events
@@ -24,13 +37,7 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
   if (latest) {
     try {
       const content = JSON.parse(latest.content);
-      if (!Array.isArray(content.wallets)) {
-        if (typeof content.lud16 === 'string' && content.lud16) {
-          content.wallets = [{ label: 'Default', lnaddr: content.lud16, default: true }];
-        } else {
-          content.wallets = [];
-        }
-      }
+      ensureWallets(content);
       return content;
     } catch {
       /* ignore */
@@ -45,13 +52,7 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
         onevent: async (ev: any) => {
           try {
             const content = JSON.parse(ev.content);
-            if (!Array.isArray(content.wallets)) {
-              if (typeof content.lud16 === 'string' && content.lud16) {
-                content.wallets = [{ label: 'Default', lnaddr: content.lud16, default: true }];
-              } else {
-                content.wallets = [];
-              }
-            }
+            ensureWallets(content);
             await saveEvent(ev);
             profile = content;
           } catch {
