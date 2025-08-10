@@ -34,8 +34,7 @@ export default function VideoPreview({
     <div className="space-y-4">
       <div
         {...getRootProps({
-          className: 'relative max-h-[70vh] w-full overflow-hidden rounded-xl',
-          style: { aspectRatio },
+
         })}
       >
         <input {...getInputProps()} />
