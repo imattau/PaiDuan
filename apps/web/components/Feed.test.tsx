@@ -57,7 +57,7 @@ describe('Feed', () => {
       const original = window.innerHeight;
       (window as any).innerHeight = 900;
       document.documentElement.style.removeProperty('--bottom-nav-height');
-      expect(estimateFeedItemSize(0)).toBe(900);
+      expect(estimateFeedItemSize()).toBe(900);
       (window as any).innerHeight = original;
     });
 
@@ -65,9 +65,20 @@ describe('Feed', () => {
       const original = window.innerHeight;
       (window as any).innerHeight = 900;
       document.documentElement.style.setProperty('--bottom-nav-height', '50');
-      expect(estimateFeedItemSize(0)).toBe(850);
+      expect(estimateFeedItemSize()).toBe(850);
       document.documentElement.style.removeProperty('--bottom-nav-height');
       (window as any).innerHeight = original;
+    });
+
+    it('caps height by width on narrow viewports', () => {
+      const originalHeight = window.innerHeight;
+      const originalWidth = window.innerWidth;
+      (window as any).innerHeight = 900;
+      (window as any).innerWidth = 300;
+      document.documentElement.style.removeProperty('--bottom-nav-height');
+      expect(estimateFeedItemSize()).toBeCloseTo((300 * 16) / 9);
+      (window as any).innerHeight = originalHeight;
+      (window as any).innerWidth = originalWidth;
     });
   });
 });
