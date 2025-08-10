@@ -58,6 +58,41 @@ describe('CreateVideoForm', () => {
     queryClient.clear();
   });
 
+  it('prefills lightning address from profile', async () => {
+    profileMock = { lud16: 'user@example.com' };
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
+    });
+    await Promise.resolve();
+    const lightningInput = Array.from(container.querySelectorAll('label'))
+      .find((l) => l.textContent?.includes('Lightning address'))!
+      .querySelector('input') as HTMLInputElement;
+    expect(lightningInput.value).toBe('user@example.com');
+  });
+
+  it('starts with empty lightning address when profile missing data', async () => {
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
+    });
+    await Promise.resolve();
+    const lightningInput = Array.from(container.querySelectorAll('label'))
+      .find((l) => l.textContent?.includes('Lightning address'))!
+      .querySelector('input') as HTMLInputElement;
+    expect(lightningInput.value).toBe('');
+  });
+
   it('auto trims selected file and keeps publish disabled until form complete', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
     mockTrim.mockImplementation((_f: any, opts: any, onProgress: any) => {
