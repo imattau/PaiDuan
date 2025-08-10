@@ -17,6 +17,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const parentRef = useRef<HTMLDivElement>(null);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
+  const rowRefs = useRef<(HTMLElement | null)[]>([]);
 
   const rowVirtualizer = useVirtualizer({
     count: items.length,
@@ -68,12 +69,17 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
         className="w-full"
       >
         {virtualItems.map((virtualRow) => {
-          const item = items[virtualRow.index];
+          const index = virtualRow.index;
+          const item = items[index];
           return (
             <div
-              key={item.eventId ?? virtualRow.index}
-              data-index={virtualRow.index}
+              key={item.eventId ?? index}
+              data-index={index}
               className="h-screen w-full snap-start snap-always"
+              ref={(el) => {
+                rowRefs.current[index] = el;
+                if (el) rowVirtualizer.measureElement(el);
+              }}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -81,7 +87,14 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
                 transform: `translateY(${virtualRow.start}px)`,
               }}
             >
-              <VideoCard {...item} showMenu />
+              <VideoCard
+                {...item}
+                showMenu
+                onReady={() => {
+                  const el = rowRefs.current[index];
+                  if (el) rowVirtualizer.measureElement(el);
+                }}
+              />
             </div>
           );
         })}
