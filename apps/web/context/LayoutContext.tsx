@@ -17,15 +17,32 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
   const [layout, setLayout] = useState<LayoutType>('mobile');
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('layout') as LayoutType | null;
-    const initial = stored ?? getLayout(window.innerWidth);
+    // Restore last chosen layout from localStorage so offline launches
+    // still render using the previous preference.
+    const readStored = () => {
+      try {
+        return window.localStorage.getItem('layout') as LayoutType | null;
+      } catch {
+        return null;
+      }
+    };
+
+    const writeStored = (value: LayoutType) => {
+      try {
+        window.localStorage.setItem('layout', value);
+      } catch {
+        // ignore storage write failures (e.g. quota exceeded, private mode)
+      }
+    };
+
+    const initial = readStored() ?? getLayout(window.innerWidth);
     setLayout(initial);
-    window.localStorage.setItem('layout', initial);
+    writeStored(initial);
 
     const handleResize = () => {
       const value = getLayout(window.innerWidth);
       setLayout(value);
-      window.localStorage.setItem('layout', value);
+      writeStored(value);
     };
 
     window.addEventListener('resize', handleResize);
