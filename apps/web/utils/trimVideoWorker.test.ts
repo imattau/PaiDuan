@@ -1,16 +1,19 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
+let includeDescription = true;
 vi.mock('mp4box', () => ({
   createFile: () => {
-    const track = {
+    const track: any = {
       id: 1,
       timescale: 1000,
       codec: 'avc1.4d401e',
-      avcDecoderConfigRecord: {
+    };
+    if (includeDescription) {
+      track.avcDecoderConfigRecord = {
         SPS: [new Uint8Array([0x67, 0x64, 0x00, 0x1e])],
         PPS: [new Uint8Array([0x68, 0xee, 0x3c, 0x80])],
-      },
-    };
+      };
+    }
     const samps = [
       { data: new Uint8Array([0]), dts: 0, is_sync: true },
       { data: new Uint8Array([1]), dts: 1000, is_sync: false },
@@ -208,5 +211,17 @@ describe('trim', () => {
     await trim(blob, { start: 0, end: 1 }, () => {});
     expect(configured.description).toBeInstanceOf(Uint8Array);
     expect(configured.description.length).toBeGreaterThan(0);
+  });
+
+  it('fails when SPS/PPS data is missing for H.264', async () => {
+    includeDescription = false;
+    (self as any).VideoDecoder = class {};
+    (self as any).VideoEncoder = class {};
+    const blob = new Blob([new Uint8Array([0])], { type: 'video/mp4' });
+    await expect(trim(blob, { start: 0, end: 1 }, () => {})).rejects.toMatchObject({
+      code: 'missing-avc-description',
+      message: 'H.264 stream lacks SPS/PPS data',
+    });
+    includeDescription = true;
   });
 });

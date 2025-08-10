@@ -188,6 +188,9 @@ export async function trim(
   if (codec.startsWith('avc1')) {
     description = getAvcDescription(track);
   }
+  if (codec.startsWith('avc1') && !description) {
+    fail('missing-avc-description', 'H.264 stream lacks SPS/PPS data');
+  }
 
   let support;
   try {
@@ -268,7 +271,7 @@ export async function trim(
     },
   });
 
-  const decoderConfig: any = { codec };
+  const decoderConfig: VideoDecoderConfig = { codec };
   if (description) decoderConfig.description = description;
   decoder.configure(decoderConfig);
 
