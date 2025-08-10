@@ -42,7 +42,15 @@ export function OverlayHost() {
   return (
     <Dialog.Root open onOpenChange={(o) => !o && closeHandler()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
+        <Dialog.Overlay
+          className="fixed inset-0 z-40 bg-black/50"
+          onClick={closeHandler}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') closeHandler();
+          }}
+          role="button"
+          tabIndex={0}
+        />
         <Dialog.Content
           className={contentClass}
           onOpenAutoFocus={(e) => {
