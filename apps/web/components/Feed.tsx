@@ -12,13 +12,17 @@ export function getCenteredVirtualItem(
   return virtualItems.find((item) => item.start <= center && item.end >= center);
 }
 export const estimateFeedItemSize = () => {
-  if (typeof window === 'undefined') return 0;
   const nav =
-    parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-height') || '0',
-      10,
-    ) || 0;
-  return Math.min(window.innerHeight - nav, (window.innerWidth * 16) / 9);
+    typeof window === 'undefined'
+      ? 0
+      :
+          parseInt(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              '--bottom-nav-height',
+            ) || '0',
+            10,
+          ) || 0;
+  return typeof window === 'undefined' ? 0 : window.innerHeight - nav;
 };
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';

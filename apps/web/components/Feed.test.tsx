@@ -70,15 +70,13 @@ describe('Feed', () => {
       (window as any).innerHeight = original;
     });
 
-    it('caps height by width on narrow viewports', () => {
-      const originalHeight = window.innerHeight;
-      const originalWidth = window.innerWidth;
-      (window as any).innerHeight = 900;
-      (window as any).innerWidth = 300;
-      document.documentElement.style.removeProperty('--bottom-nav-height');
-      expect(estimateFeedItemSize()).toBeCloseTo((300 * 16) / 9);
-      (window as any).innerHeight = originalHeight;
-      (window as any).innerWidth = originalWidth;
+    it('returns 0 when window is undefined', () => {
+      const originalWindow = (globalThis as any).window;
+      // @ts-ignore simulate server environment
+      delete (globalThis as any).window;
+      expect(estimateFeedItemSize()).toBe(0);
+      (globalThis as any).window = originalWindow;
     });
+
   });
 });
