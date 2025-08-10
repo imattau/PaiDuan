@@ -2,6 +2,7 @@ import type { Event as NostrEvent, EventTemplate } from 'nostr-tools/pure';
 import type { Signer } from '@/lib/signers/types';
 import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
+import comments from './nostr.comments';
 
 /**
  * Repost a Nostr event by ID.
@@ -60,6 +61,7 @@ export async function repost({
 
 export const nostr = {
   repost,
+  comments,
 };
 
 export default nostr;
