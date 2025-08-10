@@ -16,7 +16,13 @@ function getLocale(req: NextRequest): string {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (PUBLIC_FILE.test(pathname) || pathname.startsWith('/_next') || pathname.startsWith('/api')) {
+  if (
+    pathname === '/sw.js' ||
+    pathname === '/workbox-sw.js' ||
+    PUBLIC_FILE.test(pathname) ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api')
+  ) {
     return NextResponse.next();
   }
 
