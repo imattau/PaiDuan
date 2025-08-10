@@ -11,6 +11,7 @@ import MainNav from '@/components/layout/MainNav';
 import { Card } from '@/components/ui/Card';
 import * as nip19 from 'nostr-tools/nip19';
 import { hexToBytes } from '@noble/hashes/utils';
+import { toast } from 'react-hot-toast';
 
 export default function Profile() {
   const { state } = useAuth();
@@ -19,11 +20,15 @@ export default function Profile() {
 
   const exportKey = async () => {
     if (state.status !== 'ready' || state.method !== 'local') return;
+    if (!navigator?.clipboard) {
+      console.warn('Clipboard API not available');
+      return;
+    }
     const priv = (state.signer as any).privkeyHex;
     if (!priv) return;
     const nsec = nip19.nsecEncode(hexToBytes(priv));
     await navigator.clipboard.writeText(nsec);
-    alert('nsec copied to clipboard');
+    toast.success('nsec copied to clipboard');
   };
 
   const nav = <MainNav showSearch={false} showProfile={false} />;
