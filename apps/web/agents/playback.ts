@@ -18,63 +18,10 @@ const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24h
 type ProgressEntry = { currentTime: number; timestamp: number };
 type ProgressMap = Record<string, ProgressEntry>;
 
-function loadStore(): ProgressMap {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as ProgressMap;
-  } catch {
-    return {};
-  }
-}
-
-function saveStore(store: ProgressMap) {
-  try {
-    if (Object.keys(store).length === 0) {
-      sessionStorage.removeItem(STORAGE_KEY);
-    } else {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-    }
-  } catch {
-    // ignore storage failures
-  }
-}
-
-function pruneExpired(store: ProgressMap) {
-  const now = Date.now();
-  for (const [id, entry] of Object.entries(store)) {
-    if (now - entry.timestamp > EXPIRY_MS) {
-      delete store[id];
-    }
-  }
-}
-
-function saveProgress() {
-  if (!video || !currentEventId) return;
-  const store = loadStore();
-  pruneExpired(store);
-  store[currentEventId] = { currentTime: video.currentTime, timestamp: Date.now() };
-  saveStore(store);
-}
-
-function loadProgress(eventId: string): number | undefined {
-  const store = loadStore();
-  const entry = store[eventId];
-  if (!entry) return undefined;
-  if (Date.now() - entry.timestamp > EXPIRY_MS) {
-    delete store[eventId];
-    saveStore(store);
-    return undefined;
   }
   return entry.currentTime;
 }
-
-function clearProgress(eventId?: string) {
-  const store = loadStore();
-  if (eventId) {
-    delete store[eventId];
-  } else {
-    for (const id of Object.keys(store)) delete store[id];
+    
   }
   saveStore(store);
 }
