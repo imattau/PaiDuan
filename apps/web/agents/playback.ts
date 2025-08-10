@@ -1,15 +1,22 @@
 import initHls from '../hooks/useAdaptiveSource';
+import type { ErrorData } from 'hls.js';
 
 export type PlaybackState = 'playing' | 'paused';
 
 type Listener = (state: PlaybackState) => void;
+type ErrorListener = (message: string, data: ErrorData) => void;
 
 let video: HTMLVideoElement | null = null;
 let hls: ReturnType<typeof initHls> | null = null;
 const listeners = new Set<Listener>();
+const errorListeners = new Set<ErrorListener>();
 
 function emit(state: PlaybackState) {
   for (const l of listeners) l(state);
+}
+
+function emitError(message: string, data: ErrorData) {
+  for (const l of errorListeners) l(message, data);
 }
 
 function loadSource(
@@ -23,7 +30,9 @@ function loadSource(
   hls?.destroy();
   video = el;
   if (manifestUrl) {
-    hls = initHls(manifestUrl, el);
+    hls = initHls(manifestUrl, el, (data) => {
+      emitError(data.error.message, data);
+    });
   } else {
     el.src = videoUrl;
   }
@@ -52,5 +61,10 @@ function onStateChange(cb: Listener) {
   return () => listeners.delete(cb);
 }
 
-export const playback = { loadSource, play, pause, onStateChange };
+function onError(cb: ErrorListener) {
+  errorListeners.add(cb);
+  return () => errorListeners.delete(cb);
+}
+
+export const playback = { loadSource, play, pause, onStateChange, onError };
 export default playback;
