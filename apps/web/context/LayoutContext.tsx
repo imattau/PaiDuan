@@ -42,30 +42,40 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     setLayout(initial);
     writeStored(initial);
 
-    if (initial === 'mobile') {
+    let orientationLocked = false;
+
+    const lockPortrait = async () => {
+      if (orientationLocked) return;
+      if (getLayout(window.innerWidth, window.innerHeight) !== 'mobile') return;
       try {
-        screen.orientation.lock('portrait');
+        await document.documentElement.requestFullscreen();
+        await screen.orientation.lock('portrait');
+        orientationLocked = true;
       } catch {
         // ignore orientation lock failures
       }
-    }
+    };
+
+    document.addEventListener('click', lockPortrait, { once: true });
 
     const handleResize = () => {
       const value = getLayout(window.innerWidth, window.innerHeight);
       setLayout(value);
       writeStored(value);
 
-      if (value === 'mobile') {
-        try {
-          screen.orientation.lock('portrait');
-        } catch {
-          // ignore orientation lock failures
-        }
-      } else {
+      if (orientationLocked && value !== 'mobile') {
         try {
           screen.orientation.unlock();
         } catch {
           // ignore orientation unlock failures
+        }
+        orientationLocked = false;
+        if (document.fullscreenElement) {
+          try {
+            document.exitFullscreen();
+          } catch {
+            // ignore fullscreen exit failures
+          }
         }
       }
     };
@@ -76,10 +86,20 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mql.removeEventListener('change', handleResize);
       window.removeEventListener('resize', handleResize);
-      try {
-        screen.orientation.unlock();
-      } catch {
-        // ignore orientation unlock failures
+      document.removeEventListener('click', lockPortrait);
+      if (orientationLocked) {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // ignore orientation unlock failures
+        }
+        if (document.fullscreenElement) {
+          try {
+            document.exitFullscreen();
+          } catch {
+            // ignore fullscreen exit failures
+          }
+        }
       }
     };
   }, []);
