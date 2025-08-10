@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import NextLink from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import MiniProfileCard from '@/components/MiniProfileCard';
@@ -7,9 +7,10 @@ import NotificationBell from '@/components/NotificationBell';
 import { Sun, Moon } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import Logo from '@/components/branding/Logo';
-import { navigation } from '@/config/navigation';
+import { getNavigation } from '@/config/navigation';
 import { isRouteActive } from '@/utils/navigation';
 import { useLayout } from '@/context/LayoutContext';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Box,
   VStack,
@@ -44,11 +45,14 @@ export default function MainNav({
   const params = useParams();
   const locale = (params?.locale as string) || undefined;
   const layout = useLayout();
+  const { state } = useAuth();
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const cardBg = useColorModeValue('white', 'gray.800');
   const muted = useColorModeValue('gray.600', 'gray.400');
   const activeColor = useColorModeValue('blue.600', 'blue.300');
   const hoverBg = useColorModeValue('blue.50', 'whiteAlpha.200');
+
+  const navigation = useMemo(() => getNavigation(state.status === 'ready'), [state.status]);
 
   const prefetch = useCallback(
     (path: string) => {
@@ -78,7 +82,7 @@ export default function MainNav({
       window.removeEventListener('online', handlePrefetch);
       document.removeEventListener('visibilitychange', handlePrefetch);
     };
-  }, [router]);
+  }, [router, navigation]);
 
   return (
     <VStack p="1.2rem" spacing={4} align="stretch">

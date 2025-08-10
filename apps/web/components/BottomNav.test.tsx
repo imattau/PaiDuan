@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import BottomNav from '@/components/layout/BottomNav';
 import { LayoutContext, LayoutType } from '@/context/LayoutContext';
@@ -21,10 +21,17 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({}),
 }));
 
+const useAuthMock = vi.fn();
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => useAuthMock() }));
+
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
 
 describe('BottomNav', () => {
+  beforeEach(() => {
+    useAuthMock.mockReturnValue({ state: { status: 'ready' } });
+  });
+
   (['desktop', 'tablet', 'mobile'] as LayoutType[]).forEach(layout => {
     it(`renders correctly on ${layout}`, () => {
       const html = renderToStaticMarkup(
@@ -39,5 +46,16 @@ describe('BottomNav', () => {
         expect(html).toContain('aria-current="page"');
       }
     });
+  });
+
+  it('shows limited nav when signed out', () => {
+    useAuthMock.mockReturnValue({ state: { status: 'signedOut' } });
+    const html = renderToStaticMarkup(
+      <LayoutContext.Provider value="mobile">
+        <BottomNav />
+      </LayoutContext.Provider>,
+    );
+    expect(html).toContain('/get-started');
+    expect(html).not.toContain('/settings');
   });
 });

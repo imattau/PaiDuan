@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { prefetchFeed } from '@/hooks/useFeed';
-import { navigation } from '@/config/navigation';
+import { getNavigation } from '@/config/navigation';
 import { isRouteActive } from '@/utils/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { useMemo } from 'react';
 
 export default function NavBar() {
   const router = useRouter();
@@ -12,6 +14,8 @@ export default function NavBar() {
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params?.locale as string) || 'en';
+  const { state } = useAuth();
+  const navigation = useMemo(() => getNavigation(state.status === 'ready'), [state.status]);
   const asPath = pathname + (searchParams.toString() ? `?${searchParams}` : '');
   return (
     <nav
