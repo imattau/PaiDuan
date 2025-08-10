@@ -135,6 +135,7 @@ export function useFeed(
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
   const tags = query.data?.pages[0]?.tags ?? [];
   const timedOut = query.data?.pages.some((p) => p.timedOut);
+  const loading = query.isPending || (query.isFetching && items.length === 0);
   const prepend = (item: VideoCardProps) => {
     queryClient.setQueryData(['feed', mode, authors.join(','), limit], (old: any) => {
       if (!old) return old;
@@ -149,6 +150,7 @@ export function useFeed(
     tags,
     prepend,
     loadMore: () => query.fetchNextPage(),
+    loading,
     error: timedOut ? new Error('Relay connection timed out') : undefined,
   };
 }

@@ -2,7 +2,6 @@
 import AppShell from '@/components/layout/AppShell';
 import MainNav from '@/components/layout/MainNav';
 import RightPanel from '@/components/feed/RightPanel';
-import PlaceholderVideo from '@/components/PlaceholderVideo';
 import Feed from '@/components/Feed';
 import useFeed from '@/hooks/useFeed';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,7 +13,7 @@ import { CurrentVideoProvider } from '@/hooks/useCurrentVideo';
 
 export default function FeedPage() {
   const { filterAuthor, setFilterAuthor, selectedVideoAuthor } = useFeedSelection();
-  const { items: videos, loadMore } = useFeed(
+  const { items: videos, loadMore, loading } = useFeed(
     filterAuthor ? { author: filterAuthor } : 'all',
   );
 
@@ -65,11 +64,7 @@ export default function FeedPage() {
         center={
           <div className="feed-container h-full">
             {/* tabs bar you already have can stay on top */}
-            {videos.length === 0 ? (
-              <PlaceholderVideo className="aspect-[9/16] w-full max-w-[420px] mx-auto text-primary" />
-            ) : (
-              <Feed items={videos} loadMore={loadMore} />
-            )}
+            <Feed items={videos} loadMore={loadMore} loading={loading} />
           </div>
         }
         right={<RightPanel author={author} onFilterByAuthor={filterByAuthor} />}
