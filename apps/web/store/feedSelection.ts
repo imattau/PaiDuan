@@ -7,6 +7,9 @@ type S = {
   setSelectedVideo: (id?: string, authorPubkey?: string) => void;
   filterAuthor?: string;
   setFilterAuthor: (pubkey?: string) => void;
+  lastIndex?: number;
+  lastCursor?: string;
+  setLastPosition: (index: number, cursor: string) => void;
 };
 export const useFeedSelection = create<S>()(
   persist(
@@ -22,12 +25,17 @@ export const useFeedSelection = create<S>()(
         }),
       filterAuthor: undefined,
       setFilterAuthor: (pubkey) => set({ filterAuthor: pubkey }),
+      lastIndex: undefined,
+      lastCursor: undefined,
+      setLastPosition: (index, cursor) => set({ lastIndex: index, lastCursor: cursor }),
     }),
     {
       name: 'feed-selection',
       partialize: (state) => ({
         selectedVideoId: state.selectedVideoId,
         selectedVideoAuthor: state.selectedVideoAuthor,
+        lastIndex: state.lastIndex,
+        lastCursor: state.lastCursor,
       }),
     },
   ),
