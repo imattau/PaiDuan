@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
 import { useFeedSelection } from '@/store/feedSelection';
+import { usePlaybackPrefs } from '@/store/playbackPrefs';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
@@ -62,7 +63,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const playerRef = useRef<HTMLVideoElement>(null);
   const getPlayer = () => playerRef.current;
   const containerRef = useRef<HTMLDivElement>(null);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = usePlaybackPrefs((s) => [s.isMuted, s.setMuted]);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
   const [reposted, setReposted] = useState(false);
@@ -169,12 +170,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     }
     setShowPlayIndicator(false);
     setIsPlaying(true);
-    playback
-      .play()
-      .catch(() => {
-        setShowPlayIndicator(true);
-        setIsPlaying(false);
-      });
+    playback.play().catch(() => {
+      setShowPlayIndicator(true);
+      setIsPlaying(false);
+    });
   };
 
   return (
@@ -210,13 +209,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             setLoaded(true);
             const video = getPlayer();
             if (video) {
-              video.muted = true;
-              playback
-                .play()
-                .catch(() => {
-                  setShowPlayIndicator(true);
-                  setIsPlaying(false);
-                });
+              video.muted = muted;
+              playback.play().catch(() => {
+                setShowPlayIndicator(true);
+                setIsPlaying(false);
+              });
             }
             onReady?.();
           }}
