@@ -1,16 +1,8 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
 import { useLayout } from '@/context/LayoutContext';
 
-export function getCenteredVirtualItem(
-  virtualItems: VirtualItem[],
-  viewportHeight: number,
-  scrollOffset: number,
-): VirtualItem | undefined {
-  const center = scrollOffset + viewportHeight / 2;
-  return virtualItems.find((item) => item.start <= center && item.end >= center);
-}
 export const estimateFeedItemSize = () => {
   if (typeof window === 'undefined') return 0;
   const nav =
@@ -20,7 +12,8 @@ export const estimateFeedItemSize = () => {
     ) || 0;
   return Math.min(window.innerHeight - nav, (window.innerWidth * 16) / 9);
 };
-import { VideoCard, VideoCardProps } from './VideoCard';
+
+import { VideoCard, type VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
 import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
 import Link from 'next/link';
@@ -37,23 +30,15 @@ interface FeedProps {
 }
 
 export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
-  const parentRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
-  const rowRefs = useRef<(HTMLElement | null)[]>([]);
   const hasRestoredRef = useRef(false);
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
   const { state } = useAuth();
   const viewerProfile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
   const hasWallet = !!viewerProfile?.wallets?.length;
-  const layout = useLayout();
-
-  const rowVirtualizer = useVirtualizer({
-    count: items.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: estimateFeedItemSize,
-    overscan: 1,
-  });
+  useLayout();
 
   const didScrollToSelection = useRef(false);
   useEffect(() => {
@@ -61,16 +46,10 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     if (!selectedVideoId) return;
     const index = items.findIndex((i) => i.eventId === selectedVideoId);
     if (index >= 0) {
-      rowVirtualizer.scrollToIndex(index);
+      virtuosoRef.current?.scrollToIndex({ index });
       didScrollToSelection.current = true;
     }
-  }, [selectedVideoId, items, rowVirtualizer]);
-
-  useEffect(() => {
-    rowVirtualizer.measure();
-  }, [layout, rowVirtualizer]);
-
-  const virtualItems = rowVirtualizer.getVirtualItems();
+  }, [selectedVideoId, items]);
 
   useEffect(() => {
     if (hasRestoredRef.current) return;
@@ -79,35 +58,22 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     if (selectedVideoId) {
       const index = items.findIndex((i) => i.eventId === selectedVideoId);
       if (index >= 0) {
-        rowVirtualizer.scrollToIndex(index, { align: 'start' });
+        virtuosoRef.current?.scrollToIndex({ index, align: 'start' });
       }
     }
     hasRestoredRef.current = true;
-  }, [items, selectedVideoId, rowVirtualizer]);
+  }, [items, selectedVideoId]);
 
-  useEffect(() => {
-    if (!virtualItems.length) return;
-    const viewportHeight =
-      rowVirtualizer.scrollRect?.height ?? parentRef.current?.clientHeight ?? 0;
-    const scrollOffset = rowVirtualizer.scrollOffset ?? parentRef.current?.scrollTop ?? 0;
-    const middle = getCenteredVirtualItem(virtualItems, viewportHeight, scrollOffset);
-    if (!middle) return;
-    if (middle.index >= items.length - 2) {
+  const handleRangeChanged = (range: ListRange) => {
+    const middleIndex = Math.floor((range.startIndex + range.endIndex) / 2);
+    if (middleIndex >= items.length - 2) {
       loadMore?.();
     }
-    const current = items[middle.index];
+    const current = items[middleIndex];
     if (current && current.eventId !== selectedVideoId) {
       setSelectedVideo(current.eventId, current.pubkey);
     }
-  }, [
-    virtualItems,
-    items,
-    loadMore,
-    setSelectedVideo,
-    selectedVideoId,
-    rowVirtualizer.scrollRect?.height,
-    rowVirtualizer.scrollOffset,
-  ]);
+  };
 
   if (loading) {
     return (
@@ -130,57 +96,35 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 
   return (
     <>
-      <div
-        ref={parentRef}
+      <Virtuoso
+        ref={virtuosoRef}
+        totalCount={items.length}
         className="min-h-[calc(100dvh-var(--bottom-nav-height,0))] sm:min-h-[calc(100vh-var(--bottom-nav-height,0))] w-full overflow-auto snap-y snap-mandatory scrollbar-none"
-      >
-        <div
-          style={{ height: rowVirtualizer.getTotalSize(), position: 'relative' }}
-          className="w-full"
-        >
-          {virtualItems.map((virtualRow) => {
-            const index = virtualRow.index;
-            const item = items[index];
-            return (
-              <div
-                key={item.eventId ?? index}
-                data-index={index}
-                className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100vh-var(--bottom-nav-height,0))] w-full snap-start snap-always items-start justify-center lg:items-center"
-                ref={(el) => {
-                  rowRefs.current[index] = el;
-                  if (el) rowVirtualizer.measureElement(el);
-                }}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-              >
-                <VideoCard
-                  {...item}
-                  showMenu
-                  onComment={() => setCommentVideoId(item.eventId)}
-                  onReady={() => {
-                    const el = rowRefs.current[index];
-                    if (el) rowVirtualizer.measureElement(el);
-                  }}
-                  zap={
-                    <ZapButton
-                      lightningAddress={item.lightningAddress ?? ''}
-                      pubkey={item.pubkey}
-                      eventId={item.eventId}
-                      total={item.zapTotal}
-                      disabled={!hasWallet}
-                      title={!hasWallet ? 'Add a wallet to zap' : undefined}
-                    />
-                  }
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
+        endReached={loadMore}
+        rangeChanged={handleRangeChanged}
+        itemContent={(index) => {
+          const item = items[index];
+          return (
+            <div className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100vh-var(--bottom-nav-height,0))] w-full snap-start snap-always items-start justify-center lg:items-center">
+              <VideoCard
+                {...item}
+                showMenu
+                onComment={() => setCommentVideoId(item.eventId)}
+                zap={
+                  <ZapButton
+                    lightningAddress={item.lightningAddress ?? ''}
+                    pubkey={item.pubkey}
+                    eventId={item.eventId}
+                    total={item.zapTotal}
+                    disabled={!hasWallet}
+                    title={!hasWallet ? 'Add a wallet to zap' : undefined}
+                  />
+                }
+              />
+            </div>
+          );
+        }}
+      />
       <CommentDrawer
         videoId={commentVideoId || ''}
         open={!!commentVideoId}
@@ -191,3 +135,4 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 };
 
 export default Feed;
+
