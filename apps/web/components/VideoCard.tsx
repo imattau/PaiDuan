@@ -89,6 +89,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [source, setSource] = useState<{ src: string; type: string }>();
 
   useEffect(() => {
+    const controller = new AbortController();
     let cancelled = false;
     const checkSources = async () => {
       const videoEl = document.createElement('video');
@@ -96,7 +97,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       // Try adaptive/HLS source first
       if (adaptiveUrl) {
         try {
-          const res = await fetch(adaptiveUrl, { method: 'HEAD' });
+          const res = await fetch(adaptiveUrl, { method: 'HEAD', signal: controller.signal });
           const type = res.headers.get('content-type')?.toLowerCase() || '';
           const canPlayHls = videoEl.canPlayType('application/x-mpegURL');
           console.debug('checkSources HLS', { type, canPlayHls });
@@ -106,13 +107,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               return;
             }
           }
-        } catch {
+        } catch (e) {
+          if (e instanceof DOMException && e.name === 'AbortError') return;
           /* ignore and fallback */
         }
       }
       // Fallback to MP4
       try {
-        const res = await fetch(videoUrl, { method: 'HEAD' });
+        const res = await fetch(videoUrl, { method: 'HEAD', signal: controller.signal });
         const type = res.headers.get('content-type')?.toLowerCase() || '';
         const canPlayMp4 = videoEl.canPlayType('video/mp4');
         console.debug('checkSources MP4', { type, canPlayMp4 });
@@ -124,13 +126,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         } else if (!cancelled) {
           setErrorMessage('Unsupported video format');
         }
-      } catch {
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
         if (!cancelled) setErrorMessage('Video unavailable');
       }
     };
     checkSources();
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [adaptiveUrl, videoUrl]);
 
