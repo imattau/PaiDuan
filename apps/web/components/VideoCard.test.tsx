@@ -2,7 +2,7 @@
 import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
@@ -58,6 +58,24 @@ describe('VideoCard', () => {
     const { unmount } = render(<VideoCard {...props} />);
     expect(loadSource).toHaveBeenCalled();
     expect(() => unmount()).not.toThrow();
+  });
+
+  it('shows and hides placeholder around video load', async () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container } = render(<VideoCard {...props} />);
+    await screen.findByText('Loading video…');
+    const video = container.querySelector('video') as HTMLVideoElement;
+    fireEvent.loadedData(video);
+    await waitFor(() => {
+      expect(screen.queryByText('Loading video…')).toBeNull();
+    });
   });
 
   it('toggles mute state with action bar button', async () => {

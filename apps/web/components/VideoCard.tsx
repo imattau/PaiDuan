@@ -17,6 +17,7 @@ import { useFeedSelection } from '@/store/feedSelection';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { prefetchProfile } from '@/hooks/useProfiles';
+import PlaceholderVideo from './PlaceholderVideo';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -69,6 +70,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const isFollowing = following.includes(pubkey);
   const { online } = useNetworkState();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPlayIndicator, setShowPlayIndicator] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -181,10 +183,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       onPointerLeave={handlePointerUp}
       {...bind()}
     >
+      {!loaded && !errorMessage && (
+        <PlaceholderVideo className="absolute inset-0 h-full w-full" message="Loading video…" />
+      )}
       {!errorMessage && (
         <video
           ref={playerRef}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${loaded ? '' : 'hidden'}`}
           loop
           muted={muted}
           playsInline
@@ -192,6 +197,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           autoPlay={isPlaying}
           src={!manifestUrl ? videoUrl : undefined}
           onLoadedData={() => {
+            setLoaded(true);
             const video = getPlayer();
             if (video) {
               video.muted = true;
