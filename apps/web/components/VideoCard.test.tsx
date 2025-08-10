@@ -88,6 +88,23 @@ describe('VideoCard', () => {
     expect(() => unmount()).not.toThrow();
   });
 
+  it('renders comment count badge and updates when count changes', () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { rerender } = render(<VideoCard {...props} />);
+    const button = screen.getByRole('button', { name: 'Comments (0)' });
+    expect(button.textContent).toContain('0');
+    rerender(<VideoCard {...props} commentCount={5} />);
+    const updated = screen.getByRole('button', { name: 'Comments (5)' });
+    expect(updated.textContent).toContain('5');
+  });
+
   it('shows and hides placeholder around video load and fires onReady', async () => {
     const onReady = vi.fn();
     const props = {
