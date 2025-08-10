@@ -7,6 +7,7 @@ export function detectCodec(blobType?: string, trackCodec?: string): string | nu
   for (const c of candidates) {
     if (!c) continue;
     const codec = c.toLowerCase();
+    if (/^avc\d\.[0-9a-f]+$/i.test(codec)) return codec;
     if (codec.startsWith('avc') || codec.includes('h264') || codec.includes('x264'))
       return 'avc1';
     if (codec.includes('hvc1') || codec.includes('hev1') || codec.includes('hevc') || codec.includes('h265'))
