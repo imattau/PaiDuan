@@ -3,6 +3,7 @@
 import { ChakraProvider, useColorMode } from '@chakra-ui/react';
 import theme from '../styles/theme';
 import { ThemeProvider, useTheme } from 'next-themes';
+import { themes } from '@/agents/theme';
 import { ModqueueProvider } from '@/context/modqueueContext';
 import { GestureProvider } from '@paiduan/ui';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -16,8 +17,8 @@ function ColorModeSync() {
   const { setColorMode } = useColorMode();
 
   useEffect(() => {
-    if (resolvedTheme) {
-      setColorMode(resolvedTheme as 'light' | 'dark');
+    if (resolvedTheme === 'light' || resolvedTheme === 'dark') {
+      setColorMode(resolvedTheme);
     }
   }, [resolvedTheme, setColorMode]);
 
@@ -27,7 +28,7 @@ function ColorModeSync() {
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ChakraProvider theme={theme}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem themes={themes}>
         <ColorModeSync />
         <GestureProvider>
           <ModqueueProvider>

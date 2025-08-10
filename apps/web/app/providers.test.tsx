@@ -33,7 +33,6 @@ function TestComponent() {
 
   return (
     <>
-      <div data-testid="tailwind" className="bg-white dark:bg-black" />
       <div data-testid="chakra">{colorMode}</div>
       <button onClick={() => setTheme('dark')}>dark</button>
       <button onClick={() => setTheme('light')}>light</button>
@@ -51,14 +50,14 @@ describe('Providers theme sync', () => {
     );
 
     expect(screen.getByTestId('chakra').textContent).toBe('light');
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
 
     await user.click(screen.getByText('dark'));
     await waitFor(() => expect(screen.getByTestId('chakra').textContent).toBe('dark'));
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
 
     await user.click(screen.getByText('light'));
     await waitFor(() => expect(screen.getByTestId('chakra').textContent).toBe('light'));
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 });
