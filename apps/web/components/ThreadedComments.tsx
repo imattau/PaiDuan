@@ -6,6 +6,22 @@ import type { Event } from 'nostr-tools/pure';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
 
+const List = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>(
+  (props, ref) => <ul {...props} ref={ref} />,
+);
+List.displayName = 'VirtuosoList';
+
+const Item = React.forwardRef<HTMLLIElement, React.HTMLAttributes<HTMLLIElement>>(
+  (props, ref) => (
+    <li
+      {...props}
+      ref={ref}
+      className="text-sm text-gray-800 dark:text-gray-200"
+    />
+  ),
+);
+Item.displayName = 'VirtuosoItem';
+
 export default function ThreadedComments({ noteId }: { noteId?: string }) {
   const [events, setEvents] = useState<Event[]>([]);
 
@@ -34,20 +50,7 @@ export default function ThreadedComments({ noteId }: { noteId?: string }) {
         <Virtuoso
           data={events}
           className="max-h-96 overflow-auto"
-          components={{
-            List: React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>(
-              (props, ref) => <ul {...props} ref={ref} />,
-            ),
-            Item: React.forwardRef<HTMLLIElement, React.HTMLAttributes<HTMLLIElement>>(
-              (props, ref) => (
-                <li
-                  {...props}
-                  ref={ref}
-                  className="text-sm text-gray-800 dark:text-gray-200"
-                />
-              ),
-            ),
-          }}
+          components={{ List, Item }}
           itemContent={(index, event) => <>{event.content}</>}
         />
       )}

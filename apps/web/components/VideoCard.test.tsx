@@ -5,6 +5,7 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import userEvent from '@testing-library/user-event';
 import { usePlaybackPrefs } from '@/store/playbackPrefs';
 import { useFollowingStore } from '@/store/following';
+vi.mock('@/lib/feed-service', () => ({ feedService: { logInteraction: vi.fn() } }));
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
@@ -207,9 +208,7 @@ describe('VideoCard', () => {
     await user.click(await screen.findByRole('button', { name: /unmute/i }));
     await screen.findByRole('button', { name: /mute/i });
     rerender(<Wrapper showSecond={true} />);
-    expect(
-      HTMLMediaElement.prototype.pause as unknown as vi.Mock
-    ).toHaveBeenCalledTimes(1);
+    expect(HTMLMediaElement.prototype.pause as unknown as vi.Mock).toHaveBeenCalledTimes(1);
     const videos = container.querySelectorAll('video');
     const video2 = videos[1] as HTMLVideoElement;
     fireEvent.loadedData(video2);
@@ -268,7 +267,7 @@ describe('VideoCard', () => {
     };
     const { container } = render(<VideoCard {...props} />);
     const icons = container.querySelectorAll('.action-bar-icon');
-    expect(icons).toHaveLength(3);
+    expect(icons).toHaveLength(4);
     icons.forEach((icon) => {
       const className = icon.getAttribute('class') || '';
       expect(className).toContain('md:h-8');

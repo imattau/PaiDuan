@@ -7,16 +7,16 @@ import { render, waitFor } from '@testing-library/react';
 (globalThis as any).React = React;
 
 const scrollToIndex = vi.fn();
-vi.mock('react-virtuoso', () => ({
-  Virtuoso: React.forwardRef((props: any, ref: any) => {
-    if (typeof ref === 'function') {
-      ref({ scrollToIndex });
-    } else if (ref) {
-      ref.current = { scrollToIndex };
-    }
-    return <div {...props} />;
-  }),
-}));
+const MockVirtuoso = React.forwardRef((props: any, ref: any) => {
+  if (typeof ref === 'function') {
+    ref({ scrollToIndex });
+  } else if (ref) {
+    ref.current = { scrollToIndex };
+  }
+  return <div {...props} />;
+});
+MockVirtuoso.displayName = 'Virtuoso';
+vi.mock('react-virtuoso', () => ({ Virtuoso: MockVirtuoso }));
 
 vi.mock('./VideoCard', () => ({
   VideoCard: (props: any) => <div data-video={props.eventId} />, // simple stub
