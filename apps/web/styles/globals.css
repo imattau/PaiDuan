@@ -72,9 +72,15 @@
   --border-primary: 150 10% 25%;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   background: hsl(var(--background-primary));
   color: hsl(var(--text-primary));
+  min-height: 100vh;
 }
 
 @layer utilities {
