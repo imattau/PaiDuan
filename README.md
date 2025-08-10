@@ -101,6 +101,8 @@ curl -F "file=@video.mp4" -F "poster=@poster.jpg" https://nostr.media/api/upload
 
 The response returns `video`, `poster` and `manifest` URLs that can be referenced from an `imeta` tag when constructing a kind 21/22 event.
 
+Set the `NEXT_PUBLIC_UPLOAD_URL` environment variable to point the app at a different upload server.
+
 ### NIP‑71 video events
 
 PaiDuan uses [NIP‑71](https://github.com/nostr-protocol/nips/blob/master/71.md) for publishing video posts. Clients should:

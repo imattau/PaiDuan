@@ -1,6 +1,7 @@
 export type AppEvent =
   | { type: 'upload.progress'; id: string; pct: number }
   | { type: 'upload.complete'; id: string }
+  | { type: 'upload.error'; id: string; error: string }
   | { type: 'nostr.published'; id?: string }
   | { type: 'nostr.error'; error: string };
 

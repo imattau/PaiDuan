@@ -30,6 +30,8 @@ const mockPublish = vi.fn();
 vi.mock('../../lib/relayPool', () => ({ default: { publish: mockPublish } }));
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn() }) }));
+const mockToast = { success: vi.fn(), error: vi.fn() };
+vi.mock('react-hot-toast', () => ({ toast: mockToast }));
 let origCreateElement: any;
 
 describe('CreateVideoForm', () => {
@@ -37,6 +39,8 @@ describe('CreateVideoForm', () => {
     mockTrim.mockReset();
     mockSignEvent.mockReset();
     mockPublish.mockReset();
+    mockToast.success.mockReset();
+    mockToast.error.mockReset();
     (URL as any).revokeObjectURL = vi.fn();
     (HTMLMediaElement.prototype as any).load = vi.fn();
     (HTMLMediaElement.prototype as any).play = vi.fn(() => Promise.resolve());
@@ -56,6 +60,7 @@ describe('CreateVideoForm', () => {
     });
     profileMock = {};
     queryClient.clear();
+    delete process.env.NEXT_PUBLIC_UPLOAD_URL;
   });
 
   it('prefills lightning address from profile', async () => {
@@ -254,7 +259,7 @@ describe('CreateVideoForm', () => {
       }),
     );
     (globalThis as any).fetch = mockFetch;
-    (globalThis as any).alert = vi.fn();
+    process.env.NEXT_PUBLIC_UPLOAD_URL = 'https://nostr.media/api/upload';
 
     const container = document.createElement('div');
     const root = createRoot(container);
@@ -307,7 +312,10 @@ describe('CreateVideoForm', () => {
       publishBtn.click();
     });
 
-    expect(mockFetch).toHaveBeenCalledWith('https://nostr.media/api/upload', expect.any(Object));
+    expect(mockFetch).toHaveBeenCalledWith(
+      process.env.NEXT_PUBLIC_UPLOAD_URL,
+      expect.any(Object),
+    );
     const tags = mockSignEvent.mock.calls[0][0].tags;
     expect(tags).toContainEqual(['zap', 'addr', '100']);
     expect(tags).toContainEqual(['copyright', 'CC BY']);
@@ -327,7 +335,6 @@ describe('CreateVideoForm', () => {
       }),
     );
     (globalThis as any).fetch = mockFetch;
-    (globalThis as any).alert = vi.fn();
 
     const container = document.createElement('div');
     const root = createRoot(container);
@@ -406,7 +413,6 @@ describe('CreateVideoForm', () => {
       }),
     );
     (globalThis as any).fetch = mockFetch;
-    (globalThis as any).alert = vi.fn();
 
     const container = document.createElement('div');
     const root = createRoot(container);

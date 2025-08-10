@@ -14,6 +14,41 @@ import { nostr } from '../../agents/nostr';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'react-hot-toast';
+import { bus } from '../../agents/bus';
+import Overlay from '../ui/Overlay';
+
+function confirmModal(message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const handleConfirm = () => {
+      Overlay.close();
+      resolve(true);
+    };
+    const handleCancel = () => {
+      Overlay.close();
+      resolve(false);
+    };
+    Overlay.open('modal', {
+      content: (
+        <div className="text-sm">
+          <p>{message}</p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button className="px-3 py-1" onClick={handleCancel}>
+              Cancel
+            </button>
+            <button
+              className="px-3 py-1 bg-accent-primary text-white"
+              onClick={handleConfirm}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ),
+      onClose: handleCancel,
+    });
+  });
+}
 
 export default function CreateVideoForm() {
   const router = useRouter();
@@ -85,6 +120,23 @@ export default function CreateVideoForm() {
   const profile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
   const { following } = useFollowing(state.status === 'ready' ? state.pubkey : undefined);
   const profiles = useProfiles(following);
+
+  useEffect(() => {
+    const unsubPublished = bus.on('nostr.published', () =>
+      toast.success('Posted to Nostr'),
+    );
+    const unsubNostrError = bus.on('nostr.error', (e) =>
+      toast.error(e.error),
+    );
+    const unsubUploadError = bus.on('upload.error', (e) =>
+      toast.error(e.error),
+    );
+    return () => {
+      unsubPublished();
+      unsubNostrError();
+      unsubUploadError();
+    };
+  }, []);
 
   const walletAddrs = Array.isArray(profile?.wallets) && profile.wallets.length > 0
     ? [
@@ -230,7 +282,7 @@ export default function CreateVideoForm() {
 
   const onSubmit = async (values: FormValues) => {
     if (!outBlob) {
-      alert('Please process a video first');
+      setErr('Please process a video first');
       return;
     }
 
@@ -268,9 +320,8 @@ export default function CreateVideoForm() {
       });
 
       await nostr.publishEvent(event, state.signer);
-      alert('Posted to Nostr');
-    } catch (e: any) {
-      alert(e.message || 'Failed to post');
+    } catch (e) {
+      console.error(e);
     } finally {
       setPosting(false);
     }
@@ -285,7 +336,7 @@ export default function CreateVideoForm() {
     remove(idx);
   };
 
-  function handleCancel() {
+  async function handleCancel() {
     if (
       (file ||
         outBlob ||
@@ -297,7 +348,7 @@ export default function CreateVideoForm() {
         nsfw ||
         lightningAddress ||
         zapSplits.length > 0) &&
-      !confirm('Discard your progress?')
+      !(await confirmModal('Discard your progress?'))
     )
       return;
     router.back();

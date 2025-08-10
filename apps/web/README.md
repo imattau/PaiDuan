@@ -4,6 +4,10 @@
 
 The upload page at `pages/create.tsx` (and locale variants in `[locale]/create.tsx`) renders the `CreateVideoForm` component from `components/create/CreateVideoForm.tsx`. This form keeps file selection, metadata entry and publishing on a single screen.
 
+### Configuration
+
+Set `NEXT_PUBLIC_UPLOAD_URL` to change the upload API endpoint. It defaults to `https://nostr.media/api/upload`.
+
 ### Requirements
 
 - Accepted formats: mp4 and webm
