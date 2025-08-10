@@ -35,6 +35,9 @@ pnpm --filter @paiduan/web build
 pnpm --filter @paiduan/web build:pwa
 ```
 
+After updating client bundles, bump `CACHE_VERSION` in `apps/web/public/sw.js` so
+new deployments invalidate old precaches and prevent `ChunkLoadError`.
+
 Open the app and choose **Install** (or **Add to Home Screen**) to install it.
 
 ## CDN configuration
