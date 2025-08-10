@@ -18,7 +18,7 @@ export const estimateFeedItemSize = () => {
       getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-height') || '0',
       10,
     ) || 0;
-  return window.innerHeight - nav;
+  return Math.min(window.innerHeight - nav, (window.innerWidth * 16) / 9);
 };
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
@@ -83,7 +83,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 
   if (loading) {
     return (
-      <div className="h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100vh-var(--bottom-nav-height,0))] w-full">
+      <div className="min-h-[calc(100dvh-var(--bottom-nav-height,0))] sm:min-h-[calc(100vh-var(--bottom-nav-height,0))] w-full">
         <SkeletonVideoCard />
       </div>
     );
@@ -91,7 +91,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
 
   if (items.length === 0) {
     return (
-      <div className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100vh-var(--bottom-nav-height,0))] w-full flex-col items-center justify-center text-white">
+      <div className="flex min-h-[calc(100dvh-var(--bottom-nav-height,0))] sm:min-h-[calc(100vh-var(--bottom-nav-height,0))] w-full flex-col items-center justify-center text-white">
         <EmptyState />
         <Link href="/create" className="btn btn-primary mt-4" prefetch>
           Upload your first video
@@ -104,7 +104,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     <>
       <div
         ref={parentRef}
-        className="h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100vh-var(--bottom-nav-height,0))] w-full overflow-auto snap-y snap-mandatory scrollbar-none"
+        className="min-h-[calc(100dvh-var(--bottom-nav-height,0))] sm:min-h-[calc(100vh-var(--bottom-nav-height,0))] w-full overflow-auto snap-y snap-mandatory scrollbar-none"
       >
         <div
           style={{ height: rowVirtualizer.getTotalSize(), position: 'relative' }}
