@@ -17,12 +17,11 @@ const Template = (layout: LayoutType) => {
   return Story;
 };
 
-export const Desktop = Template('desktop');
+export const Desktop: any = Template('desktop');
 Desktop.parameters = { viewport: { defaultViewport: 'desktop' } };
 
-export const Tablet = Template('tablet');
+export const Tablet: any = Template('tablet');
 Tablet.parameters = { viewport: { defaultViewport: 'tablet' } };
 
-export const Mobile = Template('mobile');
+export const Mobile: any = Template('mobile');
 Mobile.parameters = { viewport: { defaultViewport: 'mobile' } };
-

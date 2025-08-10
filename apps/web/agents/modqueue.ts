@@ -20,6 +20,7 @@ export async function submitReport(report: ReportPayload): Promise<void> {
     created_at: rest.ts,
     content: JSON.stringify(rest),
     pubkey: rest.reporterPubKey,
+    tags: [],
   };
 
   const signed = await signer.signEvent(event);

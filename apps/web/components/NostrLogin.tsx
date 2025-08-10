@@ -7,7 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 function privHexFrom(input: string): string {
   const s = input.trim();
   if (/^nsec1/i.test(s)) {
-    const { type, data } = nip19.decode(s);
+    const { type, data } = nip19.decode(s) as {
+      type: string;
+      data: string | Uint8Array;
+    };
     if (type !== 'nsec') throw new Error('Invalid nsec');
     return typeof data === 'string' ? data.toLowerCase() : bytesToHex(data);
   }
@@ -78,11 +81,7 @@ export function NostrLogin() {
           placeholder="nostrconnect:..."
           className="input w-full"
         />
-        <button
-          className="btn btn-outline w-full"
-          onClick={connectRemote}
-          disabled={!uri.trim()}
-        >
+        <button className="btn btn-outline w-full" onClick={connectRemote} disabled={!uri.trim()}>
           Connect remote signer
         </button>
       </div>

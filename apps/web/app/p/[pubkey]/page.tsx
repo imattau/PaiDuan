@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -175,15 +175,10 @@ export default function ProfilePage() {
           crossOrigin="anonymous"
         />
         <div className="flex-1">
-          <div className="text-2xl font-semibold">
-            {name || pubkey?.slice(0, 8)}
-          </div>
+          <div className="text-2xl font-semibold">{name || pubkey?.slice(0, 8)}</div>
           <div className="text-sm whitespace-pre-line">{bio}</div>
           <div className="mt-2 flex items-center space-x-4">
-            <button
-              onClick={handleFollow}
-              className="rounded bg-blue-500 px-3 py-1 text-sm"
-            >
+            <button onClick={handleFollow} className="rounded bg-blue-500 px-3 py-1 text-sm">
               {isFollowing ? 'Unfollow' : 'Follow'}
             </button>
             <div className="text-sm">{followerCount} followers</div>
@@ -216,10 +211,7 @@ export default function ProfilePage() {
             </div>
           ))}
           {zapSplits.length < 4 && totalPct < 95 && (
-            <button
-              onClick={addSplit}
-              className="mb-2 rounded border px-2 py-1 text-sm"
-            >
+            <button onClick={addSplit} className="mb-2 rounded border px-2 py-1 text-sm">
               Add collaborator
             </button>
           )}
@@ -270,7 +262,7 @@ export default function ProfilePage() {
               onComment={() => setCommentVideoId(selected.eventId)}
               zap={
                 <ZapButton
-                  lightningAddress={selected.lightningAddress}
+                  lightningAddress={selected.lightningAddress ?? ''}
                   pubkey={selected.pubkey}
                   eventId={selected.eventId}
                   total={selected.zapTotal}
@@ -299,4 +291,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

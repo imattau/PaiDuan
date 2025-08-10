@@ -7,8 +7,8 @@ function hasVault(cookieValues: Record<string, string>) {
   return false;
 }
 
-export default function GetStartedPage() {
-  const cookieStore = cookies();
+export default async function GetStartedPage() {
+  const cookieStore = await cookies();
   const cookieObject = Object.fromEntries(
     cookieStore.getAll().map(({ name, value }) => [name, value]),
   );
