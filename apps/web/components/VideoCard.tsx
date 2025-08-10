@@ -93,11 +93,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     const video = playerRef.current;
     if (!video) return;
     playback.loadSource(video, { videoUrl, manifestUrl });
-    const off = playback.onStateChange((state) => {
+    const offState = playback.onStateChange((state) => {
       setIsPlaying(state === 'playing');
     });
+    const offError = playback.onError((message) => {
+      setErrorMessage(message);
+    });
     return () => {
-      off();
+      offState();
+      offError();
     };
   }, [manifestUrl, videoUrl]);
 
