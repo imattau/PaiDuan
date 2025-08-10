@@ -41,6 +41,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
   const rowRefs = useRef<(HTMLElement | null)[]>([]);
+  const hasRestoredRef = useRef(false);
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
   const { state } = useAuth();
   const viewerProfile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
@@ -61,16 +62,24 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const virtualItems = rowVirtualizer.getVirtualItems();
 
   useEffect(() => {
+    if (hasRestoredRef.current) return;
+    if (!useFeedSelection.persist.hasHydrated()) return;
+    if (!items.length) return;
+    if (selectedVideoId) {
+      const index = items.findIndex((i) => i.eventId === selectedVideoId);
+      if (index >= 0) {
+        rowVirtualizer.scrollToIndex(index, { align: 'start' });
+      }
+    }
+    hasRestoredRef.current = true;
+  }, [items, selectedVideoId, rowVirtualizer]);
+
+  useEffect(() => {
     if (!virtualItems.length) return;
     const viewportHeight =
       rowVirtualizer.scrollRect?.height ?? parentRef.current?.clientHeight ?? 0;
-    const scrollOffset =
-      rowVirtualizer.scrollOffset ?? parentRef.current?.scrollTop ?? 0;
-    const middle = getCenteredVirtualItem(
-      virtualItems,
-      viewportHeight,
-      scrollOffset,
-    );
+    const scrollOffset = rowVirtualizer.scrollOffset ?? parentRef.current?.scrollTop ?? 0;
+    const middle = getCenteredVirtualItem(virtualItems, viewportHeight, scrollOffset);
     if (!middle) return;
     if (middle.index >= items.length - 2) {
       loadMore?.();
@@ -79,7 +88,15 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     if (current && current.eventId !== selectedVideoId) {
       setSelectedVideo(current.eventId, current.pubkey);
     }
-  }, [virtualItems, items, loadMore, setSelectedVideo, selectedVideoId, rowVirtualizer.scrollRect?.height, rowVirtualizer.scrollOffset]);
+  }, [
+    virtualItems,
+    items,
+    loadMore,
+    setSelectedVideo,
+    selectedVideoId,
+    rowVirtualizer.scrollRect?.height,
+    rowVirtualizer.scrollOffset,
+  ]);
 
   if (loading) {
     return (
