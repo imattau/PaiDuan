@@ -1,25 +1,27 @@
 import { describe, it, expect } from 'vitest';
-import handler from './transcode';
-import { createRes } from './test-utils';
+import { NextRequest } from 'next/server';
+import { POST } from './transcode/route';
 
 function createReq(body: any = {}, method = 'POST') {
-  return { method, body } as any;
+  return new NextRequest('http://localhost/api/transcode', {
+    method,
+    body: JSON.stringify(body),
+  });
 }
 
 describe('transcode API', () => {
   it('fails when src missing', async () => {
     const req = createReq({});
-    const res = createRes();
-    await handler(req, res);
-    expect(res.statusCode).toBe(400);
-    expect(res.jsonData).toEqual({ error: 'missing src' });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'missing src' });
   });
 
   it('returns manifest url', async () => {
     const req = createReq({ src: 'https://example.com/video.mp4' });
-    const res = createRes();
-    await handler(req, res);
-    expect(res.statusCode).toBe(200);
-    expect(res.jsonData.manifest).toMatch(/manifest.json$/);
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.manifest).toMatch(/manifest.json$/);
   });
 });
