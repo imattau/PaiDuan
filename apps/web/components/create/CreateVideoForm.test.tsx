@@ -21,7 +21,8 @@ vi.mock('../../hooks/useAuth', () => ({
   }),
 }));
 
-vi.mock('../../hooks/useProfile', () => ({ useProfile: () => ({}) }));
+let profileMock: any = {};
+vi.mock('../../hooks/useProfile', () => ({ useProfile: () => profileMock }));
 vi.mock('../../hooks/useFollowing', () => ({ default: () => ({ following: [] }) }));
 vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
 
@@ -53,6 +54,7 @@ describe('CreateVideoForm', () => {
       }
       return el;
     });
+    profileMock = {};
     queryClient.clear();
   });
 
@@ -146,6 +148,24 @@ describe('CreateVideoForm', () => {
     await Promise.resolve();
 
     expect(mockTrim).toHaveBeenCalledWith(file, { start: 0, end: 300 }, expect.any(Function));
+  });
+
+  it('prefills lightning address with lud16 when wallets empty', async () => {
+    profileMock = { wallets: [], lud16: 'alice@test' };
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <CreateVideoForm />
+        </QueryClientProvider>,
+      );
+    });
+    await Promise.resolve();
+    const lightningInput = Array.from(container.querySelectorAll('label'))
+      .find((l) => l.textContent?.includes('Lightning address'))!
+      .querySelector('input') as HTMLInputElement;
+    expect(lightningInput.value).toBe('alice@test');
   });
 
   it('rejects non-9:16 aspect ratio', async () => {
