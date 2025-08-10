@@ -1,12 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import NextImage from 'next/image';
-import Cropper from 'react-easy-crop';
-import type { Area } from 'react-easy-crop';
+import AvatarCropper from '../ui/AvatarCropper';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -40,9 +39,6 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
   const picture = watch('picture');
   const lud16 = watch('lud16');
   const [rawImage, setRawImage] = useState<string>('');
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedArea, setCroppedArea] = useState<Area | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -61,33 +57,6 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
     reader.readAsDataURL(file);
   }
 
-  const onCropComplete = useCallback((_area: Area, cropped: Area) => {
-    setCroppedArea(cropped);
-  }, []);
-
-  function createImage(url: string): Promise<HTMLImageElement> {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = document.createElement('img');
-      img.onload = () => resolve(img);
-      img.onerror = (err) => reject(err);
-      img.src = url;
-    });
-  }
-
-  const finishCrop = useCallback(async () => {
-    if (!rawImage || !croppedArea) return;
-    const image = await createImage(rawImage);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const size = Math.min(croppedArea.width, croppedArea.height);
-    canvas.width = size;
-    canvas.height = size;
-    ctx.drawImage(image, croppedArea.x, croppedArea.y, size, size, 0, 0, size, size);
-    const dataUrl = canvas.toDataURL('image/png');
-    setValue('picture', dataUrl);
-    setRawImage('');
-  }, [rawImage, croppedArea, setValue]);
 
   async function setMetadata(data: {
     name?: string;
@@ -144,34 +113,14 @@ export function ProfileSetupStep({ onComplete }: { onComplete: () => void }) {
         />
         <input type="file" accept="image/*" onChange={handleFile} />
         {rawImage && (
-          <div className="relative h-64 w-64">
-            <Cropper
-              image={rawImage}
-              crop={crop}
-              zoom={zoom}
-              cropShape="round"
-              aspect={1}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
-              showGrid={false}
-            />
-          </div>
-        )}
-        {rawImage && (
-          <div className="flex gap-2 justify-center">
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(e) => setZoom(parseFloat(e.target.value))}
-            />
-            <Button className="btn-outline" onClick={finishCrop}>
-              Done
-            </Button>
-          </div>
+          <AvatarCropper
+            image={rawImage}
+            onComplete={(data) => {
+              setValue('picture', data);
+              setRawImage('');
+            }}
+            onCancel={() => setRawImage('')}
+          />
         )}
         {!rawImage && picture && (
           <div
