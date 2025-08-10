@@ -8,7 +8,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
   if (videos.length === 0) {
     return (
       <PlaceholderVideo
-        className="mx-auto h-full w-full max-h-[calc(100dvh-var(--bottom-nav-height,0))] sm:max-h-[calc(100dvh-var(--bottom-nav-height,0))] text-primary"
+        className="mx-auto h-full w-full max-h-screen text-primary [max-height:calc(100dvh-var(--bottom-nav-height,0))]"
         message="No videos yet"
         busy={false}
       />
@@ -18,7 +18,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
   return (
     <Virtuoso
       data={videos}
-      className="relative h-full w-full overflow-auto"
+      className="relative h-screen w-full overflow-auto [height:calc(100dvh-var(--bottom-nav-height,0))]"
       itemContent={() => (
         <PlaceholderVideo className="h-full w-full" message="Loading video…" />
       )}
