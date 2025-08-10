@@ -1,7 +1,9 @@
 {
   "name": "PaiDuan",
   "short_name": "PaiDuan",
+  "id": "paiduan",
   "start_url": "/feed",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#101010",
