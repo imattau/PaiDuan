@@ -20,7 +20,6 @@ import { prefetchProfile } from '@/hooks/useProfiles';
 import PlaceholderVideo from './PlaceholderVideo';
 import VideoFallback from './VideoFallback';
 import { telemetry } from '@/agents/telemetry';
-import { feedService } from '@/lib/feed-service';
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -91,7 +90,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
-  const watchStart = useRef<number | null>(null);
 
   useEffect(() => {
     if (!errorMessage) return;
@@ -132,25 +130,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       playback.pause();
     }
   }, [inView]);
-
-  useEffect(() => {
-    if (inView) {
-      watchStart.current = Date.now();
-    } else if (watchStart.current) {
-      const duration = (Date.now() - watchStart.current) / 1000;
-      void feedService.logInteraction(eventId, { watchTime: duration });
-      watchStart.current = null;
-    }
-  }, [inView, eventId]);
-
-  useEffect(() => {
-    return () => {
-      if (watchStart.current) {
-        const duration = (Date.now() - watchStart.current) / 1000;
-        void feedService.logInteraction(eventId, { watchTime: duration });
-      }
-    };
-  }, [eventId]);
 
   const handleRepost = async () => {
     if (!onRepost) return;
@@ -437,21 +416,20 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           <MessageCircle className="icon action-bar-icon md:h-8 md:w-8" />
           <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
         </button>
-        <button
-          onClick={() => {
-            const next = !liked;
-            setLiked(next);
-            void feedService.logInteraction(eventId, { liked: next });
-          }}
-          className="hover:text-accent-primary"
-          aria-pressed={liked}
-          title={liked ? 'Unlike' : 'Like'}
-        >
-          <Heart
-            className="icon action-bar-icon md:h-8 md:w-8"
-            fill={liked ? 'currentColor' : 'none'}
-          />
-        </button>
+          <button
+            onClick={() => {
+              const next = !liked;
+              setLiked(next);
+            }}
+            className="hover:text-accent-primary"
+            aria-pressed={liked}
+            title={liked ? 'Unlike' : 'Like'}
+          >
+            <Heart
+              className="icon action-bar-icon md:h-8 md:w-8"
+              fill={liked ? 'currentColor' : 'none'}
+            />
+          </button>
         {zap}
         <button
           onClick={handleRepost}
