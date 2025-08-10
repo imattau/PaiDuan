@@ -13,21 +13,40 @@ function getLayout(width: number): LayoutType {
 export const LayoutContext = createContext<LayoutType | undefined>(undefined);
 
 export function LayoutProvider({ children }: { children: React.ReactNode }) {
-  const [layout, setLayout] = useState<LayoutType>(() => {
-    if (typeof window === 'undefined') return 'mobile';
-    const stored = window.localStorage.getItem('layout') as LayoutType | null;
-    return stored ?? getLayout(window.innerWidth);
-  });
+  // Start with a consistent value on server and client to avoid hydration mismatch
+  const [layout, setLayout] = useState<LayoutType>('mobile');
 
   useEffect(() => {
-    const update = () => {
+    // Restore last chosen layout from localStorage so offline launches
+    // still render using the previous preference.
+    const readStored = () => {
+      try {
+        return window.localStorage.getItem('layout') as LayoutType | null;
+      } catch {
+        return null;
+      }
+    };
+
+    const writeStored = (value: LayoutType) => {
+      try {
+        window.localStorage.setItem('layout', value);
+      } catch {
+        // ignore storage write failures (e.g. quota exceeded, private mode)
+      }
+    };
+
+    const initial = readStored() ?? getLayout(window.innerWidth);
+    setLayout(initial);
+    writeStored(initial);
+
+    const handleResize = () => {
       const value = getLayout(window.innerWidth);
       setLayout(value);
-      window.localStorage.setItem('layout', value);
+      writeStored(value);
     };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return <LayoutContext.Provider value={layout}>{children}</LayoutContext.Provider>;
