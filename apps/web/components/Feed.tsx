@@ -55,6 +55,17 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     overscan: 1,
   });
 
+  const didScrollToSelection = useRef(false);
+  useEffect(() => {
+    if (didScrollToSelection.current) return;
+    if (!selectedVideoId) return;
+    const index = items.findIndex((i) => i.eventId === selectedVideoId);
+    if (index >= 0) {
+      rowVirtualizer.scrollToIndex(index);
+      didScrollToSelection.current = true;
+    }
+  }, [selectedVideoId, items, rowVirtualizer]);
+
   useEffect(() => {
     rowVirtualizer.measure();
   }, [layout, rowVirtualizer]);
