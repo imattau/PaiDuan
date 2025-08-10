@@ -103,7 +103,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   useEffect(() => {
     const video = playerRef.current;
-    if (!video) return;
+    if (!video || !inView) return;
     playback.loadSource(video, { videoUrl, manifestUrl, eventId });
     const offState = playback.onStateChange((state) => {
       setIsPlaying(state === 'playing');
@@ -115,7 +115,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       offState();
       offError();
     };
-  }, [manifestUrl, videoUrl]);
+  }, [inView, manifestUrl, videoUrl, eventId]);
 
   useEffect(() => {
     if (inView) {
@@ -123,6 +123,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       setSelectedVideo(eventId, pubkey);
     }
   }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
+
+  useEffect(() => {
+    if (!inView) {
+      playback.pause();
+    }
+  }, [inView]);
 
   const handleRepost = async () => {
     if (!onRepost) return;
@@ -213,7 +219,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       setLoaded(false);
       setErrorMessage(null);
       const player = getPlayer();
-      if (player) {
+      if (player && inView) {
         playback.loadSource(player, { videoUrl, eventId });
         playback.play().catch(() => {
           setErrorMessage('Video unavailable');
@@ -259,12 +265,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           muted={muted}
           playsInline
           poster={posterUrl}
-          autoPlay
+          autoPlay={inView}
           src={!manifestUrl ? videoUrl : undefined}
           onLoadedData={() => {
             setLoaded(true);
             const video = getPlayer();
-            if (video) {
+            if (video && inView) {
               // Autoplay handling: try with the user's mute preference first.
               // If playback is blocked, mute the video and retry. On success,
               // we keep it muted and update the user's preference via store.
