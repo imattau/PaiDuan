@@ -5,7 +5,6 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import userEvent from '@testing-library/user-event';
 import { usePlaybackPrefs } from '@/store/playbackPrefs';
 import { useFollowingStore } from '@/store/following';
-vi.mock('@/lib/feed-service', () => ({ feedService: { logInteraction: vi.fn() } }));
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
