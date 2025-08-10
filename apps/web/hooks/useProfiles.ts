@@ -40,8 +40,17 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
       const content = JSON.parse(latest.content);
       ensureWallets(content);
       if (content.picture) {
-        const cached = await getCachedImage(content.picture);
-        content.picture = cached || (await cacheImage(content.picture));
+        let pic = content.picture;
+        try {
+          const picUrl = new URL(pic, location.origin);
+          if (picUrl.origin !== location.origin) {
+            pic = `/api/image-proxy?url=${encodeURIComponent(pic)}`;
+          }
+        } catch {
+          /* ignore */
+        }
+        const cached = await getCachedImage(pic);
+        content.picture = cached || (await cacheImage(pic));
       }
       return content;
     } catch {
@@ -59,8 +68,17 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
             const content = JSON.parse(ev.content);
             ensureWallets(content);
             if (content.picture) {
-              const cached = await getCachedImage(content.picture);
-              content.picture = cached || (await cacheImage(content.picture));
+              let pic = content.picture;
+              try {
+                const picUrl = new URL(pic, location.origin);
+                if (picUrl.origin !== location.origin) {
+                  pic = `/api/image-proxy?url=${encodeURIComponent(pic)}`;
+                }
+              } catch {
+                /* ignore */
+              }
+              const cached = await getCachedImage(pic);
+              content.picture = cached || (await cacheImage(pic));
             }
             await saveEvent(ev);
             profile = content;

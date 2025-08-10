@@ -18,8 +18,15 @@ export async function cacheImage(url: string): Promise<string> {
   const cache = await openCache();
   if (!cache) return url;
   try {
-    const { hostname } = new URL(url);
-    if (TRUSTED_HOSTS.length && !TRUSTED_HOSTS.includes(hostname)) return url;
+    const locOrigin = typeof location !== 'undefined' ? location.origin : '';
+    const parsed = locOrigin ? new URL(url, locOrigin) : new URL(url);
+    if (locOrigin && parsed.origin !== locOrigin) {
+      if (!TRUSTED_HOSTS.includes(parsed.hostname)) {
+        url = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+      }
+    } else if (TRUSTED_HOSTS.length && !TRUSTED_HOSTS.includes(parsed.hostname)) {
+      return url;
+    }
 
     const res = await fetch(url, { mode: 'cors' });
     if (!res.ok || res.type !== 'basic') return url;
