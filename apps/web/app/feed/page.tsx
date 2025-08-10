@@ -12,7 +12,7 @@ import { useFeedSelection } from '@/store/feedSelection';
 import { CurrentVideoProvider } from '@/hooks/useCurrentVideo';
 
 export default function FeedPage() {
-  const { filterAuthor, setFilterAuthor, selectedVideoAuthor } = useFeedSelection();
+  const { filterAuthor, setFilterAuthor } = useFeedSelection();
   const { items: videos, loadMore, loading } = useFeed(
     filterAuthor ? { author: filterAuthor } : 'all',
   );
@@ -24,7 +24,6 @@ export default function FeedPage() {
   const myFollowerCount = useFollowerCount(
     auth.status === 'ready' ? auth.pubkey : undefined,
   );
-  const authorFollowerCount = useFollowerCount(selectedVideoAuthor);
   const meProfile = useProfile(auth.status === 'ready' ? auth.pubkey : undefined);
   const me =
     auth.status === 'ready'
@@ -41,18 +40,6 @@ export default function FeedPage() {
           stats: { followers: 0, following: 0 },
         };
 
-  const authorProfile = useProfile(selectedVideoAuthor);
-  const author =
-    selectedVideoAuthor && authorProfile
-      ? {
-          avatar: authorProfile.picture || `/api/avatar/${selectedVideoAuthor}`,
-          name: authorProfile.name || selectedVideoAuthor.slice(0, 8),
-          username: authorProfile.name || selectedVideoAuthor.slice(0, 8),
-          pubkey: selectedVideoAuthor,
-          followers: authorFollowerCount,
-        }
-      : undefined;
-
   function filterByAuthor(pubkey: string) {
     setFilterAuthor(pubkey);
   }
@@ -67,7 +54,7 @@ export default function FeedPage() {
             <Feed items={videos} loadMore={loadMore} loading={loading} />
           </div>
         }
-        right={<RightPanel author={author} onFilterByAuthor={filterByAuthor} />}
+        right={<RightPanel onFilterByAuthor={filterByAuthor} />}
       />
     </CurrentVideoProvider>
   );
