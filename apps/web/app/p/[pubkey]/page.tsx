@@ -165,12 +165,14 @@ export default function ProfilePage() {
       <div className="h-32 w-full bg-gray-700" />
       <div className="p-4 -mt-12 flex items-start space-x-4">
         <Image
-          src={picture || '/placeholder.png'}
+          src={picture || '/avatar.svg'}
           alt={name}
           width={96}
           height={96}
           className="h-24 w-24 rounded-full border-4 border-black object-cover"
           unoptimized
+          onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+          crossOrigin="anonymous"
         />
         <div className="flex-1">
           <div className="text-2xl font-semibold">

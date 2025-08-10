@@ -47,6 +47,8 @@ export default function VideoInfoPane() {
           height={48}
           priority
           className="h-12 w-12 rounded-full"
+          onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+          crossOrigin="anonymous"
         />
         <div>
           <div className="font-semibold">{meta?.name || current.pubkey.slice(0, 8)}</div>

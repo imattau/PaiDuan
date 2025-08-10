@@ -26,6 +26,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ avatarUrl, name, l
           height={80}
           className="h-20 w-20 rounded-lg"
           unoptimized
+          onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+          crossOrigin="anonymous"
         />
       </div>
       <div className="font-semibold">{name}</div>

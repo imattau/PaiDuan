@@ -29,6 +29,8 @@ export default function TopNavProfile() {
         height={80}
         priority
         className="h-20 w-20 rounded-lg"
+        onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+        crossOrigin="anonymous"
       />
     </div>
   );

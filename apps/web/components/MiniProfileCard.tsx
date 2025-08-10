@@ -22,6 +22,8 @@ export default function MiniProfileCard({
         height={80}
         priority
         className="mx-auto mb-2 h-20 w-20 rounded-full"
+        onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+        crossOrigin="anonymous"
       />
       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">@{name}</div>
       {stats && (
