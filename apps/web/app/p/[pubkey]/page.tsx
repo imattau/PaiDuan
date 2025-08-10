@@ -160,7 +160,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-12">
+    <div className="min-h-screen bg-black text-white pt-[var(--top-nav-height,0)]">
       <SearchBar />
       <div className="h-32 w-full bg-gray-700" />
       <div className="p-4 -mt-12 flex items-start space-x-4">
@@ -260,7 +260,7 @@ export default function ProfilePage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
-          <div className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] w-full items-center justify-center relative">
+          <div className="flex h-[calc(100dvh-var(--top-nav-height,0)-var(--bottom-nav-height,0))] w-full items-center justify-center relative">
             <VideoCard
               {...selected}
               showMenu
