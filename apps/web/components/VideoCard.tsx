@@ -327,6 +327,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               router.prefetch(`/p/${pubkey}`);
               prefetchProfile(pubkey);
             }}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              router.push(`/p/${pubkey}`);
+            }}
           >
             {avatar ? (
               <Image
