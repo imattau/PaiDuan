@@ -11,7 +11,7 @@ vi.mock('@/lib/relayPool', () => ({
         opts.onevent({ pubkey: 'pk1' });
         opts.onevent({ pubkey: 'pk2' });
         setTimeout(() => opts.oneose && opts.oneose(), 0);
-      }, 0);
+      }, 5);
       return { close: vi.fn() };
     }),
   },
@@ -30,6 +30,11 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 
 function TestComponent() {
   const count = useFollowerCount('me');
+  return <div data-count={count}></div>;
+}
+
+function SwitchTestComponent({ pubkey }: { pubkey: string }) {
+  const count = useFollowerCount(pubkey);
   return <div data-count={count}></div>;
 }
 
@@ -60,5 +65,28 @@ describe('useFollowerCount', () => {
     await new Promise((r) => setTimeout(r, 10));
     expect(subscribeMany).toHaveBeenCalledTimes(1);
     expect(container2.querySelector('div')?.getAttribute('data-count')).toBe('2');
+  });
+
+  it('resets count and closes previous subscription on pubkey change', async () => {
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<SwitchTestComponent pubkey="me" />);
+    });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(container.querySelector('div')?.getAttribute('data-count')).toBe('2');
+    const firstClose = subscribeMany.mock.results[0].value.close;
+
+    await act(async () => {
+      root.render(<SwitchTestComponent pubkey="you" />);
+    });
+    expect(container.querySelector('div')?.getAttribute('data-count')).toBe('0');
+    await new Promise((r) => setTimeout(r, 10));
+    expect(container.querySelector('div')?.getAttribute('data-count')).toBe('2');
+    expect(firstClose).toHaveBeenCalled();
+
+    root.unmount();
+    const secondClose = subscribeMany.mock.results[1].value.close;
+    expect(secondClose).toHaveBeenCalled();
   });
 });
