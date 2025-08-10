@@ -181,17 +181,19 @@ export default function CreateVideoForm() {
         </button>
       </div>
       <div className="flex flex-1 flex-wrap gap-4 items-start">
-        <VideoPreview
-          preview={video.preview}
-          err={video.err}
-          progress={video.progress}
-          getRootProps={video.getRootProps}
-          getInputProps={video.getInputProps}
-          isDragActive={video.isDragActive}
-          videoRef={video.videoRef}
-          noVideoMessage={t('no_video_selected')}
-          dropMessage={t('drop_file_here')}
-        />
+        <div className="w-full sm:max-w-sm">
+          <VideoPreview
+            preview={video.preview}
+            err={video.err}
+            progress={video.progress}
+            getRootProps={video.getRootProps}
+            getInputProps={video.getInputProps}
+            isDragActive={video.isDragActive}
+            videoRef={video.videoRef}
+            noVideoMessage={t('no_video_selected')}
+            dropMessage={t('drop_file_here')}
+          />
+        </div>
         <div className="space-y-4">
           <MetadataForm
             register={register}
