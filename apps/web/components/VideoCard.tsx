@@ -58,6 +58,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [seekPreview, setSeekPreview] = useState(0);
   const adaptiveUrl = useAdaptiveSource(manifestUrl, playerRef);
   const [commentCount, setCommentCount] = useState(0);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [reposted, setReposted] = useState(false);
   const holdTimer = useRef<number>();
   const [{ opacity }, api] = useSpring(() => ({ opacity: 0 }));
@@ -302,13 +303,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </button>
         <button
           className="relative hover:text-accent-primary disabled:opacity-50 lg:hidden"
-          onClick={() =>
-            online &&
-            CommentDrawer({
-              videoId: eventId,
-              onCountChange: setCommentCount,
-            })
-          }
+          onClick={() => online && setCommentsOpen(true)}
           disabled={!online}
           title={!online ? 'Offline – reconnect to interact.' : undefined}
         >
@@ -317,6 +312,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             <span className="absolute -right-2 -top-2 text-xs text-primary">{commentCount}</span>
           )}
         </button>
+        <CommentDrawer
+          videoId={eventId}
+          onCountChange={setCommentCount}
+          open={commentsOpen}
+          onOpenChange={setCommentsOpen}
+          autoFocus={false}
+        />
         <ZapButton
           lightningAddress={lightningAddress}
           eventId={eventId}

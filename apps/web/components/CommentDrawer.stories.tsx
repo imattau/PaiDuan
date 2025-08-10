@@ -7,12 +7,16 @@ const meta = { title: 'Overlays/CommentDrawer' };
 export default meta;
 
 const Template = (layout: LayoutType) => {
-  const Story = () => (
-    <LayoutContext.Provider value={layout}>
-      <OverlayHost />
-      <button onClick={() => CommentDrawer({ videoId: 'video1' })}>Open</button>
-    </LayoutContext.Provider>
-  );
+  const Story = () => {
+    const [open, setOpen] = React.useState(false);
+    return (
+      <LayoutContext.Provider value={layout}>
+        <OverlayHost />
+        <button onClick={() => setOpen(true)}>Open</button>
+        <CommentDrawer videoId="video1" open={open} onOpenChange={setOpen} />
+      </LayoutContext.Provider>
+    );
+  };
   Story.displayName = 'CommentDrawerStory';
   return Story;
 };
