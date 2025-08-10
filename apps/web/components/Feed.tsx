@@ -92,7 +92,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
               <div
                 key={item.eventId ?? index}
                 data-index={index}
-                className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100vh-var(--bottom-nav-height,0))] w-full snap-start snap-always items-center justify-center"
+                className="flex h-[calc(100dvh-var(--bottom-nav-height,0))] sm:h-[calc(100vh-var(--bottom-nav-height,0))] w-full snap-start snap-always items-start justify-center lg:items-center"
                 ref={(el) => {
                   rowRefs.current[index] = el;
                   if (el) rowVirtualizer.measureElement(el);
