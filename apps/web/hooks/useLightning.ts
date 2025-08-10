@@ -81,6 +81,7 @@ export default function useLightning() {
       }
     } else {
       const collaboratorTotal = splits.reduce((sum, s) => sum + s.pct, 0);
+      if (collaboratorTotal > 95) throw new Error('Collaborator percentage exceeds 95%');
       const creatorPct = 95 - collaboratorTotal;
       for (const s of splits) {
         payouts.push({ lnaddr: s.lnaddr, pct: s.pct, sats: Math.floor((amount * s.pct) / 100) });
