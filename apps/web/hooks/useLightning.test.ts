@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('./useAuth', () => ({
   useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: { signEvent: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })) } } }),
@@ -13,11 +13,23 @@ vi.mock('@/lib/relayPool', () => ({
   },
 }));
 
+const fetchPayDataMock = vi.fn();
+const requestInvoiceMock = vi.fn();
+vi.mock('@/utils/lnurl', () => ({
+  fetchPayData: (...args: any[]) => fetchPayDataMock(...args),
+  requestInvoice: (...args: any[]) => requestInvoiceMock(...args),
+}));
+
 import useLightning from './useLightning';
+
+const originalWindow = global.window;
 
 describe('useLightning', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+  });
+  afterEach(() => {
+    global.window = originalWindow;
   });
 
   it('splits zap using event zap tags', async () => {
@@ -29,16 +41,14 @@ describe('useLightning', () => {
     });
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb3' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
-    // @ts-ignore
-    global.fetch = fetchMock;
+    fetchPayDataMock
+      .mockResolvedValueOnce({ callback: 'https://cb1' })
+      .mockResolvedValueOnce({ callback: 'https://cb2' })
+      .mockResolvedValueOnce({ callback: 'https://cb3' });
+    requestInvoiceMock
+      .mockResolvedValueOnce({ invoice: 'inv1' })
+      .mockResolvedValueOnce({ invoice: 'inv2' })
+      .mockResolvedValueOnce({ invoice: 'inv3' });
     const sendPaymentMock = vi.fn();
     // @ts-ignore
     global.window = {
@@ -56,7 +66,8 @@ describe('useLightning', () => {
 
     expect(poolGetMock).toHaveBeenCalledTimes(1);
     expect(invoices.length).toBe(3);
-    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
+    expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
   });
 
@@ -68,16 +79,14 @@ describe('useLightning', () => {
       });
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv1' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv2' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ callback: 'https://cb3' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ pr: 'inv3' }) });
-    // @ts-ignore
-    global.fetch = fetchMock;
+    fetchPayDataMock
+      .mockResolvedValueOnce({ callback: 'https://cb1' })
+      .mockResolvedValueOnce({ callback: 'https://cb2' })
+      .mockResolvedValueOnce({ callback: 'https://cb3' });
+    requestInvoiceMock
+      .mockResolvedValueOnce({ invoice: 'inv1' })
+      .mockResolvedValueOnce({ invoice: 'inv2' })
+      .mockResolvedValueOnce({ invoice: 'inv3' });
     const sendPaymentMock = vi.fn();
     // @ts-ignore
     global.window = {
@@ -95,7 +104,8 @@ describe('useLightning', () => {
 
     expect(poolGetMock).toHaveBeenCalledTimes(2);
     expect(invoices.length).toBe(3);
-    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
+    expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
   });
 });

@@ -25,7 +25,8 @@
     "prettier": "^3.2.5",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0",
-    "vitest": "^1.5.0"
+    "vitest": "^1.5.0",
+    "axios": "^1.11.0"
   },
   "dependencies": {
     "next-pwa": "^5.6.0",

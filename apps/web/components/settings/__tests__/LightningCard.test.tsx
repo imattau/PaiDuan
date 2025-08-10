@@ -5,6 +5,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import QRCode from 'qrcode';
+import { AxiosError } from 'axios';
+import { sanitizeAxiosError } from '@/utils/sanitizeAxiosError';
 import LightningCard from '../LightningCard';
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -80,7 +82,9 @@ describe('LightningCard', () => {
   });
 
   it('shows error for invalid wallet', async () => {
-    fetchPayDataMock.mockRejectedValue(new Error('bad'));
+    fetchPayDataMock.mockRejectedValue(
+      sanitizeAxiosError(new AxiosError('bad')),
+    );
     render(<LightningCard />);
     fireEvent.click(screen.getByText('Add wallet'));
     fireEvent.change(screen.getByPlaceholderText('Label'), {
