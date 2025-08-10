@@ -313,35 +313,77 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </button>
       )}
 
-      {errorMessage && <VideoFallback posterUrl={posterUrl} message={errorMessage} />}
+        {errorMessage && <VideoFallback posterUrl={posterUrl} message={errorMessage} />}
 
-      {showMenu && (
-        <div className="absolute right-4 top-4">
-          <button onClick={() => setMenuOpen((o) => !o)} className="hover:text-accent-primary">
-            <MoreVertical className="icon" />
-          </button>
-          {menuOpen && (
-            <div className="absolute right-0 mt-2 w-24 rounded bg-background-primary p-1 shadow">
+        <div className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <Link
+              href={`/p/${pubkey}`}
+              className="flex items-center space-x-3"
+              prefetch={false}
+              onMouseEnter={() => {
+                router.prefetch(`/p/${pubkey}`);
+                prefetchProfile(pubkey);
+              }}
+            >
+              {avatar ? (
+                <Image
+                  src={avatar}
+                  alt={displayName}
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 rounded-full object-cover"
+                  unoptimized
+                  onError={(e) => (e.currentTarget.src = '/avatar.svg')}
+                  crossOrigin="anonymous"
+                />
+              ) : (
+                <Skeleton className="h-10 w-10 rounded-full" />
+              )}
+              <div className="username">@{displayName}</div>
+            </Link>
+            {!isFollowing && (
               <button
-                className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
-                onClick={() => {
-                  setMenuOpen(false);
-                  ReportModal({ targetId: eventId, targetKind: 'video' });
-                }}
+                onClick={() => follow(pubkey)}
+                className="mt-2 rounded bg-accent-primary px-2 py-1 text-sm text-white"
               >
-                Report
+                Follow
               </button>
+            )}
+            <div className="meta-info mt-1">{caption}</div>
+          </div>
+          {showMenu && (
+            <div className="relative ml-2">
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                className="hover:text-accent-primary"
+                aria-label="More options"
+              >
+                <MoreVertical className="icon" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 mt-2 w-24 rounded bg-background-primary p-1 shadow">
+                  <button
+                    className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-text-primary/10"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      ReportModal({ targetId: eventId, targetKind: 'video' });
+                    }}
+                  >
+                    Report
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
 
-      <div className="absolute right-4 bottom-24 z-10 flex flex-col items-center space-y-4 lg:right-6 lg:bottom-32 lg:space-y-6">
-        <button
-          type="button"
-          className="hover:text-accent-primary"
-          onClick={() => {
-            const next = !muted;
+        <div className="absolute right-4 bottom-24 z-10 flex flex-col items-center space-y-4 lg:right-6 lg:bottom-32 lg:space-y-6">
+          <button
+            type="button"
+            className="hover:text-accent-primary"
+            onClick={() => {
+              const next = !muted;
             setMuted(next);
             const player = getPlayer();
             if (player) player.muted = next;
@@ -381,42 +423,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </button>
       </div>
 
-      <div className="absolute bottom-0 left-0 w-full p-4">
-        <Link
-          href={`/p/${pubkey}`}
-          className="flex items-center space-x-3"
-          prefetch={false}
-          onMouseEnter={() => {
-            router.prefetch(`/p/${pubkey}`);
-            prefetchProfile(pubkey);
-          }}
-        >
-          {avatar ? (
-            <Image
-              src={avatar}
-              alt={displayName}
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-full object-cover"
-              unoptimized
-              onError={(e) => (e.currentTarget.src = '/avatar.svg')}
-              crossOrigin="anonymous"
-            />
-          ) : (
-            <Skeleton className="h-10 w-10 rounded-full" />
-          )}
-          <div className="username">@{displayName}</div>
-        </Link>
-        {!isFollowing && (
-          <button
-            onClick={() => follow(pubkey)}
-            className="mt-2 rounded bg-accent-primary px-2 py-1 text-sm text-white"
-          >
-            Follow
-          </button>
-        )}
-        <div className="meta-info mt-1">{caption}</div>
-      </div>
 
       <animated.div
         style={{ opacity }}
