@@ -202,6 +202,7 @@ describe('CreateVideoForm', () => {
     expect(lightningInput.value).toBe('alice@test');
   });
 
+
   it('posts video when publish is clicked', async () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
     mockTrim.mockImplementation((_f: any, opts: any, onProgress: any) => {
