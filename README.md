@@ -180,6 +180,12 @@ notifications and follow data. Preferences are saved in `localStorage` and
 applied across all pages. A sun/moon icon in the toolbar also toggles light and
 dark modes without leaving the feed.
 
+Theming is driven by CSS variables declared in `apps/web/styles/globals.css`.
+`next-themes` manages the `data-theme` attribute and the Theme Agent's
+`useThemeAgent()` hook keeps DOM attributes in sync. Chakra UI and Tailwind map
+their colour tokens to these variables, making CSS variables plus
+`next-themes` the single source of truth.
+
 ## Internationalisation
 
 The web app uses [`next-intl`](https://next-intl-docs.vercel.app/) with explicit
