@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import { useLayout } from '@/context/LayoutContext';
 
 export function getCenteredVirtualItem(
   virtualItems: VirtualItem[],
@@ -10,6 +11,15 @@ export function getCenteredVirtualItem(
   const center = scrollOffset + viewportHeight / 2;
   return virtualItems.find((item) => item.start <= center && item.end >= center);
 }
+export const estimateFeedItemSize = () => {
+  if (typeof window === 'undefined') return 0;
+  const nav =
+    parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-height') || '0',
+      10,
+    ) || 0;
+  return window.innerHeight - nav;
+};
 import { VideoCard, VideoCardProps } from './VideoCard';
 import EmptyState from './EmptyState';
 import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
@@ -35,21 +45,18 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const { state } = useAuth();
   const viewerProfile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
   const hasWallet = !!viewerProfile?.wallets?.length;
+  const layout = useLayout();
 
   const rowVirtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => {
-      if (typeof window === 'undefined') return 0;
-      const nav =
-        parseInt(
-          getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-height') || '0',
-          10,
-        ) || 0;
-      return window.innerHeight - nav;
-    },
+    estimateSize: estimateFeedItemSize,
     overscan: 1,
   });
+
+  useEffect(() => {
+    rowVirtualizer.measure();
+  }, [layout, rowVirtualizer]);
 
   const virtualItems = rowVirtualizer.getVirtualItems();
 
