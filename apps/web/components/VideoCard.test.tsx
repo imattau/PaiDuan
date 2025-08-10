@@ -34,8 +34,9 @@ const loadSource = vi.fn();
 const play = vi.fn(() => Promise.resolve());
 const pause = vi.fn();
 const onStateChange = vi.fn(() => () => {});
+const onError = vi.fn(() => () => {});
 vi.mock('@/agents/playback', () => ({
-  playback: { loadSource, play, pause, onStateChange },
+  playback: { loadSource, play, pause, onStateChange, onError },
 }));
 
 const { default: VideoCard } = await import('./VideoCard');

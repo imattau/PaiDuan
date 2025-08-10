@@ -1,8 +1,9 @@
-import Hls from 'hls.js';
+import Hls, { ErrorData } from 'hls.js';
 
 export default function initHls(
   manifestUrl: string | undefined,
   video: HTMLVideoElement | null,
+  onError?: (data: ErrorData) => void,
 ): Hls | null {
   if (!manifestUrl || !video) return null;
 
@@ -21,6 +22,7 @@ export default function initHls(
             break;
           default:
             hls.destroy();
+            onError?.(data);
             break;
         }
       }
