@@ -13,21 +13,23 @@ function getLayout(width: number): LayoutType {
 export const LayoutContext = createContext<LayoutType | undefined>(undefined);
 
 export function LayoutProvider({ children }: { children: React.ReactNode }) {
-  const [layout, setLayout] = useState<LayoutType>(() => {
-    if (typeof window === 'undefined') return 'mobile';
-    const stored = window.localStorage.getItem('layout') as LayoutType | null;
-    return stored ?? getLayout(window.innerWidth);
-  });
+  // Start with a consistent value on server and client to avoid hydration mismatch
+  const [layout, setLayout] = useState<LayoutType>('mobile');
 
   useEffect(() => {
-    const update = () => {
+    const stored = window.localStorage.getItem('layout') as LayoutType | null;
+    const initial = stored ?? getLayout(window.innerWidth);
+    setLayout(initial);
+    window.localStorage.setItem('layout', initial);
+
+    const handleResize = () => {
       const value = getLayout(window.innerWidth);
       setLayout(value);
       window.localStorage.setItem('layout', value);
     };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return <LayoutContext.Provider value={layout}>{children}</LayoutContext.Provider>;
