@@ -16,6 +16,7 @@
   "webcodecs_unavailable": "此浏览器不支持 WebCodecs。",
   "conversion_failed": "转换失败。",
   "process_video_first": "请先处理视频",
+  "video_must_be_portrait": "视频必须为竖屏（至少 9:16）",
   "caption_placeholder": "标题",
   "topics_placeholder": "主题标签（用逗号分隔）",
   "lightning_address": "Lightning 地址",
