@@ -57,6 +57,18 @@ export default function BottomNav() {
       document.removeEventListener('visibilitychange', handlePrefetch);
     };
   }, [router, navigation]);
+
+  useEffect(() => {
+    if (layout === 'desktop') {
+      document.documentElement.style.removeProperty('--bottom-nav-height');
+      return;
+    }
+    const height = 56;
+    document.documentElement.style.setProperty('--bottom-nav-height', `${height}px`);
+    return () => {
+      document.documentElement.style.removeProperty('--bottom-nav-height');
+    };
+  }, [layout]);
   if (layout === 'desktop') return null;
 
   return (
@@ -69,6 +81,7 @@ export default function BottomNav() {
       borderTop="1px"
       borderColor={borderColor}
       bg={bg}
+      h="14"
     >
       {navigation.map(({ path, label, icon: Icon }) => {
         const active = isRouteActive(path, pathname, searchParams, locale);
