@@ -70,20 +70,67 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const isFollowing = following.includes(pubkey);
   const { online } = useNetworkState();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [videoError, setVideoError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
 
   useEffect(() => {
-    if (!videoError) return;
+    if (!errorMessage) return;
     const player = playerRef.current;
     const err =
       player && typeof (player as any).error === 'function'
         ? (player as any).error()
         : (player as any)?.error;
     if (err) console.error('Video playback error:', err);
-  }, [videoError]);
+  }, [errorMessage]);
+
+  const [source, setSource] = useState<{ src: string; type: string }>();
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkSources = async () => {
+      const videoEl = document.createElement('video');
+      setErrorMessage(null);
+      // Try adaptive/HLS source first
+      if (adaptiveUrl) {
+        try {
+          const res = await fetch(adaptiveUrl, { method: 'HEAD' });
+          const type = res.headers.get('content-type')?.toLowerCase() || '';
+          if (type.includes('application/x-mpegurl') || type.includes('application/vnd.apple.mpegurl')) {
+            if (videoEl.canPlayType('application/x-mpegURL')) {
+              await import('@videojs/http-streaming');
+              if (!cancelled) {
+                setSource({ src: adaptiveUrl, type: 'application/x-mpegURL' });
+                return;
+              }
+            }
+          }
+        } catch {
+          /* ignore and fallback */
+        }
+      }
+      // Fallback to MP4
+      try {
+        const res = await fetch(videoUrl, { method: 'HEAD' });
+        const type = res.headers.get('content-type')?.toLowerCase() || '';
+        if (type.includes('video/mp4') && videoEl.canPlayType('video/mp4')) {
+          if (!cancelled) {
+            setSource({ src: videoUrl, type: 'video/mp4' });
+            return;
+          }
+        } else if (!cancelled) {
+          setErrorMessage('Unsupported video format');
+        }
+      } catch {
+        if (!cancelled) setErrorMessage('Video unavailable');
+      }
+    };
+    checkSources();
+    return () => {
+      cancelled = true;
+    };
+  }, [adaptiveUrl, videoUrl]);
 
   useEffect(() => {
     if (inView) {
@@ -184,9 +231,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     }
   };
 
-  const source = adaptiveUrl ? adaptiveUrl : videoUrl;
-  const mime = adaptiveUrl ? 'application/x-mpegURL' : 'video/mp4';
-
   return (
     <motion.div
       ref={(el) => {
@@ -203,34 +247,41 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       onPointerLeave={handlePointerUp}
       {...bind()}
     >
-      <VideoJsPlayer
-        className="video-js pointer-events-none absolute inset-0 h-full w-full object-cover"
-        sources={[{ src: source, type: mime }]}
-        poster={posterUrl}
-        controls={false}
-        playsinline
-        loop
-        onReady={(player) => {
-          playerRef.current = player;
-          if (typeof (player as any).muted === 'function') {
-            (player as any).muted(true);
-          } else {
-            (player as any).muted = true;
-          }
-          if (typeof (player as any).play === 'function') {
-            (player as any).play();
-          }
-        }}
-        onError={() => setVideoError(true)}
-      />
-
-      {videoError && (
-        <img
-          src={posterUrl || '/offline.jpg'}
-          alt="Video unavailable"
-          className="absolute inset-0 h-full w-full object-cover"
-          onError={(e) => (e.currentTarget.src = '/offline.jpg')}
+      {source && !errorMessage && (
+        <VideoJsPlayer
+          className="video-js pointer-events-none absolute inset-0 h-full w-full object-cover"
+          sources={[source]}
+          poster={posterUrl}
+          controls={false}
+          playsinline
+          loop
+          onReady={(player) => {
+            playerRef.current = player;
+            if (typeof (player as any).muted === 'function') {
+              (player as any).muted(true);
+            } else {
+              (player as any).muted = true;
+            }
+            if (typeof (player as any).play === 'function') {
+              (player as any).play();
+            }
+          }}
+          onError={() => setErrorMessage('Video playback error')}
         />
+      )}
+
+      {errorMessage && (
+        <>
+          <img
+            src={posterUrl || '/offline.jpg'}
+            alt="Video unavailable"
+            className="absolute inset-0 h-full w-full object-cover"
+            onError={(e) => (e.currentTarget.src = '/offline.jpg')}
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-4 text-center">
+            {errorMessage}
+          </div>
+        </>
       )}
 
       {showMenu && (
