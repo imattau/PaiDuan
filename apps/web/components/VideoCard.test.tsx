@@ -17,7 +17,8 @@ Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
 });
 
 vi.mock('./ZapButton', () => ({ default: () => <div /> }));
-vi.mock('./CommentDrawer', () => ({ default: () => <div /> }));
+const mockCommentDrawer = vi.fn((props: any) => <div data-open={props.open} />);
+vi.mock('./CommentDrawer', () => ({ default: mockCommentDrawer }));
 vi.mock('./ReportModal', () => ({ default: () => null }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ prefetch: () => {} }) }));
 
@@ -40,6 +41,7 @@ const { default: VideoCard } = await import('./VideoCard');
 
 afterEach(() => {
   cleanup();
+  mockCommentDrawer.mockClear();
 });
 
 describe('VideoCard', () => {
@@ -74,5 +76,23 @@ describe('VideoCard', () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: /unmute/i }));
     await screen.findByRole('button', { name: /mute/i });
+  });
+
+  it('shows action bar with z-index and opens comments', async () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      lightningAddress: 'la',
+      pubkey: 'pk',
+    };
+    render(<VideoCard {...props} />);
+    const volumeButton = await screen.findByRole('button', { name: /unmute/i });
+    expect(volumeButton.parentElement?.className).toMatch(/z-10/);
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText(/comments/i));
+    const lastCall = mockCommentDrawer.mock.calls.at(-1)?.[0];
+    expect(lastCall.open).toBe(true);
   });
 });
