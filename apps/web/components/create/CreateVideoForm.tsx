@@ -192,6 +192,7 @@ export default function CreateVideoForm() {
             videoRef={video.videoRef}
             noVideoMessage={t('no_video_selected')}
             dropMessage={t('drop_file_here')}
+            dimensions={video.dimensions}
           />
         </div>
         <div className="space-y-4">

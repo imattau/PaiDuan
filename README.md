@@ -84,10 +84,10 @@ the browser is not supported—prepare clips ahead of time:
 
 - Accepted formats: mp4 and webm
 - Maximum length: 5 minutes
-- Required aspect ratio: 9:16
+- Any aspect ratio supported
 - Trimming performed via WebCodecs
 
-1. Select a 9:16 clip (MP4/WebM, ≤5 min)
+1. Select a clip (MP4/WebM, ≤5 min)
 2. Trim the clip in the browser and capture a poster frame
 3. Add a caption, upload the assets, and publish a NIP‑71 event (kind 21 for normal videos, kind 22 for short clips)
 

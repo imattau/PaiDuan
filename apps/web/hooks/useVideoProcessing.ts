@@ -54,16 +54,6 @@ export function useVideoProcessing(t: (key: string) => string) {
         URL.revokeObjectURL(url);
         video.remove();
 
-        const ratio = width / height;
-        const targetRatio = 9 / 16;
-        if (Math.abs(ratio - targetRatio) > 0.01) {
-          setErr(t('video_must_be_916'));
-          setFile(null);
-          updatePreview(null);
-          setProgress(0);
-          return;
-        }
-
         let blob: Blob | null = null;
         try {
           blob = await trimVideoWebCodecs(
