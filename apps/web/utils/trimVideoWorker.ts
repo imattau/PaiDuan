@@ -38,6 +38,44 @@ function detectContainer(blobType?: string): 'mp4' | 'webm' | null {
   return null;
 }
 
+function buildAvcDescription(track: any, container: 'mp4' | 'webm'): Uint8Array | undefined {
+  if (container === 'mp4') {
+    const avcC = track?.avcC;
+    if (!avcC) return undefined;
+    const sps = avcC.SPS || [];
+    const pps = avcC.PPS || [];
+    let size = 7;
+    for (const s of sps) size += 2 + s.length;
+    for (const p of pps) size += 2 + p.length;
+    const out = new Uint8Array(size);
+    let o = 0;
+    out[o++] = avcC.configurationVersion;
+    out[o++] = avcC.AVCProfileIndication;
+    out[o++] = avcC.profile_compatibility;
+    out[o++] = avcC.AVCLevelIndication;
+    out[o++] = (avcC.lengthSizeMinusOne & 0x3) | 0xfc;
+    out[o++] = (sps.length & 0x1f) | 0xe0;
+    for (const s of sps) {
+      out[o++] = (s.length >> 8) & 0xff;
+      out[o++] = s.length & 0xff;
+      out.set(new Uint8Array(Object.values(s.data)), o);
+      o += s.length;
+    }
+    out[o++] = pps.length;
+    for (const p of pps) {
+      out[o++] = (p.length >> 8) & 0xff;
+      out[o++] = p.length & 0xff;
+      out.set(new Uint8Array(Object.values(p.data)), o);
+      o += p.length;
+    }
+    return out;
+  } else {
+    const cp = track?.codecPrivate;
+    if (!cp) return undefined;
+    return cp instanceof Uint8Array ? cp : new Uint8Array(cp);
+  }
+}
+
 let encoder: any;
 let decoder: any;
 
@@ -59,7 +97,7 @@ interface TrimOptions {
   bitrate?: number;
 }
 
-async function trim(
+export async function trim(
   blob: Blob,
   { start, end, width, height, bitrate }: TrimOptions,
   onProgress: (progress: number) => void = () => {},
@@ -106,15 +144,20 @@ async function trim(
       demuxError = err;
     };
     mp4box.onReady = (info: any) => {
-      track = info.videoTracks?.[0];
-      if (track) {
-        mp4box.setExtractionOptions(track.id);
+      const t = info.videoTracks?.[0];
+      if (t) {
+        track = mp4box.getTrackById(t.id);
+        track.codec = t.codec;
+        mp4box.setExtractionOptions(t.id);
         mp4box.start();
       }
     };
     mp4box.onSamples = (_id: number, _user: any, samps: any[]) => {
       if (!track) return;
       for (const s of samps) {
+        if (!track.avcC && s.description?.avcC) {
+          track.avcC = s.description.avcC;
+        }
         samples.push({
           data: s.data,
           timestamp: (s.dts / track.timescale) * 1_000_000,
@@ -142,9 +185,14 @@ async function trim(
       `Unsupported video codec: ${track.codecID || track.codec || blob.type || 'unknown'}`,
     );
   }
+  const description = codec.startsWith('avc1')
+    ? buildAvcDescription(track, container)
+    : undefined;
+  const config: any = { codec };
+  if (description) config.description = description;
   let support;
   try {
-    support = await (self as any).VideoDecoder.isConfigSupported({ codec });
+    support = await (self as any).VideoDecoder.isConfigSupported(config);
   } catch (err: any) {
     fail('permission', err?.message ?? String(err));
   }
@@ -219,7 +267,7 @@ async function trim(
     },
   });
 
-  decoder.configure({ codec });
+  decoder.configure(config);
 
   const firstKey = samples.findIndex((s) => s.type === 'key');
   if (firstKey < 0) {
@@ -263,6 +311,4 @@ async function trim(
 }
 
 Comlink.expose({ trim });
-
-export {};
 
