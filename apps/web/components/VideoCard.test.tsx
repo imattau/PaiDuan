@@ -88,6 +88,24 @@ describe('VideoCard', () => {
     expect(() => unmount()).not.toThrow();
   });
 
+  it('fills the container and covers it without blank space', () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const { container } = render(<VideoCard {...props} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    expect(video.className).toContain('object-cover');
+    const wrapper = container.firstChild as HTMLElement;
+    const className = wrapper.getAttribute('class') || '';
+    expect(className).toContain('w-full');
+    expect(className).not.toContain('w-auto');
+  });
+
   it('renders comment count badge and updates when count changes', () => {
     const props = {
       videoUrl: 'video.mp4',
