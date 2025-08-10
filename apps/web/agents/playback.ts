@@ -18,12 +18,57 @@ const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24h
 type ProgressEntry = { currentTime: number; timestamp: number };
 type ProgressMap = Record<string, ProgressEntry>;
 
+function loadStore(): ProgressMap {
+  if (typeof sessionStorage === 'undefined') return {};
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as ProgressMap) : {};
+  } catch {
+    return {};
   }
-  return entry.currentTime;
 }
-    
+
+function saveStore(store: ProgressMap) {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    if (Object.keys(store).length === 0) {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } else {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    }
+  } catch {
+    // ignore
   }
+}
+
+function loadProgress(eventId: string): number | null {
+  const store = loadStore();
+  const now = Date.now();
+  let changed = false;
+  for (const [id, entry] of Object.entries(store)) {
+    if (now - entry.timestamp > EXPIRY_MS) {
+      delete store[id];
+      changed = true;
+    }
+  }
+  if (changed) saveStore(store);
+  const entry = store[eventId];
+  return entry ? entry.currentTime : null;
+}
+
+function saveProgress() {
+  if (!video || !currentEventId) return;
+  const store = loadStore();
+  store[currentEventId] = { currentTime: video.currentTime, timestamp: Date.now() };
   saveStore(store);
+}
+
+function clearProgress(eventId: string) {
+  const store = loadStore();
+  if (eventId in store) {
+    delete store[eventId];
+    saveStore(store);
+  }
 }
 
 function emit(state: PlaybackState) {
