@@ -31,6 +31,22 @@ function ensureWallets(content: any) {
   }
 }
 
+async function loadPicture(url: string) {
+  let target = url;
+  if (typeof window !== 'undefined') {
+    try {
+      const abs = new URL(url, location.href);
+      if (abs.origin !== location.origin) {
+        target = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  const cached = await getCachedImage(target);
+  return cached || (await cacheImage(target));
+}
+
 async function fetchProfile(pubkey: string): Promise<Profile> {
   const events = await getEventsByPubkey(pubkey);
   const latest = events
@@ -41,8 +57,7 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
       const content = JSON.parse(latest.content);
       ensureWallets(content);
       if (content.picture) {
-        const cached = await getCachedImage(content.picture);
-        const img = cached || (await cacheImage(content.picture));
+        const img = await loadPicture(content.picture);
         content.picture = img.url;
         content.pictureRevoke = img.revoke;
       }
@@ -62,8 +77,7 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
             const content = JSON.parse(ev.content);
             ensureWallets(content);
             if (content.picture) {
-              const cached = await getCachedImage(content.picture);
-              const img = cached || (await cacheImage(content.picture));
+              const img = await loadPicture(content.picture);
               content.picture = img.url;
               content.pictureRevoke = img.revoke;
             }

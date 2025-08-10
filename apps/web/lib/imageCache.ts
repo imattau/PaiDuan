@@ -25,9 +25,15 @@ export async function cacheImage(
   const cache = await openCache();
   if (!cache) return { url, revoke: () => {} };
   try {
-    const { hostname } = new URL(url);
-    if (TRUSTED_HOSTS.length && !TRUSTED_HOSTS.includes(hostname))
+    const base = typeof location !== 'undefined' ? location.href : undefined;
+    const { hostname, origin } = new URL(url, base);
+    if (
+      typeof location !== 'undefined' &&
+      origin !== location.origin &&
+      !TRUSTED_HOSTS.includes(hostname)
+    ) {
       return { url, revoke: () => {} };
+    }
 
     const res = await fetch(url, { mode: 'cors' });
     if (!res.ok || res.type !== 'basic') return { url, revoke: () => {} };
