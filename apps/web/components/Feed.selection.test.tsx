@@ -7,15 +7,14 @@ import { render, waitFor } from '@testing-library/react';
 (globalThis as any).React = React;
 
 const scrollToIndex = vi.fn();
-vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: () => ({
-    getVirtualItems: () => [],
-    scrollToIndex,
-    measure: vi.fn(),
-    getTotalSize: vi.fn(() => 0),
-    scrollRect: {},
-    scrollOffset: 0,
-    measureElement: vi.fn(),
+vi.mock('react-virtuoso', () => ({
+  Virtuoso: React.forwardRef((props: any, ref: any) => {
+    if (typeof ref === 'function') {
+      ref({ scrollToIndex });
+    } else if (ref) {
+      ref.current = { scrollToIndex };
+    }
+    return <div {...props} />;
   }),
 }));
 
@@ -54,7 +53,7 @@ describe('Feed selection persistence', () => {
 
     render(<Feed items={items} />);
     await waitFor(() => {
-      expect(scrollToIndex).toHaveBeenCalledWith(1);
+      expect(scrollToIndex).toHaveBeenCalledWith({ index: 1 });
     });
   });
 });
