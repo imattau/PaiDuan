@@ -23,6 +23,15 @@ describe('detectCodec', () => {
     expect(detectCodec(undefined, 'avc1.640028')).toBe('avc1.640028');
   });
 
+  it('extracts codec from blob type parameters', () => {
+    expect(
+      detectCodec('video/mp4; codecs="avc1.4d401e, mp4a.40.2"')
+    ).toBe('avc1.4d401e');
+    expect(
+      detectCodec('video/mp4; codecs="mp4a.40.2,avc1"')
+    ).toBe('avc1');
+  });
+
   it('returns null for unknown codecs', () => {
     expect(detectCodec(undefined, 'unknown')).toBeNull();
   });
