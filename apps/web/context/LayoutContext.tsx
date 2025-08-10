@@ -4,8 +4,10 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 export type LayoutType = 'desktop' | 'tablet' | 'mobile';
 
-function getLayout(width: number): LayoutType {
-  if (width >= 1024) return 'desktop';
+function getLayout(width: number, height: number): LayoutType {
+  const isPortrait = height >= width;
+  const desktopWidth = isPortrait ? 1280 : 1024;
+  if (width >= desktopWidth) return 'desktop';
   if (width >= 640) return 'tablet';
   return 'mobile';
 }
@@ -35,18 +37,23 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    const initial = readStored() ?? getLayout(window.innerWidth);
+    const initial = readStored() ?? getLayout(window.innerWidth, window.innerHeight);
     setLayout(initial);
     writeStored(initial);
 
     const handleResize = () => {
-      const value = getLayout(window.innerWidth);
+      const value = getLayout(window.innerWidth, window.innerHeight);
       setLayout(value);
       writeStored(value);
     };
 
+    const mql = window.matchMedia('(orientation: portrait)');
+    mql.addEventListener('change', handleResize);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      mql.removeEventListener('change', handleResize);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   return <LayoutContext.Provider value={layout}>{children}</LayoutContext.Provider>;
