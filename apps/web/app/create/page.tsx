@@ -1,4 +1,5 @@
-import { NextIntlClientProvider, getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { locales } from '@/utils/locales';
 import CreatePageClient from './CreatePageClient';
