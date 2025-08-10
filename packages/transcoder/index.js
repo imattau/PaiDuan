@@ -2,7 +2,6 @@
 import { mkdirSync, writeFileSync, createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { randomUUID } from 'crypto';
-import Gst from 'gstreamer-superficial';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -23,6 +22,7 @@ export class Transcoder {
   }
 
   async transcodeVariant(inputPath, height, file) {
+    const { default: Gst } = await import(/* @vite-ignore */ 'gstreamer-superficial');
     return new Promise((resolve, reject) => {
       const pipelineStr =
         `filesrc location="${inputPath}" ! decodebin ! videoconvert ! videoscale ! ` +
@@ -59,12 +59,20 @@ export class Transcoder {
     mkdirSync(outDir, { recursive: true });
 
     const inputPath = await this.downloadSource(srcUrl, outDir);
+
+    const results = await Promise.all(
+      this.heights.map((h) => {
+        const file = path.join(outDir, `${h}.webm`);
+        mkdirSync(path.dirname(file), { recursive: true });
+        return this.transcodeVariant(inputPath, h, file).then(() => [h, file]);
+      }),
+    );
+
     const variants = {};
-    for (const h of this.heights) {
-      const file = path.join(outDir, `${h}.webm`);
-      await this.transcodeVariant(inputPath, h, file);
+    for (const [h, file] of results) {
       variants[h] = file;
     }
+
     this.writeManifest(variants, outDir);
     return outDir;
   }
