@@ -10,7 +10,6 @@
   "license_required": "需要许可",
   "split_total_max": "总分成百分比必须小于等于 95%",
   "posted_to_nostr": "已发布到 Nostr",
-  "video_must_be_916": "视频必须是 9:16 纵横比。",
   "cannot_trim_no_keyframe": "无法剪辑此视频，因为它缺少关键帧。",
   "failed_read_video": "读取视频文件失败。",
   "video_processing_failed": "视频处理失败。请放松浏览器防护或重试。",
