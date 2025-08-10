@@ -4,8 +4,6 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const enableIsolation = process.env.ENABLE_ISOLATION !== 'false';
-
 const baseConfig = {
   experimental: { esmExternals: 'loose' },
   reactStrictMode: true,
@@ -16,6 +14,15 @@ const baseConfig = {
   },
   async headers() {
     const headers = [];
+
+    // Enable cross-origin isolation only when explicitly allowed.
+    // In development, isolation stays off unless ENABLE_ISOLATION=true.
+    // In production, it is on by default but can be disabled via
+    // ENABLE_ISOLATION=false.
+    const enableIsolation =
+      process.env.NODE_ENV === 'production'
+        ? process.env.ENABLE_ISOLATION !== 'false'
+        : process.env.ENABLE_ISOLATION === 'true';
 
     if (enableIsolation) {
       headers.push({
