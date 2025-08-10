@@ -3,6 +3,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { VideoPlayer as VideoJsPlayer } from '@videojs-player/react';
 import type videojs from 'video.js';
 import 'video.js/dist/video-js.css';
+// Register VHS (Video.js HTTP Streaming) before any player is created so HLS
+// playback works and avoids MEDIA_ERR_SRC_NOT_SUPPORTED errors.
+import '@videojs/http-streaming';
 import { MessageCircle, Repeat2, Volume2, VolumeX, MoreVertical } from 'lucide-react';
 import ZapButton from './ZapButton';
 import { useGesture, useSpring, animated } from '@paiduan/ui';
@@ -122,13 +125,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           const canPlayHls = videoEl.canPlayType('application/x-mpegURL');
           console.debug('checkSources HLS', { type, canPlayHls });
           if (type.includes('application/x-mpegurl') || type.includes('application/vnd.apple.mpegurl')) {
-            if (canPlayHls) {
-              // load HTTP streaming plugin before player creation
-              await import('@videojs/http-streaming');
-              if (!cancelled) {
-                setSource({ src: adaptiveUrl, type: 'application/x-mpegURL' });
-                return;
-              }
+            if (canPlayHls && !cancelled) {
+              setSource({ src: adaptiveUrl, type: 'application/x-mpegURL' });
+              return;
             }
           }
         } catch {
