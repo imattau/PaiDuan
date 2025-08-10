@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import { SimplePool } from 'nostr-tools/pool';
