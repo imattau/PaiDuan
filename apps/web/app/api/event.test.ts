@@ -1,11 +1,15 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { AxiosError } from 'axios';
 import { sanitizeAxiosError } from '@/utils/sanitizeAxiosError';
-import handler from './event';
-import { createRes } from './test-utils';
+import { NextRequest } from 'next/server';
+import { POST } from './event/route';
 
 function createReq(body: any = {}, headers: any = {}) {
-  return { method: 'POST', body, headers } as any;
+  return new NextRequest('http://localhost/api/event', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers,
+  });
 }
 
 describe('event API', () => {
@@ -19,10 +23,8 @@ describe('event API', () => {
   it('returns 204 when analytics disabled', async () => {
     delete process.env.NEXT_PUBLIC_ANALYTICS;
     const req = createReq();
-    const res = createRes();
-    await handler(req, res);
-    expect(res.statusCode).toBe(204);
-    expect(res.endCalled).toBe(true);
+    const res = await POST(req);
+    expect(res.status).toBe(204);
   });
 
   it('still ends when fetch fails', async () => {
@@ -31,9 +33,8 @@ describe('event API', () => {
       .spyOn(global, 'fetch')
       .mockRejectedValue(sanitizeAxiosError(new AxiosError('network')));
     const req = createReq({ event: 'test' }, { 'user-agent': 'ua', 'x-forwarded-for': 'ip' });
-    const res = createRes();
-    await handler(req, res);
+    const res = await POST(req);
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(res.statusCode).toBe(204);
+    expect(res.status).toBe(204);
   });
 });
