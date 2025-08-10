@@ -7,17 +7,22 @@ import { render, waitFor } from '@testing-library/react';
 (globalThis as any).React = React;
 
 const scrollToIndex = vi.fn();
-vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: () => ({
-    getVirtualItems: () => [],
-    scrollToIndex,
-    measure: vi.fn(),
-    getTotalSize: vi.fn(() => 0),
-    scrollRect: {},
-    scrollOffset: 0,
-    measureElement: vi.fn(),
-  }),
-}));
+vi.mock('react-virtuoso', () => {
+  const React = require('react');
+  return {
+    Virtuoso: React.forwardRef(({ totalCount, itemContent, rangeChanged, ...props }: any, ref) => {
+      React.useImperativeHandle(ref, () => ({ scrollToIndex }));
+      React.useEffect(() => {
+        rangeChanged?.({ startIndex: 0, endIndex: totalCount - 1 });
+      }, [rangeChanged, totalCount]);
+      return (
+        <div {...props}>
+          {Array.from({ length: totalCount }).map((_, i) => itemContent?.(i))}
+        </div>
+      );
+    }),
+  };
+});
 
 vi.mock('./VideoCard', () => ({
   VideoCard: (props: any) => <div data-video={props.eventId} />, // simple stub
@@ -31,7 +36,6 @@ vi.mock('./ZapButton', () => ({ default: () => null }));
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ state: { status: 'ready', pubkey: 'pk' } }) }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ wallets: [] }) }));
 vi.mock('@/context/LayoutContext', () => ({
-  useLayout: () => 'mobile',
   LayoutProvider: ({ children }: any) => <div>{children}</div>,
 }));
 
@@ -54,7 +58,7 @@ describe('Feed selection persistence', () => {
 
     render(<Feed items={items} />);
     await waitFor(() => {
-      expect(scrollToIndex).toHaveBeenCalledWith(1);
+      expect(scrollToIndex).toHaveBeenCalledWith({ index: 1 });
     });
   });
 });

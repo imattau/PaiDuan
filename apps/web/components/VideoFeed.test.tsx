@@ -1,5 +1,6 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+vi.mock('react-virtuoso', () => ({ Virtuoso: (props: any) => <div {...props} /> }));
 import { renderToStaticMarkup } from 'react-dom/server';
 import VideoFeed from './VideoFeed';
 
