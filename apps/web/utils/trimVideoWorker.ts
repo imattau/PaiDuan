@@ -38,6 +38,48 @@ function detectContainer(blobType?: string): 'mp4' | 'webm' | null {
   return null;
 }
 
+function toUint8(data: any): Uint8Array | undefined {
+  if (data instanceof Uint8Array) return data;
+  if (data instanceof ArrayBuffer) return new Uint8Array(data);
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  }
+  return undefined;
+}
+
+function getAvcDescription(track: any): Uint8Array | undefined {
+  const rec = track.avcDecoderConfigRecord;
+  if (rec) {
+    const data = (rec as any).data ?? rec;
+    const direct = toUint8(data);
+    if (direct) return direct;
+
+    const spsList: any[] = (rec as any).SPS || (rec as any).sps || [];
+    const ppsList: any[] = (rec as any).PPS || (rec as any).pps || [];
+    const sps = spsList.length ? toUint8(spsList[0]) : undefined;
+    const pps = ppsList.length ? toUint8(ppsList[0]) : undefined;
+    if (sps && pps) {
+      const out = new Uint8Array(11 + sps.length + pps.length);
+      out[0] = 1;
+      out[1] = sps[1];
+      out[2] = sps[2];
+      out[3] = sps[3];
+      out[4] = 0xff;
+      out[5] = 0xe1;
+      out[6] = (sps.length >> 8) & 0xff;
+      out[7] = sps.length & 0xff;
+      out.set(sps, 8);
+      let offset = 8 + sps.length;
+      out[offset] = 1;
+      out[offset + 1] = (pps.length >> 8) & 0xff;
+      out[offset + 2] = pps.length & 0xff;
+      out.set(pps, offset + 3);
+      return out;
+    }
+  }
+  return toUint8(track.codecPrivate);
+}
+
 let encoder: any;
 let decoder: any;
 
@@ -143,18 +185,8 @@ export async function trim(
     );
   }
   let description: Uint8Array | undefined;
-  const initData =
-    track.avcDecoderConfigRecord?.data ??
-    track.avcDecoderConfigRecord ??
-    track.codecPrivate;
-  if (initData) {
-    if (initData instanceof Uint8Array) {
-      description = initData;
-    } else if (initData instanceof ArrayBuffer) {
-      description = new Uint8Array(initData);
-    } else if (ArrayBuffer.isView(initData)) {
-      description = new Uint8Array(initData.buffer, initData.byteOffset, initData.byteLength);
-    }
+  if (codec.startsWith('avc1')) {
+    description = getAvcDescription(track);
   }
 
   let support;

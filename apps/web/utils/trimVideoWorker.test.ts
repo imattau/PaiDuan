@@ -6,7 +6,10 @@ vi.mock('mp4box', () => ({
       id: 1,
       timescale: 1000,
       codec: 'avc1.4d401e',
-      avcDecoderConfigRecord: new Uint8Array([1, 2, 3, 4]).buffer,
+      avcDecoderConfigRecord: {
+        SPS: [new Uint8Array([0x67, 0x64, 0x00, 0x1e])],
+        PPS: [new Uint8Array([0x68, 0xee, 0x3c, 0x80])],
+      },
     };
     const samps = [
       { data: new Uint8Array([0]), dts: 0, is_sync: true },
@@ -140,5 +143,70 @@ describe('trim', () => {
     const result = await trim(blob, { start: 0, end: 1 }, () => {});
     expect(result.type).toBe('video/mp4');
     expect(result.buffer.byteLength).toBeGreaterThan(0);
+  });
+
+  it('includes SPS/PPS description in decoder config', async () => {
+    class FakeVideoFrame {
+      timestamp: number;
+      codedWidth = 640;
+      codedHeight = 480;
+      constructor(ts: number) {
+        this.timestamp = ts;
+      }
+      close() {}
+    }
+    class FakeEncodedVideoChunk {
+      type: any;
+      timestamp: number;
+      byteLength: number;
+      data: Uint8Array;
+      constructor(init: any) {
+        this.type = init.type;
+        this.timestamp = init.timestamp;
+        this.data = init.data;
+        this.byteLength = init.data.length;
+      }
+      copyTo(arr: Uint8Array) {
+        arr.set(this.data);
+      }
+    }
+    let configured: any;
+    class FakeVideoDecoder {
+      static async isConfigSupported(config: any) {
+        return { supported: true, config };
+      }
+      private output: any;
+      constructor(init: any) {
+        this.output = init.output;
+      }
+      configure(config: any) {
+        configured = config;
+      }
+      decode(chunk: any) {
+        this.output(new FakeVideoFrame(chunk.timestamp));
+      }
+      async flush() {}
+      close() {}
+    }
+    class FakeVideoEncoder {
+      constructor(private init: any) {}
+      configure() {}
+      encode(frame: any) {
+        this.init.output({
+          byteLength: 1,
+          copyTo: (arr: Uint8Array) => arr.set([1]),
+        });
+      }
+      async flush() {}
+      close() {}
+    }
+    (self as any).EncodedVideoChunk = FakeEncodedVideoChunk;
+    (self as any).VideoDecoder = FakeVideoDecoder;
+    (self as any).VideoEncoder = FakeVideoEncoder;
+
+    const blob = new Blob([new Uint8Array([0])], { type: 'video/mp4' });
+    await trim(blob, { start: 0, end: 1 }, () => {});
+    expect(configured.description).toBeInstanceOf(Uint8Array);
+    expect(configured.description.length).toBeGreaterThan(0);
   });
 });
