@@ -54,7 +54,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const playerRef = useRef<videojs.Player | null>(null);
   useEffect(() => {
     return () => {
-      playerRef.current?.dispose();
+      // @videojs-player/react disposes the player for us. Only dispose
+      // manually if the element is still attached to the DOM to avoid
+      // NotFoundError exceptions.
+      const el = playerRef.current?.el();
+      if (el?.parentNode) {
+        playerRef.current?.dispose();
+      }
       playerRef.current = null;
     };
   }, []);
