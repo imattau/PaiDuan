@@ -10,13 +10,13 @@ function getLayout(width: number): LayoutType {
   return 'mobile';
 }
 
-export const LayoutContext = createContext<LayoutType | null>(null);
+export const LayoutContext = createContext<LayoutType | undefined>(undefined);
 
 export function LayoutProvider({ children }: { children: React.ReactNode }) {
-  const [layout, setLayout] = useState<LayoutType | null>(() => {
-    if (typeof window === 'undefined') return null;
+  const [layout, setLayout] = useState<LayoutType>(() => {
+    if (typeof window === 'undefined') return 'mobile';
     const stored = window.localStorage.getItem('layout') as LayoutType | null;
-    return stored;
+    return stored ?? getLayout(window.innerWidth);
   });
 
   useEffect(() => {
@@ -30,14 +30,12 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  if (!layout) return null;
-
   return <LayoutContext.Provider value={layout}>{children}</LayoutContext.Provider>;
 }
 
 export function useLayout() {
   const layout = useContext(LayoutContext);
-  if (!layout) {
+  if (layout === undefined) {
     throw new Error('useLayout must be used within a LayoutProvider');
   }
   return layout;
