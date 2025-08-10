@@ -2,6 +2,7 @@ import type { Event as NostrEvent, EventTemplate } from 'nostr-tools/pure';
 import type { Signer } from '@/lib/signers/types';
 import pool from '@/lib/relayPool';
 import { getRelays } from '@/lib/nostr';
+import { getCommentsByVideoId, saveComment } from '@/lib/db';
 
 export function subscribe(
   videoId: string,
@@ -9,6 +10,7 @@ export function subscribe(
   onHide?: (id: string) => void,
 ): { close: () => void } {
   const relays = getRelays();
+  void getCommentsByVideoId(videoId).then((evs) => evs.forEach(onEvent));
   const sub = pool.subscribeMany(
     relays,
     [
@@ -20,7 +22,10 @@ export function subscribe(
       },
     ],
     {
-      onevent: onEvent,
+      onevent: (ev: NostrEvent) => {
+        void saveComment(videoId, ev);
+        onEvent(ev);
+      },
       oneose: () => sub.close(),
     },
   );
@@ -51,10 +56,10 @@ export async function sendComment(
 ): Promise<NostrEvent> {
   const relays = getRelays();
   const pubkey = await signer.getPublicKey();
-  const tags: string[][] = [["e", videoId]];
+  const tags: string[][] = [['e', videoId]];
   if (replyTo) {
-    tags.push(["e", replyTo.id]);
-    tags.push(["p", replyTo.pubkey]);
+    tags.push(['e', replyTo.id]);
+    tags.push(['p', replyTo.pubkey]);
   }
   const event: EventTemplate & { pubkey: string } = {
     kind: 1,
@@ -65,6 +70,7 @@ export async function sendComment(
   };
   const signed = await signer.signEvent(event);
   await pool.publish(relays, signed);
+  await saveComment(videoId, signed);
   return signed;
 }
 
