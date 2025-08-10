@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
 import PlaceholderVideo from '../PlaceholderVideo';
@@ -18,7 +19,11 @@ import { toast } from 'react-hot-toast';
 import { bus } from '../../agents/bus';
 import Overlay from '../ui/Overlay';
 
-function confirmModal(message: string): Promise<boolean> {
+function confirmModal(
+  message: string,
+  cancelLabel: string,
+  okLabel: string,
+): Promise<boolean> {
   return new Promise((resolve) => {
     const handleConfirm = () => {
       Overlay.close();
@@ -34,13 +39,13 @@ function confirmModal(message: string): Promise<boolean> {
           <p>{message}</p>
           <div className="mt-4 flex justify-end gap-2">
             <button className="px-3 py-1" onClick={handleCancel}>
-              Cancel
+              {cancelLabel}
             </button>
             <button
               className="px-3 py-1 bg-accent-primary text-white"
               onClick={handleConfirm}
             >
-              OK
+              {okLabel}
             </button>
           </div>
         </div>
@@ -52,6 +57,8 @@ function confirmModal(message: string): Promise<boolean> {
 
 export default function CreateVideoForm() {
   const router = useRouter();
+  const t = useTranslations('create');
+  const tCommon = useTranslations('common');
   const [file, setFile] = useState<File | null>(null);
   const [outBlob, setOutBlob] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -76,19 +83,19 @@ export default function CreateVideoForm() {
   const [posting, setPosting] = useState(false);
 
   const splitSchema = z.object({
-    lnaddr: z.string().min(1, 'Lightning address required'),
+    lnaddr: z.string().min(1, t('lightning_address_required')),
     pct: z.number().min(1).max(95),
   });
   const schema = z.object({
-    caption: z.string().min(1, 'Caption is required'),
-    topics: z.string().min(1, 'At least one topic'),
-    license: z.string().min(1, 'License is required'),
-    lightningAddress: z.string().min(1, 'Lightning address is required'),
+    caption: z.string().min(1, t('caption_required')),
+    topics: z.string().min(1, t('topics_required')),
+    license: z.string().min(1, t('license_required')),
+    lightningAddress: z.string().min(1, t('lightning_address_required')),
     zapSplits: z
       .array(splitSchema)
       .max(4)
       .refine((arr) => arr.reduce((sum, s) => sum + s.pct, 0) <= 95, {
-        message: 'Total split percentage must be 95% or less',
+        message: t('split_total_max'),
         path: ['zapSplits'],
       }),
   });
@@ -121,10 +128,10 @@ export default function CreateVideoForm() {
   const { following } = useFollowing(state.status === 'ready' ? state.pubkey : undefined);
   const profiles = useProfiles(following);
 
-  useEffect(() => {
-    const unsubPublished = bus.on('nostr.published', () =>
-      toast.success('Posted to Nostr'),
-    );
+    useEffect(() => {
+      const unsubPublished = bus.on('nostr.published', () =>
+        toast.success(t('posted_to_nostr')),
+      );
     const unsubNostrError = bus.on('nostr.error', (e) =>
       toast.error(e.error),
     );
@@ -136,7 +143,7 @@ export default function CreateVideoForm() {
       unsubNostrError();
       unsubUploadError();
     };
-  }, []);
+    }, [t]);
 
   const walletAddrs = Array.isArray(profile?.wallets) && profile.wallets.length > 0
     ? [
@@ -207,11 +214,11 @@ export default function CreateVideoForm() {
         const video = document.createElement('video');
         video.preload = 'metadata';
         const url = URL.createObjectURL(f);
-        await new Promise<void>((resolve, reject) => {
-          video.onloadedmetadata = () => resolve();
-          video.onerror = () => reject(new Error('Failed to load video metadata'));
-          video.src = url;
-        });
+          await new Promise<void>((resolve, reject) => {
+            video.onloadedmetadata = () => resolve();
+            video.onerror = () => reject(new Error(t('failed_read_video')));
+            video.src = url;
+          });
 
         const width = video.videoWidth;
         const height = video.videoHeight;
@@ -222,13 +229,13 @@ export default function CreateVideoForm() {
 
         const ratio = width / height;
         const targetRatio = 9 / 16;
-        if (Math.abs(ratio - targetRatio) > 0.01) {
-          setErr('Video must be 9:16 aspect ratio.');
-          setFile(null);
-          updatePreview(null);
-          setProgress(0);
-          return;
-        }
+          if (Math.abs(ratio - targetRatio) > 0.01) {
+            setErr(t('video_must_be_916'));
+            setFile(null);
+            updatePreview(null);
+            setProgress(0);
+            return;
+          }
 
         let blob: Blob | null = null;
         try {
@@ -243,35 +250,35 @@ export default function CreateVideoForm() {
         } catch (err: any) {
           console.error(err);
           const code = (err as any)?.code;
-          if (code === 'no-keyframe') {
-            setErr('Cannot trim this video because it lacks a key frame.');
+            if (code === 'no-keyframe') {
+              setErr(t('cannot_trim_no_keyframe'));
+              setProgress(0);
+              return;
+            }
+            if (code === 'demux-failed') {
+              setErr(t('failed_read_video'));
+              setProgress(0);
+              return;
+            }
+            setErr(err?.message || t('video_processing_failed'));
             setProgress(0);
             return;
           }
-          if (code === 'demux-failed') {
-            setErr('Failed to read video file.');
-            setProgress(0);
-            return;
-          }
-          setErr(err?.message || 'Video processing failed. Relax Shields or try again.');
-          setProgress(0);
-          return;
-        }
 
-        if (!blob) {
-          setErr('WebCodecs unavailable in this browser.');
-          return;
-        }
+          if (!blob) {
+            setErr(t('webcodecs_unavailable'));
+            return;
+          }
 
         blob = new Blob([blob], { type: f.type });
 
         setOutBlob(blob);
         updatePreview(URL.createObjectURL(blob));
-      } catch (e: any) {
-        console.error(e);
-        setErr(e?.message || 'Conversion failed.');
-        setProgress(0);
-      }
+        } catch (e: any) {
+          console.error(e);
+          setErr(e?.message || t('conversion_failed'));
+          setProgress(0);
+        }
     }
   }
 
@@ -281,10 +288,10 @@ export default function CreateVideoForm() {
   });
 
   const onSubmit = async (values: FormValues) => {
-    if (!outBlob) {
-      setErr('Please process a video first');
-      return;
-    }
+      if (!outBlob) {
+        setErr(t('process_video_first'));
+        return;
+      }
 
     try {
       setPosting(true);
@@ -348,7 +355,7 @@ export default function CreateVideoForm() {
         nsfw ||
         lightningAddress ||
         zapSplits.length > 0) &&
-      !(await confirmModal('Discard your progress?'))
+        !(await confirmModal(t('discard_progress'), t('cancel'), t('ok')))
     )
       return;
     router.back();
@@ -356,43 +363,43 @@ export default function CreateVideoForm() {
 
   const form = (
     <>
-      <input
-        type="text"
-        {...register('caption')}
-        placeholder="Caption"
-        className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-      />
+        <input
+          type="text"
+          {...register('caption')}
+          placeholder={t('caption_placeholder')}
+          className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        />
       {errors.caption && (
         <div className="text-sm text-red-500">{errors.caption.message}</div>
       )}
-      <input
-        type="text"
-        {...register('topics')}
-        placeholder="Topic tags (comma separated)"
-        className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-      />
+        <input
+          type="text"
+          {...register('topics')}
+          placeholder={t('topics_placeholder')}
+          className="block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        />
       {errors.topics && (
         <div className="text-sm text-red-500">{errors.topics.message}</div>
       )}
-      <label className="block text-sm">
-        <span className="mb-1 block">Lightning address</span>
-        {showZapSelect && (
-          <select
-            value={selectedZapOption}
-            onChange={(e) => setValue('lightningAddress', e.target.value)}
-            className="block w-full rounded-md border border-border bg-transparent px-3 py-2 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          >
-            {zapOptions.map((addr) => (
-              <option key={addr} value={addr}>
-                {addr}
-              </option>
-            ))}
-            <option value="">Other...</option>
-          </select>
-        )}
-        <input
-          type="text"
-          {...register('lightningAddress')}
+        <label className="block text-sm">
+          <span className="mb-1 block">{t('lightning_address')}</span>
+          {showZapSelect && (
+            <select
+              value={selectedZapOption}
+              onChange={(e) => setValue('lightningAddress', e.target.value)}
+              className="block w-full rounded-md border border-border bg-transparent px-3 py-2 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            >
+              {zapOptions.map((addr) => (
+                <option key={addr} value={addr}>
+                  {addr}
+                </option>
+              ))}
+              <option value="">{t('other_option')}</option>
+            </select>
+          )}
+          <input
+            type="text"
+            {...register('lightningAddress')}
           className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         />
         {errors.lightningAddress && (
@@ -401,12 +408,12 @@ export default function CreateVideoForm() {
       </label>
       {zapFields.map((field, i) => (
         <div key={field.id} className="flex items-center gap-2">
-          <input
-            list="lnaddr-options"
-            {...register(`zapSplits.${i}.lnaddr` as const)}
-            placeholder="ln@addr"
-            className="flex-1 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          />
+            <input
+              list="lnaddr-options"
+              {...register(`zapSplits.${i}.lnaddr` as const)}
+              placeholder={t('lnaddr_placeholder')}
+              className="flex-1 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            />
           <input
             type="number"
             min={0}
@@ -414,20 +421,22 @@ export default function CreateVideoForm() {
             {...register(`zapSplits.${i}.pct` as const, { valueAsNumber: true })}
             className="w-20 text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           />
-          <button type="button" className="text-xs underline" onClick={() => removeSplit(i)}>
-            remove
-          </button>
-        </div>
-      ))}
+            <button type="button" className="text-xs underline" onClick={() => removeSplit(i)}>
+              {t('remove')}
+            </button>
+          </div>
+        ))}
       {errors.zapSplits?.message && (
         <div className="text-sm text-red-500">{errors.zapSplits.message as string}</div>
       )}
-      {zapFields.length < 4 && totalPct < 95 && (
-        <button type="button" onClick={addSplit} className="rounded border px-2 py-1 text-sm">
-          Add collaborator
-        </button>
-      )}
-      {zapSplits.length > 0 && <div className="text-sm">Total {totalPct}% / 95%</div>}
+        {zapFields.length < 4 && totalPct < 95 && (
+          <button type="button" onClick={addSplit} className="rounded border px-2 py-1 text-sm">
+            {t('add_collaborator')}
+          </button>
+        )}
+        {zapSplits.length > 0 && (
+          <div className="text-sm">{t('total_pct', { pct: totalPct })}</div>
+        )}
       <datalist id="lnaddr-options">
         {following.map((pk) => {
           const p = profiles.get(pk);
@@ -441,59 +450,59 @@ export default function CreateVideoForm() {
           ) : null;
         })}
       </datalist>
-      <label className="block text-sm">
-        <span className="mb-1 block">License</span>
-        <select
-          data-testid="license-select"
-          {...register('license')}
-          className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-        >
-          <option value="All Rights Reserved">All Rights Reserved</option>
-          <option value="CC0 (Public Domain)">CC0 (Public Domain)</option>
-          <option value="CC BY">CC BY</option>
-          <option value="CC BY-SA">CC BY-SA</option>
-          <option value="CC BY-ND">CC BY-ND</option>
-          <option value="CC BY-NC">CC BY-NC</option>
-          <option value="CC BY-NC-SA">CC BY-NC-SA</option>
-          <option value="CC BY-NC-ND">CC BY-NC-ND</option>
-          <option value="other">Other...</option>
-        </select>
-        {license === 'other' && (
-          <input
-            data-testid="custom-license-input"
-            type="text"
-            value={customLicense}
-            onChange={(e) => setCustomLicense(e.target.value)}
-            placeholder="Custom license"
-            className="mt-2 block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          />
-        )}
-        {errors.license && (
+        <label className="block text-sm">
+          <span className="mb-1 block">{tCommon('license')}</span>
+          <select
+            data-testid="license-select"
+            {...register('license')}
+            className="block w-full rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          >
+            <option value="All Rights Reserved">{tCommon('license_all_rights_reserved')}</option>
+            <option value="CC0 (Public Domain)">{tCommon('license_cc0')}</option>
+            <option value="CC BY">{tCommon('license_cc_by')}</option>
+            <option value="CC BY-SA">{tCommon('license_cc_by_sa')}</option>
+            <option value="CC BY-ND">{tCommon('license_cc_by_nd')}</option>
+            <option value="CC BY-NC">{tCommon('license_cc_by_nc')}</option>
+            <option value="CC BY-NC-SA">{tCommon('license_cc_by_nc_sa')}</option>
+            <option value="CC BY-NC-ND">{tCommon('license_cc_by_nc_nd')}</option>
+            <option value="other">{tCommon('license_other')}</option>
+          </select>
+          {license === 'other' && (
+            <input
+              data-testid="custom-license-input"
+              type="text"
+              value={customLicense}
+              onChange={(e) => setCustomLicense(e.target.value)}
+              placeholder={tCommon('license_custom')}
+              className="mt-2 block w-full text-sm rounded-md border border-border bg-transparent px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            />
+          )}
+          {errors.license && (
           <div className="text-sm text-red-500">{errors.license.message}</div>
         )}
       </label>
-      <label className="flex items-center gap-2">
-        <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
-        <span className="text-sm">NSFW</span>
-      </label>
-      <button
-        className="btn btn-primary disabled:opacity-60"
-        data-testid="publish-button"
-        disabled={!outBlob || posting || !isValid}
-        onClick={handleSubmit(onSubmit)}
-      >
-        {posting ? 'Publishing…' : 'Publish'}
-      </button>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={nsfw} onChange={(e) => setNsfw(e.target.checked)} />
+          <span className="text-sm">{t('nsfw')}</span>
+        </label>
+        <button
+          className="btn btn-primary disabled:opacity-60"
+          data-testid="publish-button"
+          disabled={!outBlob || posting || !isValid}
+          onClick={handleSubmit(onSubmit)}
+        >
+          {posting ? t('publishing') : t('publish')}
+        </button>
     </>
   );
 
   return (
     <section className="w-full sm:max-w-4xl mx-auto rounded-2xl border border-border bg-white/5 dark:bg-neutral-900 p-6 space-y-4">
-      <div className="flex items-center justify-end">
-        <button className="text-sm text-muted" onClick={handleCancel}>
-          Cancel
-        </button>
-      </div>
+        <div className="flex items-center justify-end">
+          <button className="text-sm text-muted" onClick={handleCancel}>
+            {t('cancel')}
+          </button>
+        </div>
       <div className="flex flex-1 flex-wrap gap-4 items-start">
         <div className="space-y-4">
           <div
@@ -513,13 +522,13 @@ export default function CreateVideoForm() {
             ) : (
               <PlaceholderVideo
                 className="absolute inset-0 h-full w-full object-cover"
-                message="No video selected"
+                message={t('no_video_selected')}
                 busy={false}
               />
             )}
             {isDragActive && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">
-                Drop the file here
+                {t('drop_file_here')}
               </div>
             )}
             {progress > 0 && progress < 100 && (
