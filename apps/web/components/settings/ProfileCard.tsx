@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import AvatarCropper from '../ui/AvatarCropper';
 import type { EventTemplate } from 'nostr-tools/pure';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -32,6 +33,7 @@ export function ProfileCard() {
   });
   const picture = watch('picture');
   const [saving, setSaving] = useState(false);
+  const [rawImage, setRawImage] = useState<string>('');
 
   useEffect(() => {
     if (!meta) return;
@@ -44,7 +46,7 @@ export function ProfileCard() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setValue('picture', reader.result as string);
+    reader.onload = () => setRawImage(reader.result as string);
     reader.readAsDataURL(file);
   }
 
@@ -84,8 +86,23 @@ export function ProfileCard() {
             placeholder="Bio"
             className="w-full rounded bg-text-primary/10 p-2 text-sm outline-none"
           />
-          <input type="file" accept="image/*" onChange={handleFile} />
-          {picture && (
+          <input
+            aria-label="profile picture"
+            type="file"
+            accept="image/*"
+            onChange={handleFile}
+          />
+          {rawImage && (
+            <AvatarCropper
+              image={rawImage}
+              onComplete={(data) => {
+                setValue('picture', data);
+                setRawImage('');
+              }}
+              onCancel={() => setRawImage('')}
+            />
+          )}
+          {!rawImage && picture && (
             <Image
               src={picture}
               alt="avatar"
