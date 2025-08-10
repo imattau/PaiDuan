@@ -190,47 +190,46 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     }
   };
 
-  const handleVideoError = async () => {
+  const handleVideoError = () => {
     setShowPlayIndicator(false);
     setIsPlaying(false);
     const primaryUrl = manifestUrl ?? videoUrl;
+    const errorCode = getPlayer()?.error?.code;
     const isOnline = online ?? (typeof navigator !== 'undefined' ? navigator.onLine : true);
-    if (!isOnline) {
-      setErrorMessage('Network timeout—check connection');
-      telemetry.track('video.unavailable', { eventId, url: primaryUrl, status: 'offline' });
-      return;
-    }
-    try {
-      const res = await fetch(primaryUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
-      if (res.status === 404 && manifestUrl && !triedFallback) {
-        setTriedFallback(true);
-        setLoaded(false);
-        setErrorMessage(null);
-        const player = getPlayer();
-        if (player) {
-          playback.loadSource(player, { videoUrl, eventId });
-          playback.play().catch(() => {
-            setErrorMessage('Video unavailable');
-            telemetry.track('video.unavailable', { eventId, url: videoUrl, status: 'play_failed' });
-          });
-        }
-        return;
-      }
-      setErrorMessage('Video unavailable');
+
+    if (!isOnline || errorCode === 2) {
+      setErrorMessage('Network error—check connection');
       telemetry.track('video.unavailable', {
         eventId,
         url: primaryUrl,
-        status: res.status,
+        errorCode,
+        status: 'network',
       });
-    } catch (err) {
-      if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
-        setErrorMessage('Network timeout—check connection');
-        telemetry.track('video.unavailable', { eventId, url: primaryUrl, status: 'timeout' });
-      } else {
-        setErrorMessage('Video unavailable');
-        telemetry.track('video.unavailable', { eventId, url: primaryUrl });
-      }
+      return;
     }
+
+    if (errorCode === 4 && manifestUrl && !triedFallback) {
+      setTriedFallback(true);
+      setLoaded(false);
+      setErrorMessage(null);
+      const player = getPlayer();
+      if (player) {
+        playback.loadSource(player, { videoUrl, eventId });
+        playback.play().catch(() => {
+          setErrorMessage('Video unavailable');
+          telemetry.track('video.unavailable', {
+            eventId,
+            url: videoUrl,
+            errorCode,
+            status: 'play_failed',
+          });
+        });
+      }
+      return;
+    }
+
+    setErrorMessage('Video unavailable');
+    telemetry.track('video.unavailable', { eventId, url: primaryUrl, errorCode });
   };
 
   return (
