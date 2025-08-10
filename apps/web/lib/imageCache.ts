@@ -14,15 +14,23 @@ async function openCache(): Promise<Cache | null> {
   }
 }
 
-export async function cacheImage(url: string): Promise<string> {
+function makeObjectUrl(blob: Blob): { url: string; revoke: () => void } {
+  const url = URL.createObjectURL(blob);
+  return { url, revoke: () => URL.revokeObjectURL(url) };
+}
+
+export async function cacheImage(
+  url: string,
+): Promise<{ url: string; revoke: () => void }> {
   const cache = await openCache();
-  if (!cache) return url;
+  if (!cache) return { url, revoke: () => {} };
   try {
     const { hostname } = new URL(url);
-    if (TRUSTED_HOSTS.length && !TRUSTED_HOSTS.includes(hostname)) return url;
+    if (TRUSTED_HOSTS.length && !TRUSTED_HOSTS.includes(hostname))
+      return { url, revoke: () => {} };
 
     const res = await fetch(url, { mode: 'cors' });
-    if (!res.ok || res.type !== 'basic') return url;
+    if (!res.ok || res.type !== 'basic') return { url, revoke: () => {} };
 
     const now = Date.now();
     const blob = await res.blob();
@@ -32,13 +40,15 @@ export async function cacheImage(url: string): Promise<string> {
     headers.set('Content-Type', ct);
     const response = new Response(blob, { headers });
     await cache.put(url, response);
-    return URL.createObjectURL(blob);
+    return makeObjectUrl(blob);
   } catch {
-    return url;
+    return { url, revoke: () => {} };
   }
 }
 
-export async function getCachedImage(url: string): Promise<string | null> {
+export async function getCachedImage(
+  url: string,
+): Promise<{ url: string; revoke: () => void } | null> {
   const cache = await openCache();
   if (!cache) return null;
   const res = await cache.match(url);
@@ -49,7 +59,7 @@ export async function getCachedImage(url: string): Promise<string | null> {
     return null;
   }
   const blob = await res.blob();
-  return URL.createObjectURL(blob);
+  return makeObjectUrl(blob);
 }
 
 export async function cleanupImageCache(): Promise<void> {

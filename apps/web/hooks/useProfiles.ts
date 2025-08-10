@@ -11,6 +11,7 @@ import { cacheImage, getCachedImage } from '@/lib/imageCache';
 export type Profile = {
   name?: string;
   picture?: string;
+  pictureRevoke?: () => void;
   about?: string;
   lud16?: string;
   wallets?: { label: string; lnaddr: string; default?: boolean }[];
@@ -41,7 +42,9 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
       ensureWallets(content);
       if (content.picture) {
         const cached = await getCachedImage(content.picture);
-        content.picture = cached || (await cacheImage(content.picture));
+        const img = cached || (await cacheImage(content.picture));
+        content.picture = img.url;
+        content.pictureRevoke = img.revoke;
       }
       return content;
     } catch {
@@ -60,7 +63,9 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
             ensureWallets(content);
             if (content.picture) {
               const cached = await getCachedImage(content.picture);
-              content.picture = cached || (await cacheImage(content.picture));
+              const img = cached || (await cacheImage(content.picture));
+              content.picture = img.url;
+              content.pictureRevoke = img.revoke;
             }
             await saveEvent(ev);
             profile = content;
