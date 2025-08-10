@@ -4,6 +4,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { usePlaybackPrefs } from '@/store/playbackPrefs';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
@@ -22,12 +23,16 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ prefetch: () => {} }) })
 vi.mock('../hooks/useFollowing', () => ({ default: () => ({ following: [], follow: () => {} }) }));
 vi.mock('react-use', () => ({ useNetworkState: () => ({ online: true }) }));
 vi.mock('../hooks/useAdaptiveSource', () => ({ default: () => undefined }));
-vi.mock('react-intersection-observer', () => ({ useInView: () => ({ ref: () => {}, inView: true }) }));
+vi.mock('react-intersection-observer', () => ({
+  useInView: () => ({ ref: () => {}, inView: true }),
+}));
 vi.mock('../hooks/useCurrentVideo', () => ({ useCurrentVideo: () => ({ setCurrent: () => {} }) }));
 vi.mock('@/store/feedSelection', () => ({
   useFeedSelection: (selector: any) => selector({ setSelectedVideo: () => {} }),
 }));
-vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: {} } }) }));
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: {} } }),
+}));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: 'author' }) }));
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
 const loadSource = vi.fn();
@@ -43,7 +48,7 @@ const { default: VideoCard } = await import('./VideoCard');
 
 afterEach(() => {
   cleanup();
-
+  usePlaybackPrefs.setState({ isMuted: true });
 });
 
 describe('VideoCard', () => {
@@ -94,6 +99,24 @@ describe('VideoCard', () => {
     render(<VideoCard {...props} />);
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: /unmute/i }));
+    await screen.findByRole('button', { name: /mute/i });
+  });
+
+  it('persists mute preference between renders', async () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    const user = userEvent.setup();
+    const { unmount } = render(<VideoCard {...props} />);
+    await user.click(await screen.findByRole('button', { name: /unmute/i }));
+    await screen.findByRole('button', { name: /mute/i });
+    unmount();
+    render(<VideoCard {...props} />);
     await screen.findByRole('button', { name: /mute/i });
   });
 
