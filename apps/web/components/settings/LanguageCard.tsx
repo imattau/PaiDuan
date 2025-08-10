@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import useT from '@/hooks/useT';

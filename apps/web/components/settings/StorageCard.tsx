@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import useT from '../../hooks/useT';
 import { Card } from '../ui/Card';

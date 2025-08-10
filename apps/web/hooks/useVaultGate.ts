@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from 'react';
 
 const LS_KEY = 'pd.auth.v1';

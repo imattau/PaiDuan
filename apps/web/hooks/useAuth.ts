@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { LocalSigner } from '@/lib/signers/local';
 import { Nip07Signer } from '@/lib/signers/nip07';
