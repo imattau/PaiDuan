@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
-import { getRelays } from '@/lib/nostr';
+import { getRelays, normalizeRelay } from '@/lib/nostr';
 
 export function NetworkCard() {
   const [relays, setRelays] = useState<string[]>(() => getRelays());
@@ -17,9 +17,9 @@ export function NetworkCard() {
   }, [relays]);
 
   function addRelay(url: string) {
-    const next = url.trim();
-    if (!next) return;
-    setRelays((prev) => (prev.includes(next) ? prev : [...prev, next]));
+    const normalized = normalizeRelay(url.trim());
+    if (!normalized) return;
+    setRelays((prev) => (prev.includes(normalized) ? prev : [...prev, normalized]));
   }
 
   function removeRelay(url: string) {

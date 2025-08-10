@@ -1,7 +1,7 @@
 'use client';
 import NDK from '@nostr-dev-kit/ndk';
 import { getPublicKey } from 'nostr-tools/pure';
-import { hexToBytes } from 'nostr-tools/utils';
+import { hexToBytes, normalizeURL } from 'nostr-tools/utils';
 import relaysConfig from '../relays.json';
 
 /**
@@ -88,25 +88,39 @@ export function getMyPubkey(): string | undefined {
 /** Relays you want to hit – tweak as needed */
 const DEFAULT_RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.snort.social'];
 
-export function parseRelays(input: unknown): string[] | undefined {
-  if (Array.isArray(input)) {
-    return input.filter((r): r is string => typeof r === 'string' && r.length > 0);
+export function normalizeRelay(url: string): string | undefined {
+  try {
+    const normalized = normalizeURL(url);
+    const u = new URL(normalized);
+    if (u.protocol !== 'ws:' && u.protocol !== 'wss:') return undefined;
+    return normalized.endsWith('/') ? normalized.slice(0, -1) : normalized;
+  } catch {
+    return undefined;
   }
-  if (typeof input === 'string') {
+}
+
+export function parseRelays(input: unknown): string[] | undefined {
+  let relays: string[] | undefined;
+  if (Array.isArray(input)) {
+    relays = input.filter((r): r is string => typeof r === 'string' && r.length > 0);
+  } else if (typeof input === 'string') {
     try {
       const parsed = JSON.parse(input);
       if (Array.isArray(parsed)) {
-        return parsed.filter((r): r is string => typeof r === 'string' && r.length > 0);
+        relays = parsed.filter((r): r is string => typeof r === 'string' && r.length > 0);
       }
     } catch {
       // not JSON
     }
-    return input
-      .split(',')
-      .map((r) => r.trim())
-      .filter(Boolean);
+    if (!relays) {
+      relays = input
+        .split(',')
+        .map((r) => r.trim())
+        .filter((r): r is string => r.length > 0);
+    }
   }
-  return undefined;
+
+  return relays?.map((r) => normalizeRelay(r)).filter((r): r is string => !!r);
 }
 
 export function getRelays(): string[] {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getRelays } from '@/lib/nostr';
+import { getRelays, normalizeRelay } from '@/lib/nostr';
 
 export function useRelays() {
   const [relays, setRelays] = useState<string[]>(() => getRelays());
@@ -15,9 +15,9 @@ export function useRelays() {
   }, [relays]);
 
   function addRelay(url: string) {
-    const next = url.trim();
-    if (!next) return;
-    setRelays((prev) => (prev.includes(next) ? prev : [...prev, next]));
+    const normalized = normalizeRelay(url.trim());
+    if (!normalized) return;
+    setRelays((prev) => (prev.includes(normalized) ? prev : [...prev, normalized]));
   }
 
   function removeRelay(url: string) {
