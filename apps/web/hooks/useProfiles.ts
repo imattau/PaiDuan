@@ -2,7 +2,7 @@
 import { useQueries } from '@tanstack/react-query';
 import * as nostrKinds from 'nostr-tools/kinds';
 import type { Filter } from 'nostr-tools/filter';
-import { getRelays } from '@/lib/nostr';
+import { getRelays, ndkConnectionStatus, NDK_STATUS_EVENT } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
 import { getEventsByPubkey, saveEvent } from '@/lib/db';
 import { queryClient } from '@/lib/queryClient';
@@ -65,6 +65,19 @@ async function fetchProfile(pubkey: string): Promise<Profile> {
     } catch {
       /* ignore */
     }
+  }
+  if (ndkConnectionStatus !== 'connected') {
+    if (typeof window !== 'undefined') {
+      const handler = (ev: Event) => {
+        const status = (ev as CustomEvent).detail;
+        if (status === 'connected') {
+          window.removeEventListener(NDK_STATUS_EVENT, handler);
+          void queryClient.invalidateQueries({ queryKey: ['profile', pubkey] });
+        }
+      };
+      window.addEventListener(NDK_STATUS_EVENT, handler, { once: true });
+    }
+    return {};
   }
   return await new Promise<Profile>((resolve) => {
     let profile: Profile | null = null;
