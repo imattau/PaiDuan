@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import useT from '../../hooks/useT';
 import { Card } from '../ui/Card';
+import { themes } from '@/agents/theme';
 
 export function AppearanceCard() {
   const { resolvedTheme, setTheme } = useTheme();
   const [accent, setAccent] = useState('violet');
   const t = useT();
   const accents = ['violet', 'blue', 'green', 'pink'];
-  const isDark = resolvedTheme === 'dark';
 
   useEffect(() => {
     document.documentElement.dataset.accent = accent;
@@ -16,9 +16,17 @@ export function AppearanceCard() {
 
   return (
     <Card title="Appearance" desc="Theme and accent colour.">
-      <button onClick={() => setTheme(isDark ? 'light' : 'dark')} className="btn btn-outline">
-        {isDark ? t('switch_to_light') : t('switch_to_dark')}
-      </button>
+      <select
+        value={resolvedTheme ?? 'light'}
+        onChange={(e) => setTheme(e.target.value)}
+        className="select select-bordered"
+      >
+        {themes.map((th) => (
+          <option key={th} value={th}>
+            {t(`theme_${th}`)}
+          </option>
+        ))}
+      </select>
       <div className="flex flex-wrap gap-2 pt-2">
         {accents.map((c) => (
           <button

@@ -23,7 +23,20 @@
   --accent-active: 252 43% 52%;
   --border-primary: 220 13% 91%;
 }
-.dark {
+
+[data-theme='light'] {
+  --background-primary: 0 0% 100%;
+  --text-primary: 220 14% 12%;
+  --card: 0 0% 100%;
+  --surface: 0 0% 100%;
+  --background-secondary: 0 0% 98%;
+  --accent-primary: 252 56% 57%;
+  --accent-hover: 252 50% 54%;
+  --accent-active: 252 43% 52%;
+  --border-primary: 220 13% 91%;
+}
+
+[data-theme='dark'] {
   --background-primary: 220 14% 8%;
   --text-primary: 220 15% 92%;
   --card: 220 12% 12%;
@@ -33,6 +46,30 @@
   --accent-hover: 252 60% 63%;
   --accent-active: 253 100% 83%;
   --border-primary: 220 12% 20%;
+}
+
+[data-theme='sepia'] {
+  --background-primary: 40 40% 94%;
+  --text-primary: 30 20% 20%;
+  --card: 40 40% 90%;
+  --surface: 40 40% 90%;
+  --background-secondary: 40 30% 85%;
+  --accent-primary: 252 56% 57%;
+  --accent-hover: 252 50% 54%;
+  --accent-active: 252 43% 52%;
+  --border-primary: 40 25% 80%;
+}
+
+[data-theme='forest'] {
+  --background-primary: 150 20% 10%;
+  --text-primary: 150 20% 90%;
+  --card: 150 15% 15%;
+  --surface: 150 15% 15%;
+  --background-secondary: 150 15% 20%;
+  --accent-primary: 252 56% 57%;
+  --accent-hover: 252 60% 63%;
+  --accent-active: 253 100% 83%;
+  --border-primary: 150 10% 25%;
 }
 
 body {
@@ -89,7 +126,8 @@ body {
   --accent-hover: 252 50% 54%;
   --accent-active: 252 43% 52%;
 }
-.dark[data-accent='violet'] {
+[data-theme='dark'][data-accent='violet'],
+[data-theme='forest'][data-accent='violet'] {
   --accent-primary: 252 56% 57%;
   --accent-hover: 252 60% 63%;
   --accent-active: 253 100% 83%;
@@ -99,7 +137,8 @@ body {
   --accent-hover: 207 96% 48%;
   --accent-active: 208 88% 43%;
 }
-.dark[data-accent='blue'] {
+[data-theme='dark'][data-accent='blue'],
+[data-theme='forest'][data-accent='blue'] {
   --accent-primary: 206 100% 50%;
   --accent-hover: 210 100% 62%;
   --accent-active: 210 100% 72%;
@@ -109,7 +148,8 @@ body {
   --accent-hover: 152 56% 39%;
   --accent-active: 154 60% 32%;
 }
-.dark[data-accent='green'] {
+[data-theme='dark'][data-accent='green'],
+[data-theme='forest'][data-accent='green'] {
   --accent-primary: 151 55% 42%;
   --accent-hover: 151 55% 45%;
   --accent-active: 151 65% 54%;
@@ -119,7 +159,8 @@ body {
   --accent-hover: 322 61% 52%;
   --accent-active: 322 65% 46%;
 }
-.dark[data-accent='pink'] {
+[data-theme='dark'][data-accent='pink'],
+[data-theme='forest'][data-accent='pink'] {
   --accent-primary: 322 65% 55%;
   --accent-hover: 323 68% 59%;
   --accent-active: 327 100% 78%;

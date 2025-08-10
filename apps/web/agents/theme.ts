@@ -3,13 +3,13 @@
 import { useTheme as useNextTheme } from 'next-themes';
 import { useEffect } from 'react';
 
-export type Theme = 'light' | 'dark';
+export const themes = ['light', 'dark', 'sepia', 'forest'] as const;
+export type Theme = (typeof themes)[number];
 export type Density = 'compact' | 'cozy';
 
 let currentTheme: Theme = 'light';
 let applyTheme = (t: Theme) => {
-  const root = document.documentElement;
-  root.classList.toggle('dark', t === 'dark');
+  document.documentElement.setAttribute('data-theme', t);
 };
 
 let setThemeImpl: (t: Theme) => void = (t) => {
@@ -25,8 +25,8 @@ export function useThemeAgent(): void {
   const { resolvedTheme, setTheme } = useNextTheme();
 
   useEffect(() => {
-    if (resolvedTheme === 'light' || resolvedTheme === 'dark') {
-      currentTheme = resolvedTheme;
+    if (resolvedTheme && themes.includes(resolvedTheme as Theme)) {
+      currentTheme = resolvedTheme as Theme;
       applyTheme(currentTheme);
     }
   }, [resolvedTheme]);
