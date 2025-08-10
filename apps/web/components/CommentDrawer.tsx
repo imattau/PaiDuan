@@ -5,11 +5,9 @@ import { toast } from 'react-hot-toast';
 import analytics from '../utils/analytics';
 import ReportModal from './ReportModal';
 import { ADMIN_PUBKEYS } from '../utils/admin';
-import { useAuth } from '@/hooks/useAuth';
-import { getRelays } from '@/lib/nostr';
-import pool from '@/lib/relayPool';
 import { useModqueue } from '@/context/modqueueContext';
 import Overlay from './ui/Overlay';
+import useComments from '@/hooks/useComments';
 
 interface CommentDrawerProps {
   videoId: string;
@@ -18,16 +16,14 @@ interface CommentDrawerProps {
 }
 
 function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawerProps) {
-  const { state } = useAuth();
-  const [events, setEvents] = useState<NostrEvent[]>([]);
+  const { comments, hiddenIds: agentHiddenIds, send, canSend } = useComments(videoId);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState<NostrEvent | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const modqueue = useModqueue();
-  const [extraHiddenIds, setExtraHiddenIds] = useState<Set<string>>(new Set());
   const hiddenIds = useMemo(() => {
     const counts: Record<string, Set<string>> = {};
-    const hidden = new Set<string>();
+    const hidden = new Set<string>(agentHiddenIds);
     modqueue
       .filter((r) => r.targetKind === 'comment')
       .forEach((r) => {
@@ -38,63 +34,25 @@ function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawer
     Object.entries(counts).forEach(([id, set]) => {
       if (set.size >= 3) hidden.add(id);
     });
-    extraHiddenIds.forEach((id) => hidden.add(id));
     return hidden;
-  }, [modqueue, extraHiddenIds]);
+  }, [modqueue, agentHiddenIds]);
 
   useEffect(() => {
-    const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [1], '#e': [videoId] }], {
-      onevent: (ev: any) => {
-        setEvents((prev) => {
-          if (prev.find((p) => p.id === ev.id)) return prev;
-          const next = [...prev, ev].sort((a, b) => a.created_at - b.created_at);
-          return next;
-        });
-      },
-    });
-    return () => sub.close();
-  }, [videoId]);
-
-  useEffect(() => {
-    const sub = (pool as any).subscribeMany(getRelays(), [{ kinds: [9001] }], {
-      onevent: (ev: any) => {
-        const tag = ev.tags.find((t: string[]) => t[0] === 'e');
-        if (tag) setExtraHiddenIds((prev) => new Set(prev).add(tag[1]));
-      },
-    });
-    return () => sub.close();
-  }, []);
-
-  useEffect(() => {
-    const top = events.filter((e) => !e.tags.some((t) => t[0] === 'p'));
+    const top = comments.filter((e) => !e.tags.some((t) => t[0] === 'p'));
     const visible = top.filter((e) => !hiddenIds.has(e.id));
     onCountChange?.(visible.length);
-  }, [events, onCountChange, hiddenIds]);
+  }, [comments, onCountChange, hiddenIds]);
 
-  const send = async () => {
+  const sendComment = async () => {
     if (!input.trim()) return;
-    if (state.status !== 'ready') {
+    if (!canSend) {
       toast.error('signer required');
       return;
     }
     try {
-      const tags: string[][] = [['e', videoId]];
-      if (replyTo) {
-        tags.push(['e', replyTo.id]);
-        tags.push(['p', replyTo.pubkey]);
-      }
-      const event: any = {
-        kind: 1,
-        created_at: Math.floor(Date.now() / 1000),
-        tags,
-        content: input,
-        pubkey: state.pubkey,
-      };
-      const signed = await state.signer.signEvent(event);
-      setEvents((prev) => [...prev, signed].sort((a, b) => a.created_at - b.created_at));
+      await send(input, replyTo ?? undefined);
       setInput('');
       setReplyTo(null);
-      await pool.publish(getRelays(), signed);
       toast.success('Comment sent');
       analytics.trackEvent('comment_send');
     } catch (err) {
@@ -106,12 +64,12 @@ function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawer
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      send();
+      sendComment();
     }
   };
 
-  const topLevel = events.filter((e) => !e.tags.some((t) => t[0] === 'p'));
-  const replies = events.filter((e) => e.tags.some((t) => t[0] === 'p'));
+  const topLevel = comments.filter((e) => !e.tags.some((t) => t[0] === 'p'));
+  const replies = comments.filter((e) => e.tags.some((t) => t[0] === 'p'));
   const repliesMap: Record<string, NostrEvent[]> = {};
   replies.forEach((ev) => {
     const parent = ev.tags.find((t) => t[0] === 'e' && t[1] !== videoId);
