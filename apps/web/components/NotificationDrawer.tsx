@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useRef } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
 import { useRouter } from 'next/navigation';

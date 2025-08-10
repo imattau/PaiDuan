@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from 'react';
 import useInstallPrompt from '../hooks/useInstallPrompt';
 import analytics from '../utils/analytics';

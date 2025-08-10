@@ -1,3 +1,5 @@
+"use client";
+
 import type { Event as NostrEvent } from 'nostr-tools/pure';
 import type { Signer } from '@/lib/signers/types';
 import pool from '@/lib/relayPool';
