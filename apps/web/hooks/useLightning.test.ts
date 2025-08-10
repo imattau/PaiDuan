@@ -1,10 +1,25 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('./useAuth', () => ({
-  useAuth: () => ({ state: { status: 'ready', pubkey: 'pk', signer: { signEvent: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })) } } }),
-}));
+const originalEnv = process.env.NEXT_PUBLIC_TREASURY_LNADDR;
+const originalFetch = global.fetch;
+const originalWindow = global.window;
 
 const poolGetMock = vi.fn();
+const fetchPayDataMock = vi.fn();
+const requestInvoiceMock = vi.fn();
+let sendPaymentMock: ReturnType<typeof vi.fn>;
+
+vi.mock('./useAuth', () => ({
+  useAuth: () => ({
+    state: {
+      status: 'ready',
+      pubkey: 'pk',
+      signer: {
+        signEvent: vi.fn(async (e: any) => ({ ...e, id: 'id', sig: 'sig', pubkey: 'pk' })),
+      },
+    },
+  }),
+}));
 
 vi.mock('@/lib/relayPool', () => ({
   default: {
@@ -13,16 +28,17 @@ vi.mock('@/lib/relayPool', () => ({
   },
 }));
 
-
+vi.mock('../utils/lnurl', () => ({
+  fetchPayData: (...args: any[]) => fetchPayDataMock(...args),
+  requestInvoice: (...args: any[]) => requestInvoiceMock(...args),
 }));
 
 import useLightning from './useLightning';
 
-
-
 describe('useLightning', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.stubGlobal('fetch', vi.fn());
     sendPaymentMock = vi.fn();
     if (typeof window === 'undefined') {
       // @ts-ignore
@@ -36,7 +52,7 @@ describe('useLightning', () => {
   });
 
   afterEach(() => {
-    if (originalWindow.open) {
+    if (originalWindow && originalWindow.open) {
       window.open = originalWindow.open;
     } else {
       // @ts-ignore
@@ -45,9 +61,16 @@ describe('useLightning', () => {
     // Remove injected webln to avoid cross-test contamination
     // @ts-ignore
     delete window.webln;
-  });
-  afterEach(() => {
-    global.window = originalWindow;
+
+    process.env.NEXT_PUBLIC_TREASURY_LNADDR = originalEnv;
+    vi.unstubAllGlobals();
+    global.fetch = originalFetch;
+    if (originalWindow) {
+      global.window = originalWindow;
+    } else {
+      // @ts-ignore
+      delete (global as any).window;
+    }
   });
 
   it('splits zap using event zap tags', async () => {
@@ -60,6 +83,8 @@ describe('useLightning', () => {
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
 
+    fetchPayDataMock.mockResolvedValue({ pay: 'data' });
+    requestInvoiceMock.mockResolvedValue({ invoice: 'invoice' });
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
@@ -85,6 +110,8 @@ describe('useLightning', () => {
 
     process.env.NEXT_PUBLIC_TREASURY_LNADDR = 'treasury@example.com';
 
+    fetchPayDataMock.mockResolvedValue({ pay: 'data' });
+    requestInvoiceMock.mockResolvedValue({ invoice: 'invoice' });
 
     const { createZap } = useLightning();
     const { invoices } = await createZap({
@@ -101,3 +128,4 @@ describe('useLightning', () => {
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
   });
 });
+
