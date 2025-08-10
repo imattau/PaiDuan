@@ -33,9 +33,12 @@ vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: '
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
 vi.mock('@/store/playbackPrefs', () => {
   const { create } = require('zustand');
-  const usePlaybackPrefs = create((set: any) => ({
+  const usePlaybackPrefs = create((set: any, get: any) => ({
     isMuted: true,
     setMuted: (isMuted: boolean) => set({ isMuted }),
+    handleAutoplayRejected: () => {
+      if (!get().isMuted) set({ isMuted: true });
+    },
   }));
   return { usePlaybackPrefs };
 });
@@ -193,7 +196,8 @@ describe('VideoCard', () => {
     fireEvent.loadedData(video);
     await waitFor(() => expect(playMock).toHaveBeenCalledTimes(2));
     expect(queryByText('Tap to play')).toBeNull();
-    expect(video.muted).toBe(false);
+    expect(video.muted).toBe(true);
+    expect(usePlaybackPrefs.getState().isMuted).toBe(true);
   });
 
   it('shows action bar with z-index and triggers comment callback', async () => {

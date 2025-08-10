@@ -64,7 +64,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const playerRef = useRef<HTMLVideoElement>(null);
   const getPlayer = () => playerRef.current;
   const containerRef = useRef<HTMLDivElement>(null);
-  const [muted, setMuted] = usePlaybackPrefs((s) => [s.isMuted, s.setMuted]);
+  const [muted, setMuted, handleAutoplayRejected] = usePlaybackPrefs((s) => [
+    s.isMuted,
+    s.setMuted,
+    s.handleAutoplayRejected,
+  ]);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
   const [reposted, setReposted] = useState(false);
@@ -252,21 +256,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             const video = getPlayer();
             if (video) {
               // Autoplay handling: try with the user's mute preference first.
-              // If the browser blocks playback, retry while muted to satisfy
-              // autoplay policies, then restore the user's setting.
-              const originalMuted = muted;
-              video.muted = originalMuted;
+              // If playback is blocked, mute the video and retry. On success,
+              // we keep it muted and update the user's preference via store.
+              video.muted = muted;
               video
                 .play()
                 .catch(() => {
+                  handleAutoplayRejected();
                   video.muted = true;
                   return video.play();
                 })
-                .then(() => {
-                  video.muted = originalMuted;
-                })
                 .catch(() => {
-                  video.muted = originalMuted;
                   setShowPlayIndicator(true);
                   setIsPlaying(false);
                 });
