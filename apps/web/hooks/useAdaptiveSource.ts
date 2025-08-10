@@ -1,75 +1,36 @@
-import { useEffect, useState } from 'react';
-import useAlwaysSD from './useAlwaysSD';
+import Hls from 'hls.js';
 
-export default function useAdaptiveSource(
+export default function initHls(
   manifestUrl: string | undefined,
-  playerRef: React.RefObject<HTMLVideoElement | null>,
-) {
-  const { alwaysSD } = useAlwaysSD();
-  const [src, setSrc] = useState<string>();
+  video: HTMLVideoElement | null,
+): Hls | null {
+  if (!manifestUrl || !video) return null;
 
-  useEffect(() => {
-    if (!manifestUrl) return;
-    let cancelled = false;
-    let id: ReturnType<typeof setInterval> | undefined;
-    fetch(manifestUrl)
-      .then((r) => r.json())
-      .then((manifest) => {
-        if (cancelled) return;
-        const order = ['240', '480', '720'];
-        let current = alwaysSD ? 0 : 1; // start at 480p
-        let stable = 0;
-        setSrc(manifest[order[current]]);
-        if (alwaysSD) return;
-        let lastTotal = 0;
-        let lastDropped = 0;
-        id = setInterval(() => {
-          const videoEl = playerRef.current;
-          if (!videoEl || !videoEl.getVideoPlaybackQuality) return;
-          const q = videoEl.getVideoPlaybackQuality();
-          const total = q.totalVideoFrames;
-          const dropped = q.droppedVideoFrames;
-          const deltaTotal = total - lastTotal;
-          const deltaDropped = dropped - lastDropped;
-          lastTotal = total;
-          lastDropped = dropped;
-          const rate = deltaTotal > 0 ? deltaDropped / deltaTotal : 0;
-          if (rate > 0.05 && current > 0) {
-            const t = videoEl.currentTime;
-            current -= 1;
-            setSrc(manifest[order[current]]);
-            stable = 0;
-            setTimeout(() => {
-              const player = playerRef.current;
-              if (player) player.currentTime = t;
-            }, 500);
-          } else if (rate <= 0.05) {
-            stable += 5;
-            if (stable >= 15 && current < order.length - 1) {
-              const t = videoEl.currentTime;
-              current += 1;
-              setSrc(manifest[order[current]]);
-              stable = 0;
-              setTimeout(() => {
-                const player = playerRef.current;
-                if (player) player.currentTime = t;
-              }, 500);
-            }
-          } else {
-            stable = 0;
-          }
-        }, 5000);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        console.error('failed to load adaptive manifest', err);
-        setSrc(undefined);
-      });
-    return () => {
-      clearInterval(id);
-      cancelled = true;
-    };
-  }, [manifestUrl, playerRef, alwaysSD]);
+  if (Hls.isSupported()) {
+    const hls = new Hls({ lowLatencyMode: true });
+    hls.attachMedia(video);
+    hls.loadSource(manifestUrl);
+    hls.on(Hls.Events.ERROR, (_event, data) => {
+      if (data.fatal) {
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            hls.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            hls.recoverMediaError();
+            break;
+          default:
+            hls.destroy();
+            break;
+        }
+      }
+    });
+    return hls;
+  }
 
-  return src;
+  if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = manifestUrl;
+  }
+
+  return null;
 }

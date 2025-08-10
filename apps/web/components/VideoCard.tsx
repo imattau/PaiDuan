@@ -12,7 +12,7 @@ import { Skeleton } from './ui/Skeleton';
 import useFollowing from '../hooks/useFollowing';
 import toast from 'react-hot-toast';
 import { useNetworkState } from 'react-use';
-import useAdaptiveSource from '../hooks/useAdaptiveSource';
+import initHls from '../hooks/useAdaptiveSource';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
@@ -54,7 +54,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [muted, setMuted] = useState(true);
   const [speedMode, setSpeedMode] = useState(false);
   const [seekPreview, setSeekPreview] = useState(0);
-  const adaptiveUrl = useAdaptiveSource(manifestUrl, playerRef);
   const [commentCount, setCommentCount] = useState(0);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [reposted, setReposted] = useState(false);
@@ -86,57 +85,21 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     if (video) video.playbackRate = speedMode ? 2 : 1;
   }, [speedMode]);
 
-  const [source, setSource] = useState<{ src: string; type: string }>();
-
   useEffect(() => {
-    const controller = new AbortController();
-    let cancelled = false;
-    const checkSources = async () => {
-      const videoEl = document.createElement('video');
-      setErrorMessage(null);
-      // Try adaptive/HLS source first
-      if (adaptiveUrl) {
-        try {
-          const res = await fetch(adaptiveUrl, { method: 'HEAD', signal: controller.signal });
-          const type = res.headers.get('content-type')?.toLowerCase() || '';
-          const canPlayHls = videoEl.canPlayType('application/x-mpegURL');
-          console.debug('checkSources HLS', { type, canPlayHls });
-          if (type.includes('application/x-mpegurl') || type.includes('application/vnd.apple.mpegurl')) {
-            if (canPlayHls && !cancelled) {
-              setSource({ src: adaptiveUrl, type: 'application/x-mpegURL' });
-              return;
-            }
-          }
-        } catch (e) {
-          if (e instanceof DOMException && e.name === 'AbortError') return;
-          /* ignore and fallback */
-        }
-      }
-      // Fallback to MP4
-      try {
-        const res = await fetch(videoUrl, { method: 'HEAD', signal: controller.signal });
-        const type = res.headers.get('content-type')?.toLowerCase() || '';
-        const canPlayMp4 = videoEl.canPlayType('video/mp4');
-        console.debug('checkSources MP4', { type, canPlayMp4 });
-        if (type.includes('video/mp4') && canPlayMp4) {
-          if (!cancelled) {
-            setSource({ src: videoUrl, type: 'video/mp4' });
-            return;
-          }
-        } else if (!cancelled) {
-          setErrorMessage('Unsupported video format');
-        }
-      } catch (e) {
-        if (e instanceof DOMException && e.name === 'AbortError') return;
-        if (!cancelled) setErrorMessage('Video unavailable');
-      }
-    };
-    checkSources();
+    const video = playerRef.current;
+    if (!video) return;
+
+    let hls: ReturnType<typeof initHls> = null;
+    if (manifestUrl) {
+      hls = initHls(manifestUrl, video);
+    } else {
+      video.src = videoUrl;
+    }
+
     return () => {
-      cancelled = true;
-      controller.abort();
+      hls?.destroy();
     };
-  }, [adaptiveUrl, videoUrl]);
+  }, [manifestUrl, videoUrl]);
 
   useEffect(() => {
     if (inView) {
@@ -231,7 +194,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       onPointerLeave={handlePointerUp}
       {...bind()}
     >
-      {source && !errorMessage && (
+      {!errorMessage && (
         <video
           ref={playerRef}
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
@@ -240,6 +203,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           playsInline
           poster={posterUrl}
           autoPlay={isPlaying}
+          src={!manifestUrl ? videoUrl : undefined}
           onLoadedData={() => {
             const video = getPlayer();
             if (video) {
@@ -253,9 +217,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             }
           }}
           onError={() => setErrorMessage('Video playback error')}
-        >
-          <source src={source.src} type={source.type} />
-        </video>
+        />
       )}
 
       {showPlayIndicator && !errorMessage && (
