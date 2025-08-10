@@ -18,56 +18,12 @@ const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24h
 type ProgressEntry = { currentTime: number; timestamp: number };
 type ProgressMap = Record<string, ProgressEntry>;
 
-function writeMap(map: ProgressMap) {
-  try {
-    if (Object.keys(map).length) {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-    } else {
-      sessionStorage.removeItem(STORAGE_KEY);
-    }
-  } catch {
-    // ignore
   }
+  return entry.currentTime;
 }
-
-function readMap(): ProgressMap {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const map = JSON.parse(raw) as ProgressMap;
-    const now = Date.now();
-    let changed = false;
-    for (const [id, { timestamp }] of Object.entries(map)) {
-      if (now - timestamp > EXPIRY_MS) {
-        delete map[id];
-        changed = true;
-      }
-    }
-    if (changed) writeMap(map);
-    return map;
-  } catch {
-    return {};
+    
   }
-}
-
-function saveProgress() {
-  if (!video || !currentEventId) return;
-  const map = readMap();
-  map[currentEventId] = { currentTime: video.currentTime, timestamp: Date.now() };
-  writeMap(map);
-}
-
-function loadProgress(eventId: string): number | undefined {
-  const map = readMap();
-  return map[eventId]?.currentTime;
-}
-
-function clearProgress(eventId: string) {
-  const map = readMap();
-  if (eventId in map) {
-    delete map[eventId];
-    writeMap(map);
-  }
+  saveStore(store);
 }
 
 function emit(state: PlaybackState) {
