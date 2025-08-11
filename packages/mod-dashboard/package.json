@@ -11,6 +11,7 @@
     "next": "^15.4.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "nostr-tools": "^2.7.0"
+    "nostr-tools": "^2.7.0",
+    "@paiduan/ui": "workspace:*"
   }
 }

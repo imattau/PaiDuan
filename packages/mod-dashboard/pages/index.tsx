@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import { SimplePool } from 'nostr-tools/pool';
+import { Button } from '@paiduan/ui';
 
 const pool = new SimplePool();
 
@@ -101,18 +102,18 @@ export default function Dashboard({ allowed }: Props) {
             <div className="text-sm">{r.targetKind}: {r.targetId}</div>
             <div className="text-sm">Reason: {r.reason}</div>
             <div className="mt-2 space-x-2">
-              <button
+              <Button
                 className="rounded bg-accent-primary px-2 py-1 text-primary hover:bg-accent-hover active:bg-accent-active"
                 onClick={() => approve(r.targetId)}
               >
                 Approve
-              </button>
-              <button
+              </Button>
+              <Button
                 className="rounded bg-destructive px-2 py-1 text-primary hover:bg-destructive-hover active:bg-destructive-active"
                 onClick={() => remove(r.targetId)}
               >
                 Remove
-              </button>
+              </Button>
             </div>
           </li>
         ))}
