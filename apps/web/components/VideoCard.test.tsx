@@ -88,6 +88,24 @@ describe('VideoCard', () => {
     expect(() => unmount()).not.toThrow();
   });
 
+  it('tracks a watch event on mount', async () => {
+    const props = {
+      videoUrl: 'video.mp4',
+      author: 'author',
+      caption: 'caption',
+      eventId: 'event',
+      pubkey: 'pk',
+      zap: <div />,
+    };
+    render(<VideoCard {...props} />);
+    await waitFor(() => {
+      expect(telemetryTrack).toHaveBeenCalledWith('video.watch', {
+        eventId: 'event',
+        pubkey: 'pk',
+      });
+    });
+  });
+
   it('fills the container and covers it without blank space', () => {
     const props = {
       videoUrl: 'video.mp4',

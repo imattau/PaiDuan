@@ -122,6 +122,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     if (inView) {
       setCurrent({ eventId, pubkey, caption, posterUrl });
       setSelectedVideo(eventId, pubkey);
+      telemetry.track('video.watch', { eventId, pubkey });
     }
   }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
 
