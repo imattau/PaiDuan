@@ -106,6 +106,17 @@ describe('useLightning', () => {
     expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
     expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
+
+    const signedEvent = signEventMock.mock.calls[0][0];
+    expect(signedEvent.tags).toContainEqual(['zap_split', 'col@example.com', '10']);
+    expect(signedEvent.tags).not.toContainEqual(['zap_split', 'user@example.com', '85']);
+    const content = JSON.parse(signedEvent.content);
+    expect(content.splits).toEqual(
+      expect.arrayContaining([
+        { lnaddr: 'user@example.com', pct: 85, sats: 85 },
+        { lnaddr: 'col@example.com', pct: 10, sats: 10 },
+      ]),
+    );
   });
 
   it('falls back to metadata splits when event has none', async () => {
@@ -133,6 +144,16 @@ describe('useLightning', () => {
     expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
     expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
     expect(sendPaymentMock).toHaveBeenCalledTimes(3);
+
+    const signedEvent = signEventMock.mock.calls[0][0];
+    expect(signedEvent.tags).toContainEqual(['zap_split', 'col@example.com', '10']);
+    const content = JSON.parse(signedEvent.content);
+    expect(content.splits).toEqual(
+      expect.arrayContaining([
+        { lnaddr: 'user@example.com', pct: 85, sats: 85 },
+        { lnaddr: 'col@example.com', pct: 10, sats: 10 },
+      ]),
+    );
   });
 
   it('does not throw when alert is absent', async () => {
@@ -175,6 +196,32 @@ describe('useLightning', () => {
 
     expect(fetchPayDataMock).not.toHaveBeenCalled();
     expect(requestInvoiceMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts explicit splits argument', async () => {
+    fetchPayDataMock.mockResolvedValue({ pay: 'data' });
+    requestInvoiceMock.mockResolvedValue({ invoice: 'invoice' });
+
+    const { createZap } = useLightning();
+    const { invoices } = await createZap({
+      lightningAddress: 'host@example.com',
+      amount: 100,
+      pubkey: 'pk',
+      splits: [{ lnaddr: 'col@example.com', pct: 10 }],
+    });
+
+    expect(invoices.length).toBe(3);
+    expect(fetchPayDataMock).toHaveBeenCalledTimes(3);
+    expect(requestInvoiceMock).toHaveBeenCalledTimes(3);
+    const signedEvent = signEventMock.mock.calls[0][0];
+    expect(signedEvent.tags).toContainEqual(['zap_split', 'col@example.com', '10']);
+    const content = JSON.parse(signedEvent.content);
+    expect(content.splits).toEqual(
+      expect.arrayContaining([
+        { lnaddr: 'host@example.com', pct: 85, sats: 85 },
+        { lnaddr: 'col@example.com', pct: 10, sats: 10 },
+      ]),
+    );
   });
 });
 

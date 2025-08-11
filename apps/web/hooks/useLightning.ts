@@ -10,6 +10,7 @@ interface ZapArgs {
   comment?: string;
   eventId?: string;
   pubkey?: string;
+  splits?: Split[];
 }
 
 interface Split {
@@ -37,24 +38,36 @@ export default function useLightning() {
     return res;
   };
 
-  const createZap = async ({ lightningAddress, amount, comment, eventId, pubkey }: ZapArgs) => {
-    let eventSplits: Split[] = [];
-    if (eventId) {
+  const createZap = async ({
+    lightningAddress,
+    amount,
+    comment,
+    eventId,
+    pubkey,
+    splits: argSplits = [],
+  }: ZapArgs) => {
+    let splits: Split[] = argSplits;
+    let hostPct: number | null = null;
+    let coSplits: Split[] = splits;
+
+    if (splits.length === 0 && eventId) {
       try {
         const ev = await pool.get(getRelays(), { ids: [eventId], limit: 1 } as Filter);
         if (ev && Array.isArray(ev.tags)) {
-          eventSplits = ev.tags
+          const parsed = ev.tags
             .filter((t: any[]) => t[0] === 'zap' && t[1] && t[2])
             .map((t: any[]) => ({ lnaddr: t[1], pct: Number(t[2]) }))
             .filter((s: Split) => s.lnaddr && !isNaN(s.pct));
+          const host = parsed.find((s) => s.lnaddr === lightningAddress);
+          if (host) hostPct = host.pct;
+          coSplits = parsed.filter((s) => s.lnaddr !== lightningAddress);
         }
       } catch {
         /* ignore */
       }
     }
 
-    let splits: Split[] = eventSplits;
-    if (splits.length === 0 && pubkey) {
+    if (coSplits.length === 0 && splits.length === 0 && pubkey) {
       try {
         const ev = await pool.get(getRelays(), {
           kinds: [0],
@@ -64,7 +77,7 @@ export default function useLightning() {
         if (ev) {
           const content = JSON.parse(ev.content);
           if (Array.isArray(content.zapSplits)) {
-            splits = content.zapSplits.filter(
+            coSplits = content.zapSplits.filter(
               (s: any) => typeof s.lnaddr === 'string' && typeof s.pct === 'number',
             );
           }
@@ -74,21 +87,24 @@ export default function useLightning() {
       }
     }
 
-    const payouts: { lnaddr: string; pct: number; sats: number }[] = [];
-    if (eventSplits.length > 0) {
-      for (const s of splits) {
-        payouts.push({ lnaddr: s.lnaddr, pct: s.pct, sats: Math.floor((amount * s.pct) / 100) });
-      }
-    } else {
-      const collaboratorTotal = splits.reduce((sum, s) => sum + s.pct, 0);
+    if (hostPct === null) {
+      const collaboratorTotal = coSplits.reduce((sum, s) => sum + s.pct, 0);
       if (collaboratorTotal > 95) throw new Error('Collaborator percentage exceeds 95%');
-      const creatorPct = 95 - collaboratorTotal;
-      for (const s of splits) {
-        payouts.push({ lnaddr: s.lnaddr, pct: s.pct, sats: Math.floor((amount * s.pct) / 100) });
-      }
-      payouts.push({ lnaddr: lightningAddress, pct: creatorPct, sats: Math.floor((amount * creatorPct) / 100) });
+      hostPct = 95 - collaboratorTotal;
     }
-    const treasury = process.env.NEXT_PUBLIC_TREASURY_LNADDR;
+
+    const payouts: { lnaddr: string; pct: number; sats: number }[] = [];
+    for (const s of coSplits) {
+      payouts.push({ lnaddr: s.lnaddr, pct: s.pct, sats: Math.floor((amount * s.pct) / 100) });
+    }
+    if (hostPct > 0) {
+      payouts.push({
+        lnaddr: lightningAddress,
+        pct: hostPct,
+        sats: Math.floor((amount * hostPct) / 100),
+      });
+    }
+    const treasury = hostPct !== null && hostPct !== 100 ? process.env.NEXT_PUBLIC_TREASURY_LNADDR : undefined;
     if (treasury) {
       payouts.push({ lnaddr: treasury, pct: 5, sats: Math.floor((amount * 5) / 100) });
     }
@@ -105,10 +121,12 @@ export default function useLightning() {
         const event: any = {
           kind: 9736,
           created_at: Math.floor(Date.now() / 1000),
-          tags: [],
+          tags: coSplits.map((s) => ['zap_split', s.lnaddr, s.pct.toString()]),
           content: JSON.stringify({
             noteId: eventId,
-            splits: results.map((p) => ({ lnaddr: p.lnaddr, pct: p.pct, sats: p.sats })),
+            splits: results
+              .filter((p) => !treasury || p.lnaddr !== treasury)
+              .map((p) => ({ lnaddr: p.lnaddr, pct: p.pct, sats: p.sats })),
           }),
           pubkey: state.pubkey,
         };
