@@ -102,7 +102,7 @@ function CommentDrawerContent({ videoId, onClose, onCountChange }: CommentDrawer
           <X />
         </button>
       </div>
-      <div className="h-[calc(50vh-88px)] overflow-y-auto p-4 space-y-4">
+      <div className="h-[calc(50vh-88px)] overflow-y-auto overscroll-contain p-4 space-y-4">
         {visibleTop.map((c) => (
           <div key={c.id}>
             <div className="flex items-start space-x-2">

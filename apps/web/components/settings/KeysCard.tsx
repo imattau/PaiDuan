@@ -57,7 +57,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="mb-1 text-sm text-muted">{label}</div>
-      <pre className="bg-black/20 rounded-lg p-3 text-xs overflow-auto">{value}</pre>
+      <pre className="bg-black/20 rounded-lg p-3 text-xs overflow-auto overscroll-contain">{value}</pre>
     </div>
   );
 }

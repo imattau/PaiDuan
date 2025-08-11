@@ -94,7 +94,7 @@ const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) 
         )}
       </div>
       <div
-        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto bg-background-primary text-primary transition-transform duration-300 lg:absolute lg:inset-x-auto lg:right-0 ${
+        className={`fixed inset-x-0 bottom-0 z-20 max-h-1/2 overflow-y-auto overscroll-contain bg-background-primary text-primary transition-transform duration-300 lg:absolute lg:inset-x-auto lg:right-0 ${
           showDrawer ? 'translate-y-0' : 'translate-y-full'
         }`}
       >

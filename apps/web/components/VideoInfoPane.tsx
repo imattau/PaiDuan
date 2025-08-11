@@ -38,7 +38,7 @@ export default function VideoInfoPane() {
   const isFollow = following.includes(current.pubkey);
 
   return (
-    <aside className="hidden lg:block lg:w-64 lg:fixed lg:right-0 lg:inset-y-0 lg:pr-4 lg:pt-6 overflow-y-auto space-y-6 text-white">
+    <aside className="hidden lg:block lg:w-64 lg:fixed lg:right-0 lg:inset-y-0 lg:pr-4 lg:pt-6 overflow-y-auto overscroll-contain space-y-6 text-white">
       <div className="flex items-center space-x-3">
         <Image
           src={meta?.picture || '/avatar.svg'}

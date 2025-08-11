@@ -24,7 +24,7 @@ const NotificationDrawer: React.FC = () => {
       role="dialog"
       aria-modal="true"
       aria-label="Notifications"
-      className={`fixed top-12 left-0 right-0 z-30 max-h-1/2 transform overflow-y-auto bg-background-primary text-primary transition-transform duration-300 ${
+      className={`fixed top-12 left-0 right-0 z-30 max-h-1/2 transform overflow-y-auto overscroll-contain bg-background-primary text-primary transition-transform duration-300 ${
         open ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
