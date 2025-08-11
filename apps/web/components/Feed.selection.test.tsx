@@ -1,7 +1,7 @@
 /* @vitest-environment jsdom */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
@@ -61,7 +61,9 @@ describe('Feed selection persistence', () => {
   });
 
   it('scrolls to persisted selected video on mount', async () => {
-    useFeedSelection.getState().setSelectedVideo('vid2', 'pk2');
+    act(() => {
+      useFeedSelection.getState().setSelectedVideo('vid2', 'pk2');
+    });
     expect(
       JSON.parse(localStorage.getItem('feed-selection') as string).state,
     ).toMatchObject({ selectedVideoId: 'vid2', selectedVideoAuthor: 'pk2' });
@@ -79,14 +81,54 @@ describe('Feed selection persistence', () => {
   });
 
   it('restores last viewed position after refresh', async () => {
-    useSettings.getState().setEnableFeedResume(true);
-    useFeedSelection.getState().setLastPosition(1, 'vid3', 123);
+    act(() => {
+      useSettings.getState().setEnableFeedResume(true);
+      useFeedSelection.getState().setLastPosition(1, 'vid3', 123);
+    });
     const items = [
       { eventId: 'vid1', pubkey: 'pk1', author: 'a1', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
       { eventId: 'vid2', pubkey: 'pk2', author: 'a2', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
       { eventId: 'vid3', pubkey: 'pk3', author: 'a3', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
     ];
     render(<Feed items={items} />);
+    await waitFor(() => {
+      expect(scrollToIndex).toHaveBeenCalledWith({ index: 1, align: 'start' });
+    });
+  });
+
+  it('fetches older pages when last cursor is missing', async () => {
+    act(() => {
+      useSettings.getState().setEnableFeedResume(true);
+      useFeedSelection.getState().setLastPosition(1, 'vid4', 123);
+    });
+
+    const initialItems = [
+      { eventId: 'vid1', pubkey: 'pk1', author: 'a1', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
+      { eventId: 'vid2', pubkey: 'pk2', author: 'a2', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
+    ];
+
+    const olderItems = [
+      { eventId: 'vid3', pubkey: 'pk3', author: 'a3', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
+      { eventId: 'vid4', pubkey: 'pk4', author: 'a4', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
+    ];
+
+    const loadMoreSpy = vi.fn();
+
+    const Wrapper = () => {
+      const [items, setItems] = React.useState(initialItems);
+      const loadMore = () => {
+        loadMoreSpy();
+        setItems((prev) => [...prev, ...olderItems]);
+      };
+      return <Feed items={items} loadMore={loadMore} />;
+    };
+
+    render(<Wrapper />);
+
+    await waitFor(() => {
+      expect(loadMoreSpy).toHaveBeenCalled();
+    });
+
     await waitFor(() => {
       expect(scrollToIndex).toHaveBeenCalledWith({ index: 1, align: 'start' });
     });
