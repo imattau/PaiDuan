@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
-import AutoSizer from './AutoSizer';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import type { Event } from 'nostr-tools/pure';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
