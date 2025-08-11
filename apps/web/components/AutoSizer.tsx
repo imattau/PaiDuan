@@ -36,10 +36,18 @@ export default function AutoSizer({ className, children }: AutoSizerProps) {
     if (typeof ResizeObserver !== 'undefined') {
       const observer = new ResizeObserver(measure);
       observer.observe(el);
-      return () => observer.disconnect();
+      window.addEventListener('orientationchange', measure);
+      return () => {
+        observer.disconnect();
+        window.removeEventListener('orientationchange', measure);
+      };
     } else {
       window.addEventListener('resize', measure);
-      return () => window.removeEventListener('resize', measure);
+      window.addEventListener('orientationchange', measure);
+      return () => {
+        window.removeEventListener('resize', measure);
+        window.removeEventListener('orientationchange', measure);
+      };
     }
   }, []);
 

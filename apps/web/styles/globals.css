@@ -139,8 +139,9 @@ body.no-scroll {
   }
   .feed-container {
     overscroll-behavior: none;
-    touch-action: pan-y;
-    @apply h-screen h-safe-screen lg:mt-4;
+    touch-action: auto;
+    height: 100dvh;
+    @apply h-safe-screen lg:mt-4;
   }
   .username {
     @apply text-lg font-semibold;

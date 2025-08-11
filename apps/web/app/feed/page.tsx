@@ -66,19 +66,16 @@ export default function FeedPage() {
       <AppShell
         left={<MainNav me={me} />}
         center={
-          <div className="feed-container h-full">
-            {/* tabs bar you already have can stay on top */}
-            {isClient ? (
-              <Feed
-                items={videos}
-                loadMore={fetchMore}
-                markSeen={markSeen}
-                loading={loading}
-              />
-            ) : (
-              <Feed items={[]} loadMore={() => {}} markSeen={() => {}} loading />
-            )}
-          </div>
+          isClient ? (
+            <Feed
+              items={videos}
+              loadMore={fetchMore}
+              markSeen={markSeen}
+              loading={loading}
+            />
+          ) : (
+            <Feed items={[]} loadMore={() => {}} markSeen={() => {}} loading />
+          )
         }
         right={<RightPanel onFilterByAuthor={filterByAuthor} />}
       />
