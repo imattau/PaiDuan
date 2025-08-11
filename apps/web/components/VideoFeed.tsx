@@ -8,11 +8,13 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
 
   if (videos.length === 0) {
     return (
-      <PlaceholderVideo
-        className="mx-auto h-full w-full max-h-screen text-primary [max-height:calc(100dvh-var(--bottom-nav-height,0))]"
-        message="No videos yet"
-        busy={false}
-      />
+      <div className="flex-1 min-h-0">
+        <PlaceholderVideo
+          className="mx-auto h-screen w-full text-primary [height:calc(100dvh-var(--bottom-nav-height,0))]"
+          message="No videos yet"
+          busy={false}
+        />
+      </div>
     );
   }
 
