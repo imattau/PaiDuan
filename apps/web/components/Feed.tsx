@@ -125,7 +125,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
 
   if (loading) {
     return (
-      <div className="h-screen w-full [height:calc(100dvh-var(--bottom-nav-height,0))]">
+      <div className="h-screen w-full h-safe-screen">
         <SkeletonVideoCard />
       </div>
     );
@@ -133,7 +133,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
 
   if (items.length === 0) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center text-white [height:calc(100dvh-var(--bottom-nav-height,0))]">
+      <div className="flex h-screen w-full flex-col items-center justify-center text-white h-safe-screen">
         <EmptyState />
         <Link href="/create" className="btn btn-primary mt-4" prefetch>
           Upload your first video

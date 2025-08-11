@@ -111,6 +111,23 @@ body.no-scroll {
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+  .h-safe-screen {
+    height: calc(
+      100vh - var(--top-nav-height, 0) - var(--bottom-nav-height, 0) - env(safe-area-inset-top) -
+        env(safe-area-inset-bottom)
+    );
+  }
+}
+
+@supports (height: 100dvh) {
+  @layer utilities {
+    .h-safe-screen {
+      height: calc(
+        100dvh - var(--top-nav-height, 0) - var(--bottom-nav-height, 0) - env(safe-area-inset-top) -
+          env(safe-area-inset-bottom)
+      );
+    }
+  }
 }
 
 @layer components {
@@ -123,8 +140,7 @@ body.no-scroll {
   .feed-container {
     overscroll-behavior: none;
     touch-action: pan-y;
-    height: 100dvh;
-    @apply lg:mt-4;
+    @apply h-screen h-safe-screen lg:mt-4;
   }
   .username {
     @apply text-lg font-semibold;
