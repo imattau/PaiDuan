@@ -116,6 +116,7 @@ body {
     @apply h-6 w-6 md:h-8 md:w-8;
   }
   .feed-container {
+    overscroll-behavior: none;
     @apply lg:mt-4;
   }
   .username {
