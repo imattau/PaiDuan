@@ -31,9 +31,15 @@ interface FeedProps {
   items: VideoCardProps[];
   loading?: boolean;
   loadMore?: () => void;
+  markSeen?: (count: number) => void;
 }
 
-export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
+export const Feed: React.FC<FeedProps> = ({
+  items,
+  loading,
+  loadMore,
+  markSeen,
+}) => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
@@ -46,10 +52,6 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
   const viewerProfile = useProfile(state.status === 'ready' ? state.pubkey : undefined);
   const hasWallet = !!viewerProfile?.wallets?.length;
   useLayout();
-
-  useEffect(() => {
-    loadMore?.();
-  }, [loadMore]);
 
   const didScrollToSelection = useRef(false);
   useEffect(() => {
@@ -95,6 +97,9 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore }) => {
     const cursor = items[items.length - 1]?.eventId;
     if (cursor) {
       setLastPosition(middleIndex, cursor);
+    }
+    if (range.startIndex > 0) {
+      markSeen?.(range.startIndex);
     }
   };
 

@@ -6,8 +6,10 @@ import { render } from '@testing-library/react';
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
 
-const useFeedMock = vi.hoisted(() => vi.fn(() => ({ items: [], loadMore: vi.fn(), loading: false })));
-vi.mock('@/hooks/useFeed', () => ({ default: useFeedMock }));
+const useSessionFeedMock = vi.hoisted(() =>
+  vi.fn(() => ({ queue: [], fetchMore: vi.fn(), markSeen: vi.fn() })),
+);
+vi.mock('@/hooks/useSessionFeed', () => ({ default: useSessionFeedMock }));
 vi.mock('@/components/layout/AppShell', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/layout/MainNav', () => ({ default: () => null }));
 vi.mock('@/components/feed/RightPanel', () => ({ default: () => null }));
@@ -27,6 +29,6 @@ import FeedPage from './page';
 describe('FeedPage', () => {
   it('uses following authors when tab=following', () => {
     render(<FeedPage />);
-    expect(useFeedMock).toHaveBeenCalledWith('following', ['pk1', 'pk2'], {}, true);
+    expect(useSessionFeedMock).toHaveBeenCalledWith('following', ['pk1', 'pk2']);
   });
 });
