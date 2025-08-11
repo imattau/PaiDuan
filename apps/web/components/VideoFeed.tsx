@@ -1,6 +1,7 @@
 'use client';
 import { Virtuoso } from 'react-virtuoso';
 import PlaceholderVideo from './PlaceholderVideo';
+import AutoSizer from './AutoSizer';
 
 export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: string) => void }) {
   const videos: unknown[] = [];
@@ -16,12 +17,17 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
   }
 
   return (
-    <Virtuoso
-      data={videos}
-      className="relative h-screen w-full overflow-auto overscroll-contain [height:calc(100dvh-var(--bottom-nav-height,0))]"
-      itemContent={() => (
-        <PlaceholderVideo className="h-full w-full" message="Loading video…" />
+    <AutoSizer className="flex-1 min-h-0 overflow-hidden">
+      {({ width, height }) => (
+        <Virtuoso
+          data={videos}
+          style={{ width, height }}
+          className="relative h-full w-full overflow-auto overscroll-contain"
+          itemContent={() => (
+            <PlaceholderVideo className="h-full w-full" message="Loading video…" />
+          )}
+        />
       )}
-    />
+    </AutoSizer>
   );
 }
