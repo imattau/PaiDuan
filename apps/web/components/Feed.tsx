@@ -156,7 +156,10 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
             itemContent={(index) => {
               const item = items[index];
               return (
-                <div className="flex h-full w-full snap-start snap-always items-start justify-center lg:items-center">
+                <div
+                  style={{ height }}
+                  className="flex w-full snap-start snap-always items-start justify-center lg:items-center"
+                >
                   <VideoCard
                     {...item}
                     showMenu

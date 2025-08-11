@@ -1,5 +1,3 @@
-import React from 'react';
-
 export type ListRange = { startIndex: number; endIndex: number };
 export type VirtuosoHandle = { scrollToIndex?: (opts: { index: number; align?: 'start' | 'center' | 'end'; }) => void };
 
@@ -14,12 +12,23 @@ interface VirtuosoProps<T> {
   rangeChanged?: (range: ListRange) => void;
 }
 
-export function Virtuoso<T>({ data = [], totalCount = data.length, itemContent, style, className, scrollerRef }: VirtuosoProps<T>) {
+export function Virtuoso<T>({
+  data = [],
+  totalCount = data.length,
+  itemContent,
+  style,
+  className,
+  scrollerRef,
+}: VirtuosoProps<T>) {
+  const React = (globalThis as any).React;
   const items = data.length ? data : Array.from({ length: totalCount }).map(() => undefined as T);
-  return (
-    <div style={style} className={className} ref={scrollerRef as any}>
-      {itemContent && items.map((item, i) => <div key={i}>{itemContent(i, item)}</div>)}
-    </div>
+  return React.createElement(
+    'div',
+    { style, className, ref: scrollerRef as any },
+    itemContent &&
+      items.map((item, i) =>
+        React.createElement('div', { key: i }, itemContent(i, item)),
+      ),
   );
 }
 
