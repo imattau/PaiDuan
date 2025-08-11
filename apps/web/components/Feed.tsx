@@ -60,6 +60,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
     if (hasRestoredRef.current) return;
     if (!useFeedSelection.persist.hasHydrated()) return;
     if (!items.length) return;
+    if (lastCursor && !items.find((i) => i.eventId === lastCursor)) return;
     if (lastIndex !== undefined) {
       virtuosoRef.current?.scrollToIndex({ index: lastIndex, align: 'start' });
     } else if (selectedVideoId) {
@@ -69,7 +70,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
       }
     }
     hasRestoredRef.current = true;
-  }, [items, selectedVideoId, lastIndex]);
+  }, [items, selectedVideoId, lastIndex, lastCursor]);
 
   useEffect(() => {
     if (!lastCursor) return;
@@ -86,9 +87,9 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
     if (current && current.eventId !== selectedVideoId) {
       setSelectedVideo(current.eventId, current.pubkey);
     }
-    const cursor = items[items.length - 1]?.eventId;
-    if (cursor) {
-      setLastPosition(middleIndex, cursor);
+    const cursorItem = items[items.length - 1];
+    if (cursorItem) {
+      setLastPosition(middleIndex, cursorItem.eventId, cursorItem.createdAt ?? 0);
     }
     if (range.startIndex > 0) {
       markSeen?.(range.startIndex);

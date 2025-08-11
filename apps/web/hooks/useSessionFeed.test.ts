@@ -16,6 +16,7 @@ vi.mock('./useFeed', () => ({
 }));
 
 import useSessionFeed from './useSessionFeed';
+import { useFeedSelection } from '@/store/feedSelection';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://example.com' });
 (global as any).window = dom.window;
@@ -42,10 +43,11 @@ function TestComponent({
 }
 
 describe('useSessionFeed', () => {
-  beforeEach(() => {
+beforeEach(async () => {
     feedState.items = [];
     loadMore.mockClear();
     window.localStorage.clear();
+    await useFeedSelection.persist.rehydrate();
   });
 
   it('persists cursor to localStorage when items are marked seen', async () => {

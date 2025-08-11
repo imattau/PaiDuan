@@ -28,6 +28,7 @@ export interface VideoCardProps {
   author: string;
   caption: string;
   eventId: string;
+  createdAt?: number;
   lightningAddress?: string;
   pubkey: string;
   zapTotal?: number;
