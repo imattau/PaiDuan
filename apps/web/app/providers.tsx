@@ -11,6 +11,7 @@ import { queryClient } from '@/lib/queryClient';
 import { OverlayHost } from '@/components/ui/Overlay';
 import { NotificationsProvider } from '@/hooks/useNotifications';
 import { useEffect } from 'react';
+import { LayoutProvider } from '@/hooks/useLayout';
 
 function ColorModeSync() {
   const { resolvedTheme } = useTheme();
@@ -36,16 +37,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem themes={[...themes]}>
         <ThemeAgentSync />
         <ColorModeSync />
-        <GestureProvider>
-          <ModqueueProvider>
-            <QueryClientProvider client={queryClient}>
-              <NotificationsProvider>
-                {children}
-                <OverlayHost />
-              </NotificationsProvider>
-            </QueryClientProvider>
-          </ModqueueProvider>
-        </GestureProvider>
+        <LayoutProvider>
+          <GestureProvider>
+            <ModqueueProvider>
+              <QueryClientProvider client={queryClient}>
+                <NotificationsProvider>
+                  {children}
+                  <OverlayHost />
+                </NotificationsProvider>
+              </QueryClientProvider>
+            </ModqueueProvider>
+          </GestureProvider>
+        </LayoutProvider>
       </ThemeProvider>
     </ChakraProvider>
   );
