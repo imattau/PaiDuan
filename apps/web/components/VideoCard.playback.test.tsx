@@ -32,6 +32,7 @@ vi.mock('@/store/feedSelection', () => ({
 }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: 'author' }) }));
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
+vi.mock('@/agents/telemetry', () => ({ telemetry: { track: vi.fn() } }));
 
 import VideoCard from './VideoCard';
 
