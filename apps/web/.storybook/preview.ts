@@ -1,4 +1,6 @@
+import React from 'react';
 import type { Preview } from '@storybook/react';
+import { LayoutProvider } from '@/hooks/useLayout';
 
 const preview: Preview = {
   parameters: {
@@ -10,6 +12,13 @@ const preview: Preview = {
       },
     },
   },
+  decorators: [
+    (Story) => (
+      <LayoutProvider>
+        <Story />
+      </LayoutProvider>
+    ),
+  ],
 };
 
 export default preview;
