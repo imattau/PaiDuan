@@ -10,7 +10,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
     return (
       <div className="flex-1 min-h-0">
         <PlaceholderVideo
-          className="mx-auto h-screen w-full text-primary [height:calc(100dvh-var(--bottom-nav-height,0))]"
+          className="mx-auto h-screen w-full text-primary h-safe-screen"
           message="No videos yet"
           busy={false}
         />
