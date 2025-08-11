@@ -23,6 +23,18 @@ Override the default Nostr relays with the `NEXT_PUBLIC_RELAYS` environment vari
 
 Control how many events are requested per page by setting `NEXT_PUBLIC_FEED_LIMIT` (defaults to `20`).
 
+## Feed resume & session queue
+
+When `enableFeedResume` is enabled in **Settings**, the feed buffers items in a session‑scoped queue and stores a cursor for the last seen video. The cursor keeps the event id and timestamp in `localStorage` so a refresh scrolls back to the same position. A one‑week freshness rule drops entries older than seven days and drives `since` timestamps on feed requests. If the stored cursor points to a pruned or stale video, the feed starts from the top instead of resuming.
+
+### Developer testing
+
+1. Enable **Feed Resume** in the app settings.
+2. Scroll a few videos down the feed.
+3. Refresh the page – the feed should restore to the same video if the cursor is still within the one‑week window.
+4. Clear `localStorage` or disable the flag to reset the cursor.
+5. If the feed fails to resume, older videos may have been pruned; load newer items and try again.
+
 ## PWA features
 
 The web client ships as a Progressive Web App:
@@ -49,7 +61,7 @@ Open the app and choose **Install** (or **Add to Home Screen**) to install it.
 Static assets in `apps/web/public` are served with long-lived caching headers. When deploying:
 
 - **Vercel** respects `Cache-Control` by default, so no extra setup is required.
-- **Cloudflare** should be set to *Respect Existing Headers* or *Origin Cache Control* so the `Cache-Control: public, max-age=31536000, immutable` header is honored.
+- **Cloudflare** should be set to _Respect Existing Headers_ or _Origin Cache Control_ so the `Cache-Control: public, max-age=31536000, immutable` header is honored.
 
 Verify locally by running `pnpm --filter @paiduan/web dev` and inspecting network responses in your browser's developer tools to confirm the `Cache-Control` value.
 
