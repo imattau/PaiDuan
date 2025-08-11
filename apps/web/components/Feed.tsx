@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
+import AutoSizer from './AutoSizer';
 import { useLayout } from '@/context/LayoutContext';
 
 export const estimateFeedItemSize = () => {
@@ -143,35 +144,40 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
 
   return (
     <>
-      <Virtuoso
-        ref={virtuosoRef}
-        totalCount={items.length}
-        className="feed-container h-screen w-full overflow-auto snap-y snap-mandatory scrollbar-none [height:calc(100dvh-var(--bottom-nav-height,0))]"
-        endReached={loadMore}
-        rangeChanged={handleRangeChanged}
-        itemContent={(index) => {
-          const item = items[index];
-          return (
-            <div className="flex h-screen w-full snap-start snap-always items-start justify-center lg:items-center [height:calc(100dvh-var(--bottom-nav-height,0))]">
-              <VideoCard
-                {...item}
-                showMenu
-                onComment={() => setCommentVideoId(item.eventId)}
-                zap={
-                  <ZapButton
-                    lightningAddress={item.lightningAddress ?? ''}
-                    pubkey={item.pubkey}
-                    eventId={item.eventId}
-                    total={item.zapTotal}
-                    disabled={!hasWallet}
-                    title={!hasWallet ? 'Add a wallet to zap' : undefined}
+      <AutoSizer className="flex-1 min-h-0 overflow-hidden">
+        {({ width, height }) => (
+          <Virtuoso
+            ref={virtuosoRef}
+            totalCount={items.length}
+            style={{ width, height }}
+            className="feed-container overflow-auto snap-y snap-mandatory scrollbar-none"
+            endReached={loadMore}
+            rangeChanged={handleRangeChanged}
+            itemContent={(index) => {
+              const item = items[index];
+              return (
+                <div className="flex h-full w-full snap-start snap-always items-start justify-center lg:items-center">
+                  <VideoCard
+                    {...item}
+                    showMenu
+                    onComment={() => setCommentVideoId(item.eventId)}
+                    zap={
+                      <ZapButton
+                        lightningAddress={item.lightningAddress ?? ''}
+                        pubkey={item.pubkey}
+                        eventId={item.eventId}
+                        total={item.zapTotal}
+                        disabled={!hasWallet}
+                        title={!hasWallet ? 'Add a wallet to zap' : undefined}
+                      />
+                    }
                   />
-                }
-              />
-            </div>
-          );
-        }}
-      />
+                </div>
+              );
+            }}
+          />
+        )}
+      </AutoSizer>
       <CommentDrawer
         videoId={commentVideoId || ''}
         open={!!commentVideoId}

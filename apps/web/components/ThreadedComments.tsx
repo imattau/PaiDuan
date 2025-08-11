@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
+import AutoSizer from './AutoSizer';
 import type { Event } from 'nostr-tools/pure';
 import { getRelays } from '@/lib/nostr';
 import pool from '@/lib/relayPool';
@@ -47,12 +48,17 @@ export default function ThreadedComments({ noteId }: { noteId?: string }) {
       {events.length === 0 ? (
         <p className="text-xs text-gray-600 dark:text-gray-400">Thread will render here.</p>
       ) : (
-        <Virtuoso
-          data={events}
-          className="max-h-96 overflow-auto overscroll-contain"
-          components={{ List, Item }}
-          itemContent={(index, event) => <>{event.content}</>}
-        />
+        <AutoSizer className="flex-1 min-h-0 overflow-hidden max-h-96">
+          {({ width, height }) => (
+            <Virtuoso
+              data={events}
+              style={{ width, height }}
+              className="overflow-auto overscroll-contain"
+              components={{ List, Item }}
+              itemContent={(index, event) => <>{event.content}</>}
+            />
+          )}
+        </AutoSizer>
       )}
     </div>
   );
