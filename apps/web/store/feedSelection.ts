@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useSettings } from '@/store/settings';
 
 type S = {
   selectedVideoId?: string;
@@ -34,13 +35,20 @@ export const useFeedSelection = create<S>()(
     }),
     {
       name: 'feed-selection',
-      partialize: (state) => ({
-        selectedVideoId: state.selectedVideoId,
-        selectedVideoAuthor: state.selectedVideoAuthor,
-        lastIndex: state.lastIndex,
-        lastCursor: state.lastCursor,
-        lastTimestamp: state.lastTimestamp,
-      }),
+      partialize: (state) => {
+        const { enableFeedResume } = useSettings.getState();
+        return {
+          selectedVideoId: state.selectedVideoId,
+          selectedVideoAuthor: state.selectedVideoAuthor,
+          ...(enableFeedResume
+            ? {
+                lastIndex: state.lastIndex,
+                lastCursor: state.lastCursor,
+                lastTimestamp: state.lastTimestamp,
+              }
+            : {}),
+        };
+      },
     },
   ),
 );
