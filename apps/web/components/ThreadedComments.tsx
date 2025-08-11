@@ -49,7 +49,7 @@ export default function ThreadedComments({ noteId }: { noteId?: string }) {
       ) : (
         <Virtuoso
           data={events}
-          className="max-h-96 overflow-auto"
+          className="max-h-96 overflow-auto overscroll-contain"
           components={{ List, Item }}
           itemContent={(index, event) => <>{event.content}</>}
         />

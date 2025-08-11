@@ -18,7 +18,7 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
   return (
     <Virtuoso
       data={videos}
-      className="relative h-screen w-full overflow-auto [height:calc(100dvh-var(--bottom-nav-height,0))]"
+      className="relative h-screen w-full overflow-auto overscroll-contain [height:calc(100dvh-var(--bottom-nav-height,0))]"
       itemContent={() => (
         <PlaceholderVideo className="h-full w-full" message="Loading video…" />
       )}
