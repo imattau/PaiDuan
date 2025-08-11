@@ -60,7 +60,10 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
 export function useLayout(): LayoutType {
   const ctx = useContext(LayoutContext);
   if (!ctx) {
-    throw new Error('useLayout must be used within a LayoutProvider');
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('useLayout used outside LayoutProvider; defaulting to desktop layout');
+    }
+    return 'desktop';
   }
   return ctx;
 }
