@@ -121,7 +121,9 @@ describe('VideoCard', () => {
     const wrapper = container.firstChild as HTMLElement;
     const className = wrapper.getAttribute('class') || '';
     expect(className).toContain('w-full');
+    expect(className).toContain('h-full');
     expect(className).not.toContain('w-auto');
+    expect(className).not.toContain('h-safe-screen');
   });
 
   it('renders comment count badge and updates when count changes', () => {
