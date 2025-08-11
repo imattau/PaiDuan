@@ -57,7 +57,10 @@ async function fetchFeedPage({
   authors: string[];
   limit: number;
 }) {
-    const filter: Filter = { kinds: [21, 22], limit };
+  const filter: Filter = { kinds: [21, 22], limit };
+  if (mode === 'all') {
+    filter.since = Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60;
+  }
   if (pageParam) filter.until = pageParam;
   if (mode === 'following') {
     if (authors.length > 0) filter.authors = authors;
