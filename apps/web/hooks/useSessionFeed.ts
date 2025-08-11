@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VideoCardProps } from '@/components/VideoCard';
 import useFeed, { type FeedMode } from './useFeed';
+import { useFeedSelection } from '@/store/feedSelection';
 
 interface Options {
   threshold?: number;
@@ -22,7 +23,19 @@ export default function useSessionFeed(
   const [queue, setQueue] = useState<VideoCardProps[]>([]);
   const [shouldFetch, setShouldFetch] = useState(false);
 
-  const feed = useFeed(mode, authors, {}, typeof window !== 'undefined');
+  const [hydrated, setHydrated] = useState(useFeedSelection.persist.hasHydrated());
+  useEffect(() => {
+    const unsub = useFeedSelection.persist.onFinishHydration(() => setHydrated(true));
+    return () => unsub();
+  }, []);
+  const lastTimestamp = useFeedSelection((s) => s.lastTimestamp);
+
+  const feed = useFeed(
+    mode,
+    authors,
+    lastTimestamp ? { until: lastTimestamp } : {},
+    hydrated && typeof window !== 'undefined',
+  );
 
   const fetchMore = useCallback(() => {
     setShouldFetch(true);

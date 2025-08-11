@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
@@ -53,8 +53,12 @@ import Feed from './Feed';
 import { useFeedSelection } from '@/store/feedSelection';
 
 describe('Feed selection persistence', () => {
-  it('scrolls to persisted selected video on mount', async () => {
+  beforeEach(() => {
     localStorage.clear();
+    scrollToIndex.mockClear();
+  });
+
+  it('scrolls to persisted selected video on mount', async () => {
     useFeedSelection.getState().setSelectedVideo('vid2', 'pk2');
     expect(
       JSON.parse(localStorage.getItem('feed-selection') as string).state,
@@ -69,6 +73,19 @@ describe('Feed selection persistence', () => {
     render(<Feed items={items} />);
     await waitFor(() => {
       expect(scrollToIndex).toHaveBeenCalledWith({ index: 1 });
+    });
+  });
+
+  it('restores last viewed position after refresh', async () => {
+    useFeedSelection.getState().setLastPosition(1, 'vid3', 123);
+    const items = [
+      { eventId: 'vid1', pubkey: 'pk1', author: 'a1', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
+      { eventId: 'vid2', pubkey: 'pk2', author: 'a2', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
+      { eventId: 'vid3', pubkey: 'pk3', author: 'a3', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },
+    ];
+    render(<Feed items={items} />);
+    await waitFor(() => {
+      expect(scrollToIndex).toHaveBeenCalledWith({ index: 1, align: 'start' });
     });
   });
 });
