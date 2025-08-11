@@ -107,7 +107,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
     }
     const cursorItem = items[items.length - 1];
     if (cursorItem) {
-      setLastPosition(middleIndex, cursorItem.eventId, cursorItem.createdAt ?? 0);
+      setLastPosition(middleIndex, cursorItem.eventId, cursorItem.created ?? 0);
     }
     if (range.startIndex > 0) {
       markSeen?.(range.startIndex);
