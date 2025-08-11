@@ -140,7 +140,7 @@ body.no-scroll {
   .feed-container {
     overscroll-behavior: none;
     touch-action: auto;
-    height: 100dvh;
+    height: 100vh;
     @apply h-safe-screen lg:mt-4;
   }
   .username {
@@ -151,6 +151,14 @@ body.no-scroll {
   }
   .sidebar-right {
     @apply p-4;
+  }
+}
+
+@supports (height: 100dvh) {
+  @layer components {
+    .feed-container {
+      height: 100dvh;
+    }
   }
 }
 
