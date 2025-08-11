@@ -1,5 +1,18 @@
 # Web App
 
+## Big picture
+
+- The feed maintains a session-scoped queue of events with a cursor persisted across reloads.
+- A one-week freshness rule prunes entries older than seven days and drives `since` timestamps in feed requests.
+- Service worker caching should respect this window to avoid serving stale sessions, and telemetry logs queue and cursor metrics for debugging.
+
+## Session queue and cursor persistence
+
+The feed agent buffers events in a session queue while tracking a cursor so users resume where they left off.
+Fetching follows [React/Next.js data-fetching patterns](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching) and leverages [`useEffect` for client-side fetches](https://react.dev/reference/react/useEffect#fetching-data-with-effects).
+When requesting more events, the cursor adds a `since` timestamp as described in [Nostr NIP-01 filters](https://github.com/nostr-protocol/nips/blob/master/01.md#filters).
+The queue drops items older than a week to keep the feed fresh and bound in size.
+
 ## Single-screen upload flow
 
 The upload page at `pages/create.tsx` (and locale variants in `[locale]/create.tsx`) renders the `CreateVideoForm` component from `components/create/CreateVideoForm.tsx`. This form keeps file selection, metadata entry and publishing on a single screen.
