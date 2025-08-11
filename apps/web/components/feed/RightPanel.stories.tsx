@@ -1,22 +1,18 @@
 import React, { useEffect } from 'react';
 import RightPanel from './RightPanel';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
 import { useFeedSelection } from '@/store/feedSelection';
 
 const meta = { title: 'Feed/RightPanel' };
 export default meta;
 
-const Template = (layout: LayoutType) => {
+const Template = (_layout: LayoutType) => {
   const Story = () => {
     const setSelected = useFeedSelection((s) => s.setSelectedVideo);
     useEffect(() => {
       setSelected('vid1', 'pubkey');
     }, [setSelected]);
-    return (
-      <LayoutContext.Provider value={layout}>
-        <RightPanel onFilterByAuthor={() => {}} />
-      </LayoutContext.Provider>
-    );
+    return <RightPanel onFilterByAuthor={() => {}} />;
   };
   Story.displayName = 'RightPanelStory';
   return Story;

@@ -1,6 +1,6 @@
 import React from 'react';
 import MainNav from './MainNav';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
 
 const meta = { title: 'Layout/MainNav' };
 export default meta;
@@ -12,12 +12,8 @@ const me = {
   stats: { followers: 123, following: 45 },
 };
 
-const Template = (layout: LayoutType) => {
-  const Story = () => (
-    <LayoutContext.Provider value={layout}>
-      <MainNav me={me} />
-    </LayoutContext.Provider>
-  );
+const Template = (_layout: LayoutType) => {
+  const Story = () => <MainNav me={me} />;
   Story.displayName = 'MainNavStory';
   return Story;
 };

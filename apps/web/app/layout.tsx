@@ -1,6 +1,5 @@
 import '../styles/globals.css';
 import Providers from './providers';
-import { LayoutProvider } from '@/context/LayoutContext';
 import { ColorModeScript } from '@chakra-ui/react';
 import themeConfig from '../styles/theme-config';
 
@@ -23,9 +22,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <ColorModeScript initialColorMode={themeConfig.initialColorMode} />
-        <LayoutProvider>
-          <Providers>{children}</Providers>
-        </LayoutProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

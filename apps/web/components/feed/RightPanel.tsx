@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Thread from '@/components/comments/Thread';
 import { useFeedSelection } from '@/store/feedSelection';
-import { useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
 import { useProfile } from '@/hooks/useProfile';
 import useFollowerCount from '@/hooks/useFollowerCount';
 import { useAvatar } from '@/hooks/useAvatar';

@@ -3,7 +3,10 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import BottomNav from '@/components/layout/BottomNav';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
+import { useLayout } from '@/hooks/useLayout';
+
+vi.mock('@/hooks/useLayout');
 
 vi.mock('@chakra-ui/react', () => {
   const React = require('react');
@@ -34,11 +37,8 @@ describe('BottomNav', () => {
 
   (['desktop', 'tablet', 'mobile'] as LayoutType[]).forEach(layout => {
     it(`renders correctly on ${layout}`, () => {
-      const html = renderToStaticMarkup(
-        <LayoutContext.Provider value={layout}>
-          <BottomNav />
-        </LayoutContext.Provider>,
-      );
+      vi.mocked(useLayout).mockReturnValue(layout);
+      const html = renderToStaticMarkup(<BottomNav />);
       if (layout === 'desktop') {
         expect(html).toBe('');
       } else {
@@ -50,11 +50,8 @@ describe('BottomNav', () => {
 
   it('shows limited nav when signed out', () => {
     useAuthMock.mockReturnValue({ state: { status: 'signedOut' } });
-    const html = renderToStaticMarkup(
-      <LayoutContext.Provider value="mobile">
-        <BottomNav />
-      </LayoutContext.Provider>,
-    );
+    vi.mocked(useLayout).mockReturnValue('mobile');
+    const html = renderToStaticMarkup(<BottomNav />);
     expect(html).toContain('/get-started');
     expect(html).not.toContain('/settings');
   });

@@ -3,7 +3,9 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import RightPanel from '@/components/feed/RightPanel';
-import { LayoutContext } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
+
+vi.mock('@/hooks/useLayout');
 
 const disclosureState = { isOpen: false };
 vi.mock('@chakra-ui/react', () => {
@@ -40,10 +42,9 @@ vi.mock('@/store/feedSelection', () => ({
 
 describe('RightPanel', () => {
   it('renders in a drawer when forced', () => {
+    vi.mocked(useLayout).mockReturnValue('desktop');
     const html = renderToStaticMarkup(
-      <LayoutContext.Provider value="desktop">
-        <RightPanel onFilterByAuthor={() => {}} forceDrawer />
-      </LayoutContext.Provider>,
+      <RightPanel onFilterByAuthor={() => {}} forceDrawer />,
     );
     expect(html).toContain('data-drawer');
   });
@@ -53,19 +54,16 @@ describe('RightPanel', () => {
     feedSelectionState.selectedVideoAuthor = 'pk';
 
     disclosureState.isOpen = false;
+    vi.mocked(useLayout).mockReturnValue('mobile');
     const closedHtml = renderToStaticMarkup(
-      <LayoutContext.Provider value="mobile">
-        <RightPanel onFilterByAuthor={() => {}} />
-      </LayoutContext.Provider>,
+      <RightPanel onFilterByAuthor={() => {}} />,
     );
     expect(closedHtml).not.toContain('data-thread');
     expect(closedHtml).not.toContain('1');
 
     disclosureState.isOpen = true;
     const openHtml = renderToStaticMarkup(
-      <LayoutContext.Provider value="mobile">
-        <RightPanel onFilterByAuthor={() => {}} />
-      </LayoutContext.Provider>,
+      <RightPanel onFilterByAuthor={() => {}} />,
     );
     expect(openHtml).toContain('data-thread');
     expect(openHtml).toContain('1');

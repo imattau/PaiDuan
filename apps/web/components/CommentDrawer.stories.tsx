@@ -1,20 +1,20 @@
 import React from 'react';
 import CommentDrawer from './CommentDrawer';
 import { OverlayHost } from './ui/Overlay';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
 
 const meta = { title: 'Overlays/CommentDrawer' };
 export default meta;
 
-const Template = (layout: LayoutType) => {
+const Template = (_layout: LayoutType) => {
   const Story = () => {
     const [open, setOpen] = React.useState(false);
     return (
-      <LayoutContext.Provider value={layout}>
+      <>
         <OverlayHost />
         <button onClick={() => setOpen(true)}>Open</button>
         <CommentDrawer videoId="video1" open={open} onOpenChange={setOpen} />
-      </LayoutContext.Provider>
+      </>
     );
   };
   Story.displayName = 'CommentDrawerStory';

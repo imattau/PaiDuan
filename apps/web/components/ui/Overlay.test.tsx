@@ -3,19 +3,19 @@ import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import Overlay, { OverlayHost } from './Overlay';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { LayoutContext } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
+
+vi.mock('@/hooks/useLayout');
 
 describe('Overlay', () => {
   it('closes when clicking the overlay and restores interactions', async () => {
     const clickSpy = vi.fn();
-    const MockLayoutProvider = ({ children }: { children: React.ReactNode }) => (
-      <LayoutContext.Provider value="mobile">{children}</LayoutContext.Provider>
-    );
+    vi.mocked(useLayout).mockReturnValue('mobile');
     render(
-      <MockLayoutProvider>
+      <>
         <button onClick={clickSpy}>feed</button>
         <OverlayHost />
-      </MockLayoutProvider>
+      </>,
     );
 
     Overlay.open('modal', { content: <div>content</div> });
@@ -26,6 +26,4 @@ describe('Overlay', () => {
     fireEvent.click(screen.getByText('feed'));
     expect(clickSpy).toHaveBeenCalled();
   });
-
 });
-

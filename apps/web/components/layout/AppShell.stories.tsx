@@ -1,15 +1,13 @@
 import React from 'react';
 import AppShell from './AppShell';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
 
 const meta = { title: 'Layout/AppShell' };
 export default meta;
 
-const Template = (layout: LayoutType) => {
+const Template = (_layout: LayoutType) => {
   const Story = () => (
-    <LayoutContext.Provider value={layout}>
-      <AppShell left={<div>Left</div>} center={<div>Center</div>} right={<div>Right</div>} />
-    </LayoutContext.Provider>
+    <AppShell left={<div>Left</div>} center={<div>Center</div>} right={<div>Right</div>} />
   );
   Story.displayName = 'AppShellStory';
   return Story;

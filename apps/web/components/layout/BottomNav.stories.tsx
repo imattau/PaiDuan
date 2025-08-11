@@ -1,16 +1,12 @@
 import React from 'react';
 import BottomNav from './BottomNav';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
 
 const meta = { title: 'Layout/BottomNav' };
 export default meta;
 
-const Template = (layout: LayoutType) => {
-  const Story = () => (
-    <LayoutContext.Provider value={layout}>
-      <BottomNav />
-    </LayoutContext.Provider>
-  );
+const Template = (_layout: LayoutType) => {
+  const Story = () => <BottomNav />;
   Story.displayName = 'BottomNavStory';
   return Story;
 };

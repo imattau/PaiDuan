@@ -1,14 +1,14 @@
 import React from 'react';
 import ZapModal from './ZapModal';
 import { OverlayHost } from './ui/Overlay';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
 
 const meta = { title: 'Overlays/ZapModal' };
 export default meta;
 
-const Template = (layout: LayoutType) => {
+const Template = (_layout: LayoutType) => {
   const Story = () => (
-    <LayoutContext.Provider value={layout}>
+    <>
       <OverlayHost />
       <button
         onClick={() =>
@@ -21,7 +21,7 @@ const Template = (layout: LayoutType) => {
       >
         Open
       </button>
-    </LayoutContext.Provider>
+    </>
   );
   Story.displayName = 'ZapModalStory';
   return Story;

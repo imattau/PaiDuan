@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
 
 export const estimateFeedItemSize = () => {
   return typeof window === 'undefined' ? 0 : window.innerHeight;
