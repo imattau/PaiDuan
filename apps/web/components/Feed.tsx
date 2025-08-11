@@ -5,14 +5,7 @@ import AutoSizer from './AutoSizer';
 import { useLayout } from '@/context/LayoutContext';
 
 export const estimateFeedItemSize = () => {
-  const nav =
-    typeof window === 'undefined'
-      ? 0
-      : parseInt(
-          getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-height') || '0',
-          10,
-        ) || 0;
-  return typeof window === 'undefined' ? 0 : window.innerHeight - nav;
+  return typeof window === 'undefined' ? 0 : window.innerHeight;
 };
 
 import { VideoCard, type VideoCardProps } from './VideoCard';
@@ -145,41 +138,45 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
   return (
     <>
       <AutoSizer className="flex-1 min-h-0 overflow-hidden">
-        {({ width, height }) => (
-          <Virtuoso
-            ref={virtuosoRef}
-            totalCount={items.length}
-            style={{ width, height }}
-            className="feed-container overflow-auto snap-y snap-mandatory scrollbar-none"
-            endReached={loadMore}
-            rangeChanged={handleRangeChanged}
-            itemContent={(index) => {
-              const item = items[index];
-              return (
-                <div
-                  style={{ height }}
-                  className="flex w-full snap-start snap-always items-start justify-center lg:items-center"
-                >
-                  <VideoCard
-                    {...item}
-                    showMenu
-                    onComment={() => setCommentVideoId(item.eventId)}
-                    zap={
-                      <ZapButton
-                        lightningAddress={item.lightningAddress ?? ''}
-                        pubkey={item.pubkey}
-                        eventId={item.eventId}
-                        total={item.zapTotal}
-                        disabled={!hasWallet}
-                        title={!hasWallet ? 'Add a wallet to zap' : undefined}
-                      />
-                    }
-                  />
-                </div>
-              );
-            }}
-          />
-        )}
+        {({ width }) => {
+          const height = estimateFeedItemSize();
+          return (
+            <Virtuoso
+              ref={virtuosoRef}
+              totalCount={items.length}
+              style={{ width, height }}
+              className="feed-container overflow-auto snap-y snap-proximity scrollbar-none"
+              endReached={loadMore}
+              rangeChanged={handleRangeChanged}
+              fixedItemHeight={height}
+              itemContent={(index) => {
+                const item = items[index];
+                return (
+                  <div
+                    style={{ height }}
+                    className="flex w-full snap-start snap-always items-start justify-center lg:items-center"
+                  >
+                    <VideoCard
+                      {...item}
+                      showMenu
+                      onComment={() => setCommentVideoId(item.eventId)}
+                      zap={
+                        <ZapButton
+                          lightningAddress={item.lightningAddress ?? ''}
+                          pubkey={item.pubkey}
+                          eventId={item.eventId}
+                          total={item.zapTotal}
+                          disabled={!hasWallet}
+                          title={!hasWallet ? 'Add a wallet to zap' : undefined}
+                        />
+                      }
+                    />
+                  </div>
+                );
+              }}
+            />
+          );
+        }}
       </AutoSizer>
       <CommentDrawer
         videoId={commentVideoId || ''}

@@ -33,20 +33,10 @@ describe('Feed', () => {
   });
 
   describe('estimateFeedItemSize', () => {
-    it('matches window height when bottom nav is absent', () => {
+    it('matches window height', () => {
       const original = window.innerHeight;
       (window as any).innerHeight = 900;
-      document.documentElement.style.removeProperty('--bottom-nav-height');
       expect(estimateFeedItemSize()).toBe(900);
-      (window as any).innerHeight = original;
-    });
-
-    it('subtracts bottom nav height when present', () => {
-      const original = window.innerHeight;
-      (window as any).innerHeight = 900;
-      document.documentElement.style.setProperty('--bottom-nav-height', '50');
-      expect(estimateFeedItemSize()).toBe(850);
-      document.documentElement.style.removeProperty('--bottom-nav-height');
       (window as any).innerHeight = original;
     });
 
