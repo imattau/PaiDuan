@@ -48,6 +48,14 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
   const hasWallet = !!viewerProfile?.wallets?.length;
   useLayout();
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const didScrollToSelection = useRef(false);
   useEffect(() => {
     if (didScrollToSelection.current) return;
