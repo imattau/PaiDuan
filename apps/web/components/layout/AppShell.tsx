@@ -90,7 +90,7 @@ export default function AppShell({
           as="main"
           h="100vh"
           style={{ height: 'calc(100dvh - var(--bottom-nav-height, 0))' }}
-          overflowY="auto"
+          overflow="hidden"
         >
           <Box maxW="2xl" mx="auto" h="full" px={4}>
             {center}
