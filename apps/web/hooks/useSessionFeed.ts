@@ -20,12 +20,13 @@ export default function useSessionFeed(
   });
   const [maxSizeState] = useState(maxSize);
   const [queue, setQueue] = useState<VideoCardProps[]>([]);
+  const [shouldFetch, setShouldFetch] = useState(false);
 
   const feed = useFeed(mode, authors, {}, typeof window !== 'undefined');
 
   const fetchMore = useCallback(() => {
-    feed.loadMore();
-  }, [feed]);
+    setShouldFetch(true);
+  }, []);
 
   const processedRef = useRef(0);
   useEffect(() => {
@@ -42,10 +43,11 @@ export default function useSessionFeed(
   }, [feed.items, maxSizeState]);
 
   useEffect(() => {
-    if (queue.length < threshold && !feed.loading) {
-      fetchMore();
+    if ((queue.length < threshold || shouldFetch) && !feed.loading) {
+      feed.loadMore();
+      setShouldFetch(false);
     }
-  }, [queue.length, threshold, fetchMore, feed.loading]);
+  }, [queue.length, threshold, shouldFetch, feed]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
