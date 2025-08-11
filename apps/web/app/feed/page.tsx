@@ -3,7 +3,7 @@ import AppShell from '@/components/layout/AppShell';
 import MainNav from '@/components/layout/MainNav';
 import RightPanel from '@/components/feed/RightPanel';
 import Feed from '@/components/Feed';
-import useFeed from '@/hooks/useFeed';
+import useSessionFeed from '@/hooks/useSessionFeed';
 import { useAuth } from '@/hooks/useAuth';
 import useFollowing from '@/hooks/useFollowing';
 import useFollowerCount from '@/hooks/useFollowerCount';
@@ -33,11 +33,9 @@ export default function FeedPage() {
   }, [feedMode, setFilterAuthor]);
 
   const mode = filterAuthor ? { author: filterAuthor } : feedMode;
-  const { items: videos, loadMore, loading } = useFeed(
+  const { queue: videos, fetchMore, markSeen } = useSessionFeed(
     mode,
     feedMode === 'following' && !filterAuthor ? following : [],
-    {},
-    isClient,
   );
   const me =
     auth.status === 'ready'
@@ -58,6 +56,8 @@ export default function FeedPage() {
     setFilterAuthor(pubkey);
   }
 
+  const loading = videos.length === 0;
+
   return (
     <CurrentVideoProvider>
       <AppShell
@@ -66,9 +66,14 @@ export default function FeedPage() {
           <div className="feed-container h-full">
             {/* tabs bar you already have can stay on top */}
             {isClient ? (
-              <Feed items={videos} loadMore={loadMore} loading={loading} />
+              <Feed
+                items={videos}
+                loadMore={fetchMore}
+                markSeen={markSeen}
+                loading={loading}
+              />
             ) : (
-              <Feed items={[]} loadMore={() => {}} loading />
+              <Feed items={[]} loadMore={() => {}} markSeen={() => {}} loading />
             )}
           </div>
         }

@@ -5,34 +5,49 @@ import { render, waitFor } from '@testing-library/react';
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
+(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
-const scrollToIndex = vi.fn();
-const MockVirtuoso = React.forwardRef((props: any, ref: any) => {
-  if (typeof ref === 'function') {
-    ref({ scrollToIndex });
-  } else if (ref) {
-    ref.current = { scrollToIndex };
-  }
-  return <div {...props} />;
+const virtuosoMock = vi.hoisted(() => {
+  const React = require('react');
+  const scrollToIndex = vi.fn();
+  const MockVirtuoso = React.forwardRef((props: any, ref: any) => {
+    if (typeof ref === 'function') {
+      ref({ scrollToIndex });
+    } else if (ref) {
+      ref.current = { scrollToIndex };
+    }
+    return React.createElement('div', props);
+  });
+  MockVirtuoso.displayName = 'Virtuoso';
+  return { Virtuoso: MockVirtuoso, scrollToIndex };
 });
-MockVirtuoso.displayName = 'Virtuoso';
-vi.mock('react-virtuoso', () => ({ Virtuoso: MockVirtuoso }));
+vi.mock('react-virtuoso', () => ({ Virtuoso: virtuosoMock.Virtuoso }));
+const { scrollToIndex } = virtuosoMock;
 
-vi.mock('./VideoCard', () => ({
-  VideoCard: (props: any) => <div data-video={props.eventId} />, // simple stub
-  default: (props: any) => <div data-video={props.eventId} />,
-}));
+vi.mock('./VideoCard', () => {
+  const React = require('react');
+  return {
+    VideoCard: (props: any) => React.createElement('div', { 'data-video': props.eventId }),
+    default: (props: any) => React.createElement('div', { 'data-video': props.eventId }),
+  };
+});
 vi.mock('./EmptyState', () => ({ default: () => null }));
 vi.mock('./ui/SkeletonVideoCard', () => ({ SkeletonVideoCard: () => null }));
-vi.mock('next/link', () => ({ default: (props: any) => <a {...props} /> }));
+vi.mock('next/link', () => {
+  const React = require('react');
+  return { default: (props: any) => React.createElement('a', props) };
+});
 vi.mock('./CommentDrawer', () => ({ default: () => null }));
 vi.mock('./ZapButton', () => ({ default: () => null }));
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ state: { status: 'ready', pubkey: 'pk' } }) }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ wallets: [] }) }));
-vi.mock('@/context/LayoutContext', () => ({
-  useLayout: () => 'mobile',
-  LayoutProvider: ({ children }: any) => <div>{children}</div>,
-}));
+vi.mock('@/context/LayoutContext', () => {
+  const React = require('react');
+  return {
+    useLayout: () => 'mobile',
+    LayoutProvider: ({ children }: any) => React.createElement('div', null, children),
+  };
+});
 
 import Feed from './Feed';
 import { useFeedSelection } from '@/store/feedSelection';
