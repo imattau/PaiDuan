@@ -41,6 +41,9 @@ self.addEventListener('activate', (event) => {
 
 workbox.core.clientsClaim();
 
+// Fallback to direct network requests for any URLs without an explicit route
+workbox.routing.setDefaultHandler(new workbox.strategies.NetworkOnly());
+
 const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin(`apiQueue-${CACHE_VERSION}`, {
   maxRetentionTime: 24 * 60,
 });
@@ -63,7 +66,9 @@ workbox.routing.registerRoute(
 
 workbox.routing.registerRoute(
   ({ url }) =>
-    url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/__nextjs_font/'),
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.startsWith('/__nextjs_font/') ||
+    url.pathname === '/favicon.svg',
   new workbox.strategies.CacheFirst({
     cacheName: `static-cache-${CACHE_VERSION}`,
     plugins: [
