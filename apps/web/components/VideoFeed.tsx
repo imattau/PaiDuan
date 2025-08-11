@@ -1,10 +1,49 @@
-'use client';
-import { Virtuoso } from 'react-virtuoso';
-import PlaceholderVideo from './PlaceholderVideo';
-import AutoSizer from './AutoSizer';
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { Virtuoso } from "react-virtuoso";
+import PlaceholderVideo from "./PlaceholderVideo";
+import AutoSizer from "./AutoSizer";
 
-export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: string) => void }) {
-  const videos: unknown[] = [];
+export default function VideoFeed({
+  onAuthorClick,
+  videos = [],
+}: {
+  onAuthorClick: (pubkey: string) => void;
+  videos?: string[];
+}) {
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const handleScroll = () => {
+      const next = Math.round(scroller.scrollTop / scroller.clientHeight);
+      if (next !== index) setIndex(next);
+    };
+
+    scroller.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scroller.removeEventListener("scroll", handleScroll);
+  }, [index]);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const els = scroller.querySelectorAll("video");
+    els.forEach((el, i) => {
+      const video = el as HTMLVideoElement;
+      if (i === index) {
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } else {
+        video.pause();
+      }
+    });
+  }, [index]);
 
   if (videos.length === 0) {
     return (
@@ -24,9 +63,19 @@ export default function VideoFeed({ onAuthorClick }: { onAuthorClick: (pubkey: s
         <Virtuoso
           data={videos}
           style={{ width, height }}
-          className="relative h-full w-full overflow-auto overscroll-contain"
-          itemContent={() => (
-            <PlaceholderVideo className="h-full w-full" message="Loading video…" />
+          className="relative h-full w-full overflow-auto overscroll-contain snap-y snap-mandatory"
+          scrollerRef={(ref) => {
+            scrollerRef.current = ref as HTMLDivElement | null;
+          }}
+          itemContent={(i, video) => (
+            <div className="snap-start h-full w-full">
+              <video
+                className="h-full w-full"
+                src={video as string}
+                playsInline
+                muted
+              />
+            </div>
           )}
         />
       )}
