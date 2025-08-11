@@ -7,13 +7,13 @@ import { getNavigation } from '@/config/navigation';
 import { isRouteActive } from '@/utils/navigation';
 import { useLayout } from '@/context/LayoutContext';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  Flex,
-  Link as ChakraLink,
-  useColorModeValue,
-} from '@chakra-ui/react';
+import { Flex, Link as ChakraLink, useColorModeValue } from '@chakra-ui/react';
 
-export default function BottomNav() {
+interface BottomNavProps {
+  orientation?: 'horizontal' | 'vertical';
+}
+
+export default function BottomNav({ orientation = 'horizontal' }: BottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -58,7 +58,17 @@ export default function BottomNav() {
     };
   }, [router, navigation]);
 
+  const isVertical = orientation === 'vertical';
+
   useEffect(() => {
+    if (isVertical) {
+      document.documentElement.style.removeProperty('--bottom-nav-height');
+      const width = 56;
+      document.documentElement.style.setProperty('--side-nav-width', `${width}px`);
+      return () => {
+        document.documentElement.style.removeProperty('--side-nav-width');
+      };
+    }
     if (layout === 'desktop') {
       document.documentElement.style.removeProperty('--bottom-nav-height');
       return;
@@ -68,20 +78,25 @@ export default function BottomNav() {
     return () => {
       document.documentElement.style.removeProperty('--bottom-nav-height');
     };
-  }, [layout]);
-  if (layout === 'desktop') return null;
+  }, [layout, isVertical]);
+  if (layout === 'desktop' && !isVertical) return null;
 
   return (
     <Flex
       as="nav"
       position="fixed"
-      bottom={0}
-      insetX={0}
-      justify="space-around"
-      borderTop="1px"
+      bottom={isVertical ? undefined : 0}
+      top={isVertical ? 0 : undefined}
+      insetX={isVertical ? undefined : 0}
+      left={isVertical ? 0 : undefined}
+      justify={isVertical ? 'flex-start' : 'space-around'}
+      borderTop={isVertical ? undefined : '1px'}
+      borderRight={isVertical ? '1px' : undefined}
       borderColor={borderColor}
       bg={bg}
-      h="14"
+      h={isVertical ? 'full' : '14'}
+      w={isVertical ? '14' : undefined}
+      flexDirection={isVertical ? 'column' : undefined}
     >
       {navigation.map(({ path, label, icon: Icon }) => {
         const active = isRouteActive(path, pathname, searchParams, locale);
@@ -94,7 +109,7 @@ export default function BottomNav() {
             flexDirection="column"
             alignItems="center"
             justifyContent="center"
-            flex="1"
+            flex={isVertical ? 'none' : '1'}
             p={3}
             color={active ? activeColor : inactiveColor}
             _hover={{ color: activeColor }}
