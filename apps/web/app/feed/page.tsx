@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import useFollowing from '@/hooks/useFollowing';
 import useFollowerCount from '@/hooks/useFollowerCount';
 import { useProfile } from '@/hooks/useProfile';
+import { useAvatar } from '@/hooks/useAvatar';
 import { useFeedSelection } from '@/store/feedSelection';
 import { CurrentVideoProvider } from '@/hooks/useCurrentVideo';
 import { useSearchParams } from 'next/navigation';
@@ -37,16 +38,18 @@ export default function FeedPage() {
     mode,
     feedMode === 'following' && !filterAuthor ? following : [],
   );
+  const mePubkey = auth.status === 'ready' ? auth.pubkey : 'me';
+  const meAvatar = useAvatar(meProfile?.picture ? undefined : mePubkey);
   const me =
     auth.status === 'ready'
       ? {
-          avatar: meProfile?.picture || `/api/avatar/${auth.pubkey}`,
+          avatar: meProfile?.picture || meAvatar,
           name: meProfile?.name || auth.pubkey.slice(0, 8),
           username: meProfile?.name || auth.pubkey.slice(0, 8),
           stats: { followers: myFollowerCount, following: following.length },
         }
       : {
-          avatar: '/api/avatar/me',
+          avatar: meAvatar,
           name: 'You',
           username: 'me',
           stats: { followers: 0, following: 0 },

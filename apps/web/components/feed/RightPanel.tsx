@@ -8,6 +8,7 @@ import { useFeedSelection } from '@/store/feedSelection';
 import { useLayout } from '@/context/LayoutContext';
 import { useProfile } from '@/hooks/useProfile';
 import useFollowerCount from '@/hooks/useFollowerCount';
+import { useAvatar } from '@/hooks/useAvatar';
 import {
   Box,
   Stack,
@@ -35,10 +36,15 @@ export default function RightPanel({
   const shouldLoad = isDesktop || isOpen;
   const profile = useProfile(shouldLoad ? selectedVideoAuthor : undefined);
   const followers = useFollowerCount(shouldLoad ? selectedVideoAuthor : undefined);
+  const avatarUrl = useAvatar(
+    shouldLoad && selectedVideoAuthor && !profile?.picture
+      ? selectedVideoAuthor
+      : undefined,
+  );
   const author =
     selectedVideoAuthor && profile
       ? {
-          avatar: profile.picture || `/api/avatar/${selectedVideoAuthor}`,
+          avatar: profile.picture || avatarUrl,
           name: profile.name || selectedVideoAuthor.slice(0, 8),
           username: profile.name || selectedVideoAuthor.slice(0, 8),
           pubkey: selectedVideoAuthor,
@@ -59,7 +65,6 @@ export default function RightPanel({
               width={48}
               height={48}
               style={{ borderRadius: '50%', objectFit: 'cover' }}
-              onError={(e) => (e.currentTarget.src = '/avatar.svg')}
               crossOrigin="anonymous"
               unoptimized
             />
