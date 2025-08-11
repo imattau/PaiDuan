@@ -26,8 +26,9 @@ vi.mock('react-intersection-observer', () => ({
   useInView: () => ({ ref: () => {}, inView: true }),
 }));
 vi.mock('../hooks/useCurrentVideo', () => ({ useCurrentVideo: () => ({ setCurrent: () => {} }) }));
+const feedSelectionState = { selectedVideoId: undefined as string | undefined, setSelectedVideo: () => {} };
 vi.mock('@/store/feedSelection', () => ({
-  useFeedSelection: (selector: any) => selector({ setSelectedVideo: () => {} }),
+  useFeedSelection: (selector: any) => selector(feedSelectionState),
 }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: 'author' }) }));
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
@@ -71,6 +72,7 @@ afterEach(() => {
   play.mockClear();
   playbackPause.mockClear();
   telemetryTrack.mockClear();
+  feedSelectionState.selectedVideoId = undefined;
 });
 
 describe('VideoCard', () => {
@@ -306,6 +308,8 @@ describe('VideoCard', () => {
     const { container } = render(<VideoCard {...props} />);
     const video = container.querySelector('video') as HTMLVideoElement;
     fireEvent.loadedData(video);
+    play.mockClear();
+    playbackPause.mockClear();
     const card = container.firstChild as HTMLElement;
     card.getBoundingClientRect = () => ({
       left: 0,
@@ -336,6 +340,8 @@ describe('VideoCard', () => {
     const { container } = render(<VideoCard {...props} />);
     const video = container.querySelector('video') as HTMLVideoElement;
     fireEvent.loadedData(video);
+    play.mockClear();
+    playbackPause.mockClear();
     const card = container.firstChild as HTMLElement;
     card.getBoundingClientRect = () => ({
       left: 0,

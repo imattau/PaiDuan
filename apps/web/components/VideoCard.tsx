@@ -89,8 +89,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [isPlaying, setIsPlaying] = useState(true);
   const [triedFallback, setTriedFallback] = useState(false);
   const { setCurrent } = useCurrentVideo();
-  const { ref, inView } = useInView({ threshold: 0.7 });
+  const { ref, inView } = useInView({ threshold: 0.25 });
+  const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
     if (!errorMessage) return;
@@ -105,8 +107,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   useEffect(() => {
     const video = playerRef.current;
-    if (!video || !inView) return;
+    const isSelected = selectedVideoId === eventId;
+    if (!video || (!inView && !isSelected) || hasLoadedRef.current) return;
     playback.loadSource(video, { videoUrl, manifestUrl, eventId });
+    hasLoadedRef.current = true;
     const offState = playback.onStateChange((state) => {
       setIsPlaying(state === 'playing');
     });
@@ -117,7 +121,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       offState();
       offError();
     };
-  }, [inView, manifestUrl, videoUrl, eventId]);
+  }, [inView, selectedVideoId, manifestUrl, videoUrl, eventId]);
 
   useEffect(() => {
     if (inView) {
@@ -128,7 +132,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
 
   useEffect(() => {
-    if (!inView) {
+    if (inView && hasLoadedRef.current) {
+      playback.play().catch(() => {});
+    } else if (!inView) {
       playback.pause();
     }
   }, [inView]);
