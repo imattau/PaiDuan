@@ -24,9 +24,10 @@ function generateIdenticon(pubkey: string): string {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { pubkey: string } },
+  { params }: { params: Promise<{ pubkey: string }> },
 ) {
-  const svg = generateIdenticon(params.pubkey);
+  const { pubkey } = await params;
+  const svg = generateIdenticon(pubkey);
   return new NextResponse(svg, {
     headers: {
       'Content-Type': 'image/svg+xml',
@@ -37,7 +38,7 @@ export async function GET(
 
 export async function HEAD(
   req: NextRequest,
-  ctx: { params: { pubkey: string } },
+  ctx: { params: Promise<{ pubkey: string }> },
 ) {
   const res = await GET(req, ctx);
   return new NextResponse(null, { status: res.status, headers: res.headers });
