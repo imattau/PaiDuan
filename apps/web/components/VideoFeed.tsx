@@ -20,12 +20,12 @@ export default function VideoFeed({
 
     const handleScroll = () => {
       const next = Math.round(scroller.scrollTop / scroller.clientHeight);
-      if (next !== index) setIndex(next);
+      setIndex((prev) => (next !== prev ? next : prev));
     };
 
     scroller.addEventListener("scroll", handleScroll, { passive: true });
     return () => scroller.removeEventListener("scroll", handleScroll);
-  }, [index]);
+  }, []);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
