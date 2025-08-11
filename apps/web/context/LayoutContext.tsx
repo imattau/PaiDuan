@@ -59,8 +59,12 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
 
 export function useLayout(): LayoutType {
   const ctx = useContext(LayoutContext);
-  if (ctx === undefined) {
-    throw new Error('useLayout must be used within a LayoutProvider');
+  if (ctx !== undefined) return ctx;
+
+  // Fallback for environments without LayoutProvider (e.g. Storybook, tests)
+  if (typeof window !== 'undefined' && 'matchMedia' in window) {
+    if (window.matchMedia('(min-width: 1280px)').matches) return 'desktop';
+    if (window.matchMedia('(min-width: 1024px)').matches) return 'tablet';
   }
-  return ctx;
+  return 'mobile';
 }
