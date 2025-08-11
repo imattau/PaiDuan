@@ -14,17 +14,18 @@ workbox.core.setCacheNameDetails({
   suffix: CACHE_VERSION,
 });
 
+const manifest = (self.__WB_MANIFEST || []).filter(
+  (entry) => !/app-build-manifest\.json$/.test(entry.url),
+);
+try {
+  workbox.precaching.precacheAndRoute(manifest);
+  workbox.precaching.cleanupOutdatedCaches();
+} catch (err) {
+  console.warn('Precache manifest missing entries', err);
+}
+
 self.addEventListener('install', () => {
   self.skipWaiting();
-  const manifest = (self.__WB_MANIFEST || []).filter(
-    (entry) => !/app-build-manifest\.json$/.test(entry.url),
-  );
-  try {
-    workbox.precaching.precacheAndRoute(manifest);
-    workbox.precaching.cleanupOutdatedCaches();
-  } catch (err) {
-    console.warn('Precache manifest missing entries', err);
-  }
 });
 
 self.addEventListener('activate', (event) => {
