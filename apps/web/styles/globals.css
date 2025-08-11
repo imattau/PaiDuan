@@ -83,6 +83,10 @@ body {
   min-height: 100vh;
 }
 
+body.no-scroll {
+  overflow: hidden;
+}
+
 @layer utilities {
   .text-primary {
     color: hsl(var(--text-primary));
