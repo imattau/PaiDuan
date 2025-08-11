@@ -22,11 +22,23 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https
 (global as any).document = dom.window.document;
 (global as any).navigator = dom.window.navigator;
 
-function TestComponent({ maxSize = 50 }: { maxSize?: number }) {
-  const { queue, markSeen } = useSessionFeed('all', [], { threshold: 0, maxSize });
+function TestComponent({
+  maxSize = 50,
+  threshold = 0,
+}: {
+  maxSize?: number;
+  threshold?: number;
+}) {
+  const { queue, markSeen, fetchMore } = useSessionFeed('all', [], {
+    threshold,
+    maxSize,
+  });
   (TestComponent as any).queue = queue;
   (TestComponent as any).markSeen = markSeen;
-  return React.createElement('div', { 'data-items': queue.map((i) => i.eventId).join(',') });
+  (TestComponent as any).fetchMore = fetchMore;
+  return React.createElement('div', {
+    'data-items': queue.map((i) => i.eventId).join(','),
+  });
 }
 
 describe('useSessionFeed', () => {
@@ -61,6 +73,23 @@ describe('useSessionFeed', () => {
     await act(async () => {});
     const rendered = container.querySelector('div')?.getAttribute('data-items');
     expect(rendered).toBe('3,4,5');
+  });
+
+  it('fetches more pages when end of feed is reached', async () => {
+    feedState.items = Array.from({ length: 3 }, (_, i) => ({
+      eventId: String(i + 1),
+      pubkey: 'p' + i,
+      author: '',
+      caption: '',
+      videoUrl: '',
+      lightningAddress: '',
+      zapTotal: 0,
+    }));
+    render(React.createElement(TestComponent, { threshold: 1 }));
+    await act(async () => {
+      (TestComponent as any).fetchMore();
+    });
+    expect(loadMore).toHaveBeenCalled();
   });
 });
 
