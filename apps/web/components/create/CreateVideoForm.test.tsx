@@ -12,12 +12,12 @@ import create from '../../locales/en/create.json';
 
 (globalThis as any).React = React;
 
-const mockTrim = vi.fn();
+const mockTrim = vi.hoisted(() => vi.fn());
 vi.mock('../../utils/trimVideoWebCodecs', () => ({
   trimVideoWebCodecs: (...args: any[]) => mockTrim(...(args as any)),
 }));
 
-const mockSignEvent = vi.fn(() => Promise.resolve({}));
+const mockSignEvent = vi.hoisted(() => vi.fn(() => Promise.resolve({ id: 'id' })));
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
     state: { status: 'ready', pubkey: 'pub', signer: { signEvent: mockSignEvent } },
@@ -27,10 +27,10 @@ vi.mock('../../hooks/useAuth', () => ({
 let profileMock: any = {};
 vi.mock('../../hooks/useProfile', () => ({ useProfile: () => profileMock }));
 vi.mock('../../hooks/useFollowing', () => ({ default: () => ({ following: [] }) }));
-vi.mock('../../lib/nostr', () => ({ getRelays: () => [] }));
+vi.mock('@/lib/nostr', () => ({ getRelays: () => [] }));
 
 const mockPublish = vi.hoisted(() => vi.fn());
-vi.mock('../../lib/relayPool', () => ({ default: { publish: mockPublish } }));
+vi.mock('@/lib/relayPool', () => ({ default: { publish: mockPublish } }));
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn() }) }));
 const mockToast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
@@ -108,7 +108,6 @@ describe('CreateVideoForm', () => {
     (URL as any).createObjectURL = vi.fn(() => 'blob:mock');
     mockTrim.mockImplementation((_f: any, opts: any, onProgress: any) => {
       onProgress?.(0.5);
-      onProgress?.(1);
       return Promise.resolve(new Blob());
     });
 
@@ -134,6 +133,7 @@ describe('CreateVideoForm', () => {
     expect(container.querySelector('.bg-blue-500')).not.toBeNull();
     expect(publishButton.disabled).toBe(true);
 
+    const captionInput = container.querySelector('input[placeholder="Caption"]') as HTMLInputElement;
     const topicsInput = container.querySelector(
       'input[placeholder="Topic tags (comma separated)"]',
     ) as HTMLInputElement;
@@ -147,6 +147,7 @@ describe('CreateVideoForm', () => {
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
     await act(async () => {
+      setValue(captionInput, 'caption');
       setValue(topicsInput, 'topic');
       setValue(lightningInput, 'addr');
     });
@@ -259,6 +260,7 @@ describe('CreateVideoForm', () => {
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const captionInput = container.querySelector('input[placeholder="Caption"]') as HTMLInputElement;
     const topicsInput = container.querySelector(
       'input[placeholder="Topic tags (comma separated)"]',
     ) as HTMLInputElement;
@@ -285,6 +287,7 @@ describe('CreateVideoForm', () => {
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
     await act(async () => {
+      setValue(captionInput, 'caption');
       setValue(topicsInput, 'topic');
       setValue(lightningInput, 'addr');
       licenseSelect.value = 'CC BY';
@@ -330,6 +333,7 @@ describe('CreateVideoForm', () => {
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const captionInput = container.querySelector('input[placeholder="Caption"]') as HTMLInputElement;
     const topicsInput = container.querySelector(
       'input[placeholder="Topic tags (comma separated)"]',
     ) as HTMLInputElement;
@@ -355,6 +359,7 @@ describe('CreateVideoForm', () => {
     };
 
     await act(async () => {
+      setValue(captionInput, 'caption');
       setValue(topicsInput, 'topic');
       setValue(lightningInput, 'addr');
       addButton.click();
@@ -404,6 +409,7 @@ describe('CreateVideoForm', () => {
     });
 
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const captionInput = container.querySelector('input[placeholder="Caption"]') as HTMLInputElement;
     const topicsInput = container.querySelector(
       'input[placeholder="Topic tags (comma separated)"]',
     ) as HTMLInputElement;
@@ -433,6 +439,7 @@ describe('CreateVideoForm', () => {
     const customInput = () =>
       container.querySelector('[data-testid="custom-license-input"]') as HTMLInputElement;
     await act(async () => {
+      setValue(captionInput, 'caption');
       setValue(topicsInput, 'topic');
       setValue(lightningInput, 'addr');
       licenseSelect.value = 'other';
