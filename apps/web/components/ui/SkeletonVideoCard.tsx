@@ -3,7 +3,7 @@ import Skeleton from './Skeleton';
 
 export function SkeletonVideoCard() {
   return (
-    <div className="relative mx-auto h-full w-full max-h-screen overflow-hidden rounded-2xl bg-text-primary/10 [max-height:calc(100dvh-var(--bottom-nav-height,0))]">
+    <div className="relative mx-auto h-screen w-full flex-1 min-h-0 overflow-hidden rounded-2xl bg-text-primary/10 [height:calc(100dvh-var(--bottom-nav-height,0))]">
       <Skeleton className="h-full w-full" />
       <div className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between">
         <div className="flex-1 min-w-0">
