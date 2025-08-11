@@ -81,6 +81,19 @@ workbox.routing.registerRoute(
 );
 
 workbox.routing.registerRoute(
+  ({ url }) => url.pathname.endsWith('/feed'),
+  new workbox.strategies.NetworkFirst({
+    cacheName: `feed-cache-${CACHE_VERSION}`,
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 10,
+        maxAgeSeconds: 5 * 60,
+      }),
+    ],
+  }),
+);
+
+workbox.routing.registerRoute(
   ({ url }) => /\.(?:mp4|webm)$/.test(url.pathname),
   new workbox.strategies.CacheFirst({
     cacheName: `video-cache-${CACHE_VERSION}`,
