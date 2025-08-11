@@ -23,10 +23,14 @@ export default function useSessionFeed(
   const [queue, setQueue] = useState<VideoCardProps[]>([]);
   const [shouldFetch, setShouldFetch] = useState(false);
 
-  const [hydrated, setHydrated] = useState(useFeedSelection.persist.hasHydrated());
+  const [hydrated, setHydrated] = useState(
+    useFeedSelection.persist?.hasHydrated?.() ?? true,
+  );
   useEffect(() => {
-    const unsub = useFeedSelection.persist.onFinishHydration(() => setHydrated(true));
-    return () => unsub();
+    const unsub = useFeedSelection.persist?.onFinishHydration?.(() => setHydrated(true));
+    return () => {
+      unsub?.();
+    };
   }, []);
   const lastCursorTime = useFeedSelection((s) => s.lastCursorTime);
 
