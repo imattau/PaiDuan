@@ -29,29 +29,30 @@ self.addEventListener('install', () => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => !key.includes(CACHE_VERSION))
-          .map((key) => caches.delete(key)),
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys.filter((key) => !key.includes(CACHE_VERSION)).map((key) => caches.delete(key)),
+        ),
       ),
-    ),
   );
 });
 
 workbox.core.clientsClaim();
 
-const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin(
-  `apiQueue-${CACHE_VERSION}`,
-  {
-    maxRetentionTime: 24 * 60,
-  },
-);
+// Fallback to direct network requests for any URLs without an explicit route
+workbox.routing.setDefaultHandler(new workbox.strategies.NetworkOnly());
+
+const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin(`apiQueue-${CACHE_VERSION}`, {
+  maxRetentionTime: 24 * 60,
+});
 
 workbox.routing.registerRoute(
   ({ url }) => url.pathname.startsWith('/api/'),
   new workbox.strategies.NetworkFirst({
     cacheName: `api-runtime-${CACHE_VERSION}`,
+    matchOptions: { ignoreVary: true },
   }),
 );
 
@@ -62,6 +63,22 @@ workbox.routing.registerRoute(
     method,
   );
 });
+
+workbox.routing.registerRoute(
+  ({ url }) =>
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.startsWith('/__nextjs_font/') ||
+    url.pathname === '/favicon.svg',
+  new workbox.strategies.CacheFirst({
+    cacheName: `static-cache-${CACHE_VERSION}`,
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 80,
+        maxAgeSeconds: 30 * 24 * 60 * 60,
+      }),
+    ],
+  }),
+);
 
 workbox.routing.registerRoute(
   ({ url }) => /\.(?:mp4|webm)$/.test(url.pathname),
@@ -99,15 +116,13 @@ self.addEventListener('notificationclick', (event) => {
   const url =
     event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
   event.waitUntil(
-    clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((windowClients) => {
-        for (const client of windowClients) {
-          if (client.url === url || client.url.startsWith(url)) {
-            return client.focus();
-          }
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url === url || client.url.startsWith(url)) {
+          return client.focus();
         }
-        return clients.openWindow(url);
-      })
+      }
+      return clients.openWindow(url);
+    }),
   );
 });
