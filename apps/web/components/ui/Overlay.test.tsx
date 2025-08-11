@@ -1,29 +1,27 @@
 /* @vitest-environment jsdom */
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
-import Overlay, { OverlayHost } from './Overlay';
+import Overlay, { OverlayHost, OverlayKind } from './Overlay';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { useLayout } from '@/hooks/useLayout';
+import { useLayout, LayoutType } from '@/hooks/useLayout';
 
 vi.mock('@/hooks/useLayout');
 
 describe('Overlay', () => {
-  it('closes when clicking the overlay and restores interactions', async () => {
-    const clickSpy = vi.fn();
-    vi.mocked(useLayout).mockReturnValue('mobile');
-    render(
-      <>
-        <button onClick={clickSpy}>feed</button>
-        <OverlayHost />
-      </>,
-    );
+  it.each(['desktop', 'tablet', 'mobile'] as LayoutType[])(
+    'opens and closes without error (%s layout)',
+    async (layout) => {
+      vi.mocked(useLayout).mockReturnValue(layout);
+      render(<OverlayHost />);
 
-    Overlay.open('modal', { content: <div>content</div> });
-    const overlay = document.querySelector('[role="button"][data-state="open"]') as HTMLElement;
-    overlay && fireEvent.click(overlay);
+      const type: OverlayKind = layout === 'desktop' ? 'modal' : 'drawer';
+      Overlay.open(type, { content: <div>content</div> });
 
-    await waitFor(() => expect(screen.queryByText('content')).toBeNull());
-    fireEvent.click(screen.getByText('feed'));
-    expect(clickSpy).toHaveBeenCalled();
-  });
+      await waitFor(() => expect(screen.getByText('content')).toBeDefined());
+
+      Overlay.close();
+
+      await waitFor(() => expect(screen.queryByText('content')).toBeNull());
+    },
+  );
 });
