@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import BottomNav from './BottomNav';
-import { useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
 import { Box, useColorModeValue } from '@chakra-ui/react';
 
 export default function AppShell({

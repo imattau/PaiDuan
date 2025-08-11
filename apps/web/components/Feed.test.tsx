@@ -1,10 +1,14 @@
 /* @vitest-environment jsdom */
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import Feed, { estimateFeedItemSize } from './Feed';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LayoutProvider } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
+
+vi.mock('@/hooks/useLayout');
+
+vi.mocked(useLayout).mockReturnValue('mobile');
 
 // Ensure React is available globally for components compiled with the classic JSX runtime
 (globalThis as any).React = React;
@@ -13,9 +17,7 @@ describe('Feed', () => {
   it('renders skeleton during loading', () => {
     const html = renderToStaticMarkup(
       <QueryClientProvider client={new QueryClient()}>
-        <LayoutProvider>
-          <Feed items={[]} loading />
-        </LayoutProvider>
+        <Feed items={[]} loading />
       </QueryClientProvider>,
     );
     expect(html).toContain('bg-text-primary/10');
@@ -24,9 +26,7 @@ describe('Feed', () => {
   it('renders empty state when no items', () => {
     const html = renderToStaticMarkup(
       <QueryClientProvider client={new QueryClient()}>
-        <LayoutProvider>
-          <Feed items={[]} />
-        </LayoutProvider>
+        <Feed items={[]} />
       </QueryClientProvider>,
     );
     expect(html).toContain('<svg');

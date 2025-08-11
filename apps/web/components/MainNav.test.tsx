@@ -3,7 +3,10 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import MainNav from '@/components/layout/MainNav';
-import { LayoutContext, LayoutType } from '@/context/LayoutContext';
+import type { LayoutType } from '@/hooks/useLayout';
+import { useLayout } from '@/hooks/useLayout';
+
+vi.mock('@/hooks/useLayout');
 
 vi.mock('@chakra-ui/react', () => {
   const React = require('react');
@@ -39,10 +42,9 @@ describe('MainNav', () => {
 
   (['desktop', 'tablet', 'mobile'] as LayoutType[]).forEach(layout => {
     it(`renders correctly on ${layout}`, () => {
+      vi.mocked(useLayout).mockReturnValue(layout);
       const html = renderToStaticMarkup(
-        <LayoutContext.Provider value={layout}>
-          <MainNav showSearch={false} showProfile={false} />
-        </LayoutContext.Provider>,
+        <MainNav showSearch={false} showProfile={false} />,
       );
       expect(html).toContain('/settings');
       expect(html).toContain('aria-current="page"');
@@ -51,10 +53,9 @@ describe('MainNav', () => {
 
   it('shows limited nav when signed out', () => {
     useAuthMock.mockReturnValue({ state: { status: 'signedOut' } });
+    vi.mocked(useLayout).mockReturnValue('mobile');
     const html = renderToStaticMarkup(
-      <LayoutContext.Provider value="mobile">
-        <MainNav showSearch={false} showProfile={false} />
-      </LayoutContext.Provider>,
+      <MainNav showSearch={false} showProfile={false} />,
     );
     expect(html).toContain('/get-started');
     expect(html).not.toContain('/settings');

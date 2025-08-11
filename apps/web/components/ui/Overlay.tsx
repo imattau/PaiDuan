@@ -1,6 +1,6 @@
 import React, { useState, ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
 
 export type OverlayKind = 'modal' | 'drawer';
 

@@ -41,13 +41,7 @@ vi.mock('./CommentDrawer', () => ({ default: () => null }));
 vi.mock('./ZapButton', () => ({ default: () => null }));
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ state: { status: 'ready', pubkey: 'pk' } }) }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ wallets: [] }) }));
-vi.mock('@/context/LayoutContext', () => {
-  const React = require('react');
-  return {
-    useLayout: () => 'mobile',
-    LayoutProvider: ({ children }: any) => React.createElement('div', null, children),
-  };
-});
+vi.mock('@/hooks/useLayout', () => ({ useLayout: () => 'mobile' }));
 
 import Feed from './Feed';
 import { useFeedSelection } from '@/store/feedSelection';

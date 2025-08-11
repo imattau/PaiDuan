@@ -5,7 +5,7 @@ import NextLink from 'next/link';
 import { useRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { getNavigation } from '@/config/navigation';
 import { isRouteActive } from '@/utils/navigation';
-import { useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { Flex, Link as ChakraLink, useColorModeValue } from '@chakra-ui/react';
 

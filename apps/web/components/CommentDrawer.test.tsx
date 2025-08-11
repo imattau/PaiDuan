@@ -5,7 +5,9 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import CommentDrawer from './CommentDrawer';
 import { OverlayHost } from './ui/Overlay';
-import { LayoutContext } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
+
+vi.mock('@/hooks/useLayout');
 
 vi.mock('@/hooks/useComments', () => ({
   default: () => ({ comments: [], hiddenIds: new Set(), send: vi.fn(), canSend: true }),
@@ -36,11 +38,12 @@ afterEach(() => {
 describe('CommentDrawer', () => {
   it('closes when overlay clicked', async () => {
     const onOpenChange = vi.fn();
+    vi.mocked(useLayout).mockReturnValue('mobile');
     render(
-      <LayoutContext.Provider value="mobile">
+      <>
         <OverlayHost />
         <CommentDrawer videoId="v1" open={true} onOpenChange={onOpenChange} />
-      </LayoutContext.Provider>,
+      </>,
     );
 
     // Drawer should be open

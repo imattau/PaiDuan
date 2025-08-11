@@ -6,7 +6,7 @@ import useSearch from '../hooks/useSearch';
 import NotificationBell from './NotificationBell';
 import { useTheme } from 'next-themes';
 import useT from '../hooks/useT';
-import { useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/hooks/useLayout';
 
 const SearchBar: React.FC<{ showActions?: boolean }> = ({ showActions = true }) => {
   const [value, setValue] = useState('');
