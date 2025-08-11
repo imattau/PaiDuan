@@ -55,12 +55,14 @@ export default function useSessionFeed(
     }
   }, [feed.items, maxSizeState]);
 
+  const { loadMore, loading } = feed;
+
   useEffect(() => {
-    if ((queue.length < threshold || shouldFetch) && !feed.loading) {
-      feed.loadMore();
+    if ((queue.length < threshold || shouldFetch) && !loading) {
+      loadMore();
       setShouldFetch(false);
     }
-  }, [queue.length, threshold, shouldFetch, feed]);
+  }, [queue.length, threshold, shouldFetch, loadMore, loading]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
