@@ -7,13 +7,10 @@ export const estimateFeedItemSize = () => {
   const nav =
     typeof window === 'undefined'
       ? 0
-      :
-          parseInt(
-            getComputedStyle(document.documentElement).getPropertyValue(
-              '--bottom-nav-height',
-            ) || '0',
-            10,
-          ) || 0;
+      : parseInt(
+          getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-height') || '0',
+          10,
+        ) || 0;
   return typeof window === 'undefined' ? 0 : window.innerHeight - nav;
 };
 
@@ -34,12 +31,7 @@ interface FeedProps {
   markSeen?: (count: number) => void;
 }
 
-export const Feed: React.FC<FeedProps> = ({
-  items,
-  loading,
-  loadMore,
-  markSeen,
-}) => {
+export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }) => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
   const selectedVideoId = useFeedSelection((s) => s.selectedVideoId);
@@ -127,7 +119,7 @@ export const Feed: React.FC<FeedProps> = ({
       <Virtuoso
         ref={virtuosoRef}
         totalCount={items.length}
-        className="h-screen w-full overflow-auto snap-y snap-mandatory scrollbar-none [height:calc(100dvh-var(--bottom-nav-height,0))]"
+        className="feed-container h-screen w-full overflow-auto snap-y snap-mandatory scrollbar-none [height:calc(100dvh-var(--bottom-nav-height,0))]"
         endReached={loadMore}
         rangeChanged={handleRangeChanged}
         itemContent={(index) => {
@@ -163,4 +155,3 @@ export const Feed: React.FC<FeedProps> = ({
 };
 
 export default Feed;
-
