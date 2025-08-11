@@ -7,10 +7,14 @@ export type LayoutType = 'desktop' | 'tablet' | 'mobile';
 
 function getLayout(width: number, height: number): LayoutType {
   const isPortrait = height >= width;
+  const portraitWidth = Math.min(width, height);
+
+  // Treat devices whose portrait width is around or below 1024px as mobile
+  if (portraitWidth <= 1024) return 'mobile';
+
   const desktopWidth = isPortrait ? 1280 : 1024;
   if (width >= desktopWidth) return 'desktop';
-  if (width >= 640) return 'tablet';
-  return 'mobile';
+  return 'tablet';
 }
 
 export const LayoutContext = createContext<LayoutType | undefined>(undefined);
