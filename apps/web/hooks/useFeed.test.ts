@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { prefetchFeed, FEED_PAGE_LIMIT } from './useFeed';
+import { prefetchFeed, FEED_PAGE_LIMIT, fetchFeedPage } from './useFeed';
 import { queryClient } from '@/lib/queryClient';
 
 const now = Math.floor(Date.now() / 1000);
@@ -34,7 +34,10 @@ const { subscribeMany } = vi.hoisted(() => {
   const subscribeMany = vi.fn((_relays: any, filters: any, opts: any) => {
     const filter = filters[0];
     [oldEvent, recentEvent].forEach((e) => {
-      if (!filter.since || e.created_at >= filter.since) {
+      if (
+        (!filter.since || e.created_at >= filter.since) &&
+        (!filter.until || e.created_at <= filter.until)
+      ) {
         opts.onevent(e);
       }
     });
@@ -82,6 +85,19 @@ describe('useFeed since filter', () => {
     await prefetchFeed(mode, [], limit);
     const data: any = queryClient.getQueryData(['feed', mode, '', limit]);
     expect(data.pages[0].items).toHaveLength(2);
+  });
+
+  it('applies cursor timestamp when fetching next page', async () => {
+    const until = recentEvent.created_at - 1;
+    const { items, nextCursorTime }: any = await fetchFeedPage({
+      pageParam: until,
+      mode: 'following',
+      authors: [],
+      limit,
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0].eventId).toBe('old');
+    expect(nextCursorTime).toBe(oldEvent.created_at - 1);
   });
 });
 

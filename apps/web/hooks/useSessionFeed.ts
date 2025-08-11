@@ -28,12 +28,12 @@ export default function useSessionFeed(
     const unsub = useFeedSelection.persist.onFinishHydration(() => setHydrated(true));
     return () => unsub();
   }, []);
-  const lastTimestamp = useFeedSelection((s) => s.lastTimestamp);
+  const lastCursorTime = useFeedSelection((s) => s.lastCursorTime);
 
   const feed = useFeed(
     mode,
     authors,
-    lastTimestamp ? { until: lastTimestamp } : {},
+    lastCursorTime ? { until: lastCursorTime } : {},
     hydrated && typeof window !== 'undefined',
   );
 

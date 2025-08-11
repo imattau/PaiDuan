@@ -46,7 +46,7 @@ interface FeedResult {
   error?: Error;
 }
 
-async function fetchFeedPage({
+export async function fetchFeedPage({
   pageParam,
   mode,
   authors,
@@ -69,7 +69,7 @@ async function fetchFeedPage({
   } else if (typeof mode === 'object' && 'author' in mode) {
     filter.authors = [mode.author];
   }
-  return await new Promise<{ items: VideoCardProps[]; tags: string[]; nextCursor?: number; timedOut?: boolean }>((resolve) => {
+  return await new Promise<{ items: VideoCardProps[]; tags: string[]; nextCursorTime?: number; timedOut?: boolean }>((resolve) => {
     const items: VideoCardProps[] = [];
     const tagCounts: Record<string, number> = {};
     let sub: { close: () => void };
@@ -81,14 +81,14 @@ async function fetchFeedPage({
       settled = true;
       clearTimeout(timer);
       sub?.close();
-      items.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-      const nextCursor = items.length ? (items[items.length - 1].createdAt ?? 0) - 1 : undefined;
+      items.sort((a, b) => (b.created ?? 0) - (a.created ?? 0));
+      const nextCursorTime = items.length ? (items[items.length - 1].created ?? 0) - 1 : undefined;
       resolve({
         items,
         tags: Object.entries(tagCounts)
           .sort((a, b) => b[1] - a[1])
           .map(([t]) => t),
-        nextCursor,
+        nextCursorTime,
         timedOut,
       });
     };
@@ -113,7 +113,7 @@ async function fetchFeedPage({
           lightningAddress: zapTags.length ? zapTags[0][1] : '',
           pubkey: event.pubkey,
           zapTotal: 0,
-          createdAt: event.created_at || 0,
+          created: event.created_at || 0,
         };
         items.push(item);
         await saveEvent(event);
@@ -136,7 +136,7 @@ export function useFeed(
     queryKey: ['feed', mode, authors.join(','), limit],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
     initialPageParam: cursor.until,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursorTime,
     staleTime: 1000 * 60 * 5,
     enabled,
   });
@@ -177,7 +177,7 @@ export function prefetchFeed(
     queryKey: ['feed', mode, authors.join(','), limit],
     queryFn: ({ pageParam }) => fetchFeedPage({ pageParam, mode, authors, limit }),
     initialPageParam: undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursorTime,
     staleTime: 1000 * 60 * 5,
   });
 }

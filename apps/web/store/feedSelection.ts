@@ -10,8 +10,8 @@ type S = {
   setFilterAuthor: (pubkey?: string) => void;
   lastIndex?: number;
   lastCursor?: string;
-  lastTimestamp?: number;
-  setLastPosition: (index: number, cursor: string, timestamp: number) => void;
+  lastCursorTime?: number;
+  setLastPosition: (index: number, cursor: string, cursorTime: number) => void;
 };
 export const useFeedSelection = create<S>()(
   persist(
@@ -29,9 +29,9 @@ export const useFeedSelection = create<S>()(
       setFilterAuthor: (pubkey) => set({ filterAuthor: pubkey }),
       lastIndex: undefined,
       lastCursor: undefined,
-      lastTimestamp: undefined,
-      setLastPosition: (index, cursor, timestamp) =>
-        set({ lastIndex: index, lastCursor: cursor, lastTimestamp: timestamp }),
+      lastCursorTime: undefined,
+      setLastPosition: (index, cursor, cursorTime) =>
+        set({ lastIndex: index, lastCursor: cursor, lastCursorTime: cursorTime }),
     }),
     {
       name: 'feed-selection',
@@ -44,7 +44,7 @@ export const useFeedSelection = create<S>()(
             ? {
                 lastIndex: state.lastIndex,
                 lastCursor: state.lastCursor,
-                lastTimestamp: state.lastTimestamp,
+                lastCursorTime: state.lastCursorTime,
               }
             : {}),
         };
