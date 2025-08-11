@@ -7,6 +7,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'apps/web'),
       ui: path.resolve(__dirname, 'packages/ui/src'),
       'react-virtuoso': path.resolve(__dirname, 'test/stubs/react-virtuoso.ts'),
+      'react-virtualized-auto-sizer': path.resolve(
+        __dirname,
+        'test/stubs/react-virtualized-auto-sizer.js'
+      ),
     },
   },
 

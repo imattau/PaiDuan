@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 import PlaceholderVideo from "./PlaceholderVideo";
-import AutoSizer from "./AutoSizer";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 export default function VideoFeed({
   onAuthorClick,
