@@ -19,6 +19,8 @@ import EmptyState from './EmptyState';
 import { SkeletonVideoCard } from './ui/SkeletonVideoCard';
 import Link from 'next/link';
 import { useFeedSelection } from '@/store/feedSelection';
+import { useSettings } from '@/store/settings';
+import telemetry from '@/agents/telemetry';
 import CommentDrawer from './CommentDrawer';
 import ZapButton from './ZapButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,6 +40,7 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
   const setLastPosition = useFeedSelection((s) => s.setLastPosition);
   const lastIndex = useFeedSelection((s) => s.lastIndex);
   const lastCursor = useFeedSelection((s) => s.lastCursor);
+  const enableFeedResume = useSettings((s) => s.enableFeedResume);
   const hasRestoredRef = useRef(false);
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
   const { state } = useAuth();
@@ -60,17 +63,32 @@ export const Feed: React.FC<FeedProps> = ({ items, loading, loadMore, markSeen }
     if (hasRestoredRef.current) return;
     if (!useFeedSelection.persist.hasHydrated()) return;
     if (!items.length) return;
-    if (lastCursor && !items.find((i) => i.eventId === lastCursor)) return;
-    if (lastIndex !== undefined) {
-      virtuosoRef.current?.scrollToIndex({ index: lastIndex, align: 'start' });
-    } else if (selectedVideoId) {
+    if (enableFeedResume) {
+      if (lastCursor && !items.find((i) => i.eventId === lastCursor)) {
+        telemetry.track('feed.resume.failed', {
+          reason: 'cursor_not_found',
+          cursor: lastCursor,
+        });
+        return;
+      }
+      if (lastIndex !== undefined) {
+        telemetry.track('feed.resume.loaded', {
+          index: lastIndex,
+          cursor: lastCursor,
+        });
+        virtuosoRef.current?.scrollToIndex({ index: lastIndex, align: 'start' });
+        hasRestoredRef.current = true;
+        return;
+      }
+    }
+    if (selectedVideoId) {
       const index = items.findIndex((i) => i.eventId === selectedVideoId);
       if (index >= 0) {
         virtuosoRef.current?.scrollToIndex({ index, align: 'start' });
       }
     }
     hasRestoredRef.current = true;
-  }, [items, selectedVideoId, lastIndex, lastCursor]);
+  }, [items, selectedVideoId, lastIndex, lastCursor, enableFeedResume]);
 
   useEffect(() => {
     if (!lastCursor) return;

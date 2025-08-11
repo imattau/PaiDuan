@@ -51,11 +51,13 @@ vi.mock('@/context/LayoutContext', () => {
 
 import Feed from './Feed';
 import { useFeedSelection } from '@/store/feedSelection';
+import { useSettings } from '@/store/settings';
 
 describe('Feed selection persistence', () => {
   beforeEach(() => {
     localStorage.clear();
     scrollToIndex.mockClear();
+    useSettings.getState().setEnableFeedResume(false);
   });
 
   it('scrolls to persisted selected video on mount', async () => {
@@ -77,6 +79,7 @@ describe('Feed selection persistence', () => {
   });
 
   it('restores last viewed position after refresh', async () => {
+    useSettings.getState().setEnableFeedResume(true);
     useFeedSelection.getState().setLastPosition(1, 'vid3', 123);
     const items = [
       { eventId: 'vid1', pubkey: 'pk1', author: 'a1', caption: '', videoUrl: '', lightningAddress: '', zapTotal: 0 },

@@ -320,7 +320,8 @@ export const bus = {
 - `enableWebCodecs`
 - `enableCompactDensity`
 - `enableNdk`
-- `enableHlsPlayback`
+ - `enableHlsPlayback`
+ - `enableFeedResume` - persist and resume the last feed position
 
 Expose in a small settings screen for dev and qa.
 
