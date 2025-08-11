@@ -117,6 +117,8 @@ body {
   }
   .feed-container {
     overscroll-behavior: none;
+    touch-action: pan-y;
+    height: 100dvh;
     @apply lg:mt-4;
   }
   .username {
