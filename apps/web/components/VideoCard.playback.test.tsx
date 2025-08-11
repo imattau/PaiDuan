@@ -24,7 +24,6 @@ Object.defineProperty(HTMLMediaElement.prototype, 'load', {
 vi.mock('./ReportModal', () => ({ default: () => null }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ prefetch: () => {} }) }));
 vi.mock('react-use', () => ({ useNetworkState: () => ({ online: true }) }));
-vi.mock('../hooks/useAdaptiveSource', () => ({ default: () => undefined }));
 vi.mock('react-intersection-observer', () => ({ useInView: () => ({ ref: () => {}, inView: true }) }));
 vi.mock('../hooks/useCurrentVideo', () => ({ useCurrentVideo: () => ({ setCurrent: () => {} }) }));
 vi.mock('@/store/feedSelection', () => ({
@@ -33,6 +32,23 @@ vi.mock('@/store/feedSelection', () => ({
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ picture: '', name: 'author' }) }));
 vi.mock('@/hooks/useProfiles', () => ({ prefetchProfile: () => Promise.resolve() }));
 vi.mock('@/agents/telemetry', () => ({ telemetry: { track: vi.fn() } }));
+vi.mock('react-player', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: React.forwardRef((props: any, ref: any) => {
+      const { onReady, ...rest } = props;
+      const videoRef = React.useRef<HTMLVideoElement>(null);
+      React.useImperativeHandle(ref, () => ({
+        seekTo: (t: number) => {
+          if (videoRef.current) videoRef.current.currentTime = t;
+        },
+        getInternalPlayer: () => videoRef.current,
+      }));
+      return <video ref={videoRef} onLoadedData={onReady} {...rest} />;
+    }),
+  };
+});
 
 import VideoCard from './VideoCard';
 

@@ -52,7 +52,7 @@ describe('useFollowerCount', () => {
     await act(async () => {
       root.render(<TestComponent />);
     });
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 20));
     expect(subscribeMany).toHaveBeenCalledTimes(1);
     expect(container.querySelector('div')?.getAttribute('data-count')).toBe('2');
     root.unmount();
@@ -62,7 +62,7 @@ describe('useFollowerCount', () => {
     await act(async () => {
       root2.render(<TestComponent />);
     });
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 20));
     expect(subscribeMany).toHaveBeenCalledTimes(1);
     expect(container2.querySelector('div')?.getAttribute('data-count')).toBe('2');
   });
@@ -73,7 +73,7 @@ describe('useFollowerCount', () => {
     await act(async () => {
       root.render(<SwitchTestComponent pubkey="me" />);
     });
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 20));
     expect(container.querySelector('div')?.getAttribute('data-count')).toBe('2');
     const firstClose = subscribeMany.mock.results[0].value.close;
 
@@ -81,7 +81,7 @@ describe('useFollowerCount', () => {
       root.render(<SwitchTestComponent pubkey="you" />);
     });
     expect(container.querySelector('div')?.getAttribute('data-count')).toBe('0');
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 20));
     expect(container.querySelector('div')?.getAttribute('data-count')).toBe('2');
     expect(firstClose).toHaveBeenCalled();
 

@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from './ui/Skeleton';
 import { useNetworkState } from 'react-use';
-import { playback } from '@/agents/playback';
+import ReactPlayer from 'react-player';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useCurrentVideo } from '../hooks/useCurrentVideo';
@@ -20,6 +20,66 @@ import { prefetchProfile } from '@/hooks/useProfiles';
 import PlaceholderVideo from './PlaceholderVideo';
 import VideoFallback from './VideoFallback';
 import { telemetry } from '@/agents/telemetry';
+
+const STORAGE_KEY = 'lastPlaybackPosition';
+const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24h
+
+type ProgressEntry = { currentTime: number; timestamp: number };
+type ProgressMap = Record<string, ProgressEntry>;
+
+function loadStore(): ProgressMap {
+  if (typeof sessionStorage === 'undefined') return {};
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as ProgressMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStore(store: ProgressMap) {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    if (Object.keys(store).length === 0) {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } else {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function loadProgress(eventId: string): number | null {
+  const store = loadStore();
+  const now = Date.now();
+  let changed = false;
+  for (const [id, entry] of Object.entries(store)) {
+    if (now - entry.timestamp > EXPIRY_MS) {
+      delete store[id];
+      changed = true;
+    }
+  }
+  if (changed) saveStore(store);
+  const entry = store[eventId];
+  return entry ? entry.currentTime : null;
+}
+
+function recordProgress(eventId: string, currentTime: number) {
+  const store = loadStore();
+  store[eventId] = { currentTime, timestamp: Date.now() };
+  saveStore(store);
+}
+
+function clearProgress(eventId: string) {
+  const store = loadStore();
+  if (eventId in store) {
+    delete store[eventId];
+    saveStore(store);
+  }
+}
+
+let currentVideoEl: HTMLVideoElement | null = null;
 
 export interface VideoCardProps {
   videoUrl: string;
@@ -62,8 +122,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   onReady,
 }) => {
   const router = useRouter();
-  const playerRef = useRef<HTMLVideoElement>(null);
-  const getPlayer = () => playerRef.current;
+  const playerRef = useRef<ReactPlayer>(null);
+  const getVideo = () => playerRef.current?.getInternalPlayer('html5') as HTMLVideoElement | null;
   const containerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted, handleAutoplayRejected] = usePlaybackPrefs((s) => [
     s.isMuted,
@@ -88,50 +148,34 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [showPlayIndicator, setShowPlayIndicator] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [triedFallback, setTriedFallback] = useState(false);
+  const [source, setSource] = useState(manifestUrl ?? videoUrl);
   const { setCurrent } = useCurrentVideo();
   const { ref, inView } = useInView({ threshold: 0.7 });
   const setSelectedVideo = useFeedSelection((s) => s.setSelectedVideo);
 
   useEffect(() => {
     if (!errorMessage) return;
-    const err = getPlayer()?.error;
+    const err = getVideo()?.error;
     if (err) console.error('Video playback error:', err);
   }, [errorMessage]);
 
   useEffect(() => {
-    const video = getPlayer();
+    const video = getVideo();
     if (video) video.playbackRate = speedMode ? 2 : 1;
   }, [speedMode]);
-
-  useEffect(() => {
-    const video = playerRef.current;
-    if (!video || !inView) return;
-    playback.loadSource(video, { videoUrl, manifestUrl, eventId });
-    const offState = playback.onStateChange((state) => {
-      setIsPlaying(state === 'playing');
-    });
-    const offError = playback.onError((message) => {
-      setErrorMessage(message);
-    });
-    return () => {
-      offState();
-      offError();
-    };
-  }, [inView, manifestUrl, videoUrl, eventId]);
 
   useEffect(() => {
     if (inView) {
       setCurrent({ eventId, pubkey, caption, posterUrl });
       setSelectedVideo(eventId, pubkey);
       telemetry.track('video.watch', { eventId, pubkey });
+    } else {
+      setIsPlaying(false);
+      const v = getVideo();
+      v?.pause();
+      if (v && currentVideoEl === v) currentVideoEl = null;
     }
   }, [inView, setCurrent, setSelectedVideo, eventId, pubkey, caption, posterUrl]);
-
-  useEffect(() => {
-    if (!inView) {
-      playback.pause();
-    }
-  }, [inView]);
 
   const handleRepost = async () => {
     if (!onRepost) return;
@@ -187,24 +231,26 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     const y = (e.clientY - rect.top) / rect.height;
     if (x < 0.25 || x > 0.75 || y < 0.25 || y > 0.75) return;
     if (isPlaying) {
-      playback.pause();
       setIsPlaying(false);
+      getVideo()?.pause();
       setShowPlayIndicator(true);
     } else {
       setShowPlayIndicator(false);
       setIsPlaying(true);
-      playback.play().catch(() => {
-        setShowPlayIndicator(true);
-        setIsPlaying(false);
-      });
+      getVideo()
+        ?.play()
+        .catch(() => {
+          setShowPlayIndicator(true);
+          setIsPlaying(false);
+        });
     }
   };
 
   const handleVideoError = () => {
     setShowPlayIndicator(false);
     setIsPlaying(false);
-    const primaryUrl = manifestUrl ?? videoUrl;
-    const errorCode = getPlayer()?.error?.code;
+    const primaryUrl = source;
+    const errorCode = getVideo()?.error?.code;
     const isOnline = online ?? (typeof navigator !== 'undefined' ? navigator.onLine : true);
 
     if (!isOnline || errorCode === 2) {
@@ -222,24 +268,36 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       setTriedFallback(true);
       setLoaded(false);
       setErrorMessage(null);
-      const player = getPlayer();
-      if (player && inView) {
-        playback.loadSource(player, { videoUrl, eventId });
-        playback.play().catch(() => {
-          setErrorMessage('Video unavailable');
-          telemetry.track('video.unavailable', {
-            eventId,
-            url: videoUrl,
-            errorCode,
-            status: 'play_failed',
-          });
-        });
-      }
+      setSource(videoUrl);
       return;
     }
 
     setErrorMessage('Video unavailable');
     telemetry.track('video.unavailable', { eventId, url: primaryUrl, errorCode });
+  };
+
+  const handleReady = () => {
+    setLoaded(true);
+    const t = loadProgress(eventId);
+    if (t != null) playerRef.current?.seekTo(t);
+    const video = getVideo();
+    if (video && inView) {
+      if (currentVideoEl && currentVideoEl !== video) currentVideoEl.pause();
+      currentVideoEl = video;
+      video.muted = muted;
+      video
+        .play()
+        .catch(() => {
+          handleAutoplayRejected();
+          video.muted = true;
+          return video.play();
+        })
+        .catch(() => {
+          setShowPlayIndicator(true);
+          setIsPlaying(false);
+        });
+    }
+    onReady?.();
   };
 
   return (
@@ -262,38 +320,24 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <PlaceholderVideo className="absolute inset-0 h-full w-full" message="Loading video…" />
       )}
       {!errorMessage && (
-        <video
+        <ReactPlayer
           ref={playerRef}
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${loaded ? '' : 'hidden'}`}
-          loop
+          src={source}
+          playing={inView && isPlaying}
           muted={muted}
+          loop
           playsInline
-          poster={posterUrl}
-          autoPlay={inView}
-          src={!manifestUrl ? videoUrl : undefined}
-          onLoadedData={() => {
-            setLoaded(true);
-            const video = getPlayer();
-            if (video && inView) {
-              // Autoplay handling: try with the user's mute preference first.
-              // If playback is blocked, mute the video and retry. On success,
-              // we keep it muted and update the user's preference via store.
-              video.muted = muted;
-              video
-                .play()
-                .catch(() => {
-                  handleAutoplayRejected();
-                  video.muted = true;
-                  return video.play();
-                })
-                .catch(() => {
-                  setShowPlayIndicator(true);
-                  setIsPlaying(false);
-                });
-            }
-            onReady?.();
-          }}
+          width="100%"
+          height="100%"
+          config={{ file: { attributes: { poster: posterUrl, playsInline: true } } }}
+          onReady={handleReady}
           onError={handleVideoError}
+          onProgress={({ playedSeconds }) => recordProgress(eventId, playedSeconds)}
+          onEnded={() => {
+            setIsPlaying(false);
+            clearProgress(eventId);
+          }}
         />
       )}
 
@@ -304,7 +348,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             e.stopPropagation();
             setShowPlayIndicator(false);
             setIsPlaying(true);
-            getPlayer()
+            getVideo()
               ?.play()
               .catch(() => {
                 setShowPlayIndicator(true);
@@ -395,7 +439,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           onClick={() => {
             const next = !muted;
             setMuted(next);
-            const player = getPlayer();
+            const player = getVideo();
             if (player) player.muted = next;
           }}
           title={muted ? 'Unmute' : 'Mute'}
